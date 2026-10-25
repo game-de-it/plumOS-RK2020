@@ -140,6 +140,28 @@ struct plumos_fbdev_renderer {
 #endif
 };
 
+static int plumos_fbdev_logical_width(
+    const struct plumos_fbdev_renderer *r) {
+  if (!r) {
+    return 0;
+  }
+  if (r->rotation == 1 || r->rotation == 3) {
+    return (int)(r->physical_yres ? r->physical_yres : r->var.yres);
+  }
+  return (int)(r->physical_xres ? r->physical_xres : r->var.xres);
+}
+
+static int plumos_fbdev_logical_height(
+    const struct plumos_fbdev_renderer *r) {
+  if (!r) {
+    return 0;
+  }
+  if (r->rotation == 1 || r->rotation == 3) {
+    return (int)(r->physical_xres ? r->physical_xres : r->var.xres);
+  }
+  return (int)(r->physical_yres ? r->physical_yres : r->var.yres);
+}
+
 #ifdef PLUMOS_FBDEV_ENABLE_DRM
 static void plumos_fbdev_drm_page_flip_handler(
     int fd, unsigned int sequence, unsigned int tv_sec, unsigned int tv_usec,
@@ -3024,34 +3046,44 @@ static void plumos_fbdev_entry_badge(char *out, size_t out_size,
 static void plumos_fbdev_graphic_top_layout_metrics(
     struct plumos_fbdev_renderer *r, const struct plumos_fbdev_motion *motion,
     int *columns_out, int *rows_out, int *grid_x_out, int *grid_y_out,
-    int *tile_size_out, int *gap_out) {
+    int *tile_width_out, int *tile_height_out, int *gap_out) {
   int strip = motion && strcmp(motion->top_layout, "tile_strip") == 0;
+  int compact = (int)r->var.xres <= 480 || (int)r->var.yres <= 320;
   int columns = strip ? 2 : 3;
   int rows = strip ? 1 : 2;
-  int horizontal_margin = strip ? 32 : 22;
-  int grid_y = strip ? 116 : 70;
-  int bottom_margin = strip ? 42 : 18;
-  int gap = strip ? 16 : 10;
-  int width_limited;
-  int height_limited;
-  int tile_size;
+  int horizontal_margin = compact ? (strip ? 24 : 12) : (strip ? 32 : 22);
+  int grid_y = compact ? (strip ? 80 : 64) : (strip ? 116 : 70);
+  int bottom_margin = compact ? (strip ? 30 : 12) : (strip ? 42 : 18);
+  int gap = compact ? (strip ? 12 : 8) : (strip ? 16 : 10);
+  int tile_width;
+  int tile_height;
   int grid_width;
   int grid_x;
 
-  width_limited = ((int)r->var.xres - horizontal_margin * 2 -
-                   gap * (columns - 1)) /
-                  columns;
-  height_limited = ((int)r->var.yres - grid_y - bottom_margin -
-                    gap * (rows - 1)) /
-                   rows;
-  tile_size = width_limited < height_limited ? width_limited : height_limited;
-  if (strip && tile_size > 260) {
-    tile_size = 260;
+  tile_width = ((int)r->var.xres - horizontal_margin * 2 -
+                gap * (columns - 1)) /
+               columns;
+  tile_height = ((int)r->var.yres - grid_y - bottom_margin -
+                 gap * (rows - 1)) /
+                rows;
+  if (!compact) {
+    int tile_size = tile_width < tile_height ? tile_width : tile_height;
+    tile_width = tile_size;
+    tile_height = tile_size;
   }
-  if (tile_size < 72) {
-    tile_size = 72;
+  if (strip && tile_width > 260) {
+    tile_width = 260;
   }
-  grid_width = tile_size * columns + gap * (columns - 1);
+  if (strip && tile_height > 190) {
+    tile_height = 190;
+  }
+  if (tile_width < 72) {
+    tile_width = 72;
+  }
+  if (tile_height < 72) {
+    tile_height = 72;
+  }
+  grid_width = tile_width * columns + gap * (columns - 1);
   grid_x = ((int)r->var.xres - grid_width) / 2;
   if (grid_x < 8) {
     grid_x = 8;
@@ -3068,8 +3100,11 @@ static void plumos_fbdev_graphic_top_layout_metrics(
   if (grid_y_out) {
     *grid_y_out = grid_y;
   }
-  if (tile_size_out) {
-    *tile_size_out = tile_size;
+  if (tile_width_out) {
+    *tile_width_out = tile_width;
+  }
+  if (tile_height_out) {
+    *tile_height_out = tile_height;
   }
   if (gap_out) {
     *gap_out = gap;
@@ -3083,8 +3118,10 @@ static void plumos_fbdev_draw_top_tile(struct plumos_fbdev_renderer *r,
   uint32_t fill = entry->selected ? p->selection_background : p->panel_inner;
   uint32_t outline = entry->selected ? p->accent : p->panel;
   uint32_t title_color = entry->selected ? p->selection_foreground : p->foreground;
-  int media_x = x + 14;
-  int media_y = y + 14;
+  int compact = (int)r->var.xres <= 480 || (int)r->var.yres <= 320;
+  int inset = compact ? 10 : 14;
+  int media_x = x + inset;
+  int media_y = y + inset;
   /*
    * Top-level system cards normally have no detail line.  Reserving the same
    * two-line footer used by ROM cards left their logo viewport as a shallow
@@ -3092,13 +3129,14 @@ static void plumos_fbdev_draw_top_tile(struct plumos_fbdev_renderer *r,
    * system logos on the RK2020 panel.  Give that unused row back to artwork
    * while retaining the old spacing for any entry that actually has detail.
    */
-  int title_y = y + h - (entry->detail[0] ? 58 : 32);
-  int detail_y = y + h - 30;
-  int media_w = w - 28;
-  int media_h = title_y - media_y - 10;
-  int title_scale = 2;
-  int title_left = x + 12;
-  int title_right = x + w - 12;
+  int title_y = y + h - (entry->detail[0] ? (compact ? 42 : 58)
+                                           : (compact ? 24 : 32));
+  int detail_y = y + h - (compact ? 22 : 30);
+  int media_w = w - inset * 2;
+  int media_h = title_y - media_y - (compact ? 7 : 10);
+  int title_scale = compact ? 1 : 2;
+  int title_left = x + (compact ? 8 : 12);
+  int title_right = x + w - (compact ? 8 : 12);
   int title_available = title_right - title_left;
   int title_width;
   int title_x;
@@ -3130,22 +3168,25 @@ static void plumos_fbdev_draw_top_tile(struct plumos_fbdev_renderer *r,
         r, media_x, media_y + (media_h - 28) / 2, media_w, badge, 4,
         entry->selected ? p->selection_foreground : p->foreground);
   }
-  title_width = plumos_fbdev_text_width_for(r, entry->title, title_scale);
+  title_width = plumos_fbdev_text_width_font(r, entry->title, title_scale,
+                                              compact);
   if (title_width > title_available) {
     title_scale = 1;
-    title_draw_y += 4;
-    title_width = plumos_fbdev_text_width_for(r, entry->title, title_scale);
+    title_draw_y += compact ? 0 : 4;
+    title_width = plumos_fbdev_text_width_font(r, entry->title, title_scale,
+                                                compact);
   }
   title_x = title_left + (title_available - title_width) / 2;
   if (title_x < title_left) {
     title_x = title_left;
   }
   plumos_fbdev_draw_text_clipped(r, title_x, title_draw_y, entry->title,
-                                 title_scale, 0, title_left, title_right,
+                                 title_scale, compact, title_left, title_right,
                                  title_color);
   if (entry->detail[0]) {
-    plumos_fbdev_draw_text(r, x + 12, detail_y, entry->detail, 2, p->muted,
-                           x + w - 12);
+    plumos_fbdev_draw_text_font(r, title_left, detail_y, entry->detail,
+                                compact ? 1 : 2, compact, p->muted,
+                                title_right);
   }
 }
 
@@ -3161,20 +3202,23 @@ static void plumos_fbdev_draw_top_entries(
   int rows;
   int grid_x;
   int grid_y;
-  int tile_size;
+  int tile_width;
+  int tile_height;
   int gap;
 
   if (!entries || count == 0) {
     return;
   }
   plumos_fbdev_graphic_top_layout_metrics(r, motion, &cols, &rows, &grid_x,
-                                          &grid_y, &tile_size, &gap);
+                                          &grid_y, &tile_width, &tile_height,
+                                          &gap);
   for (i = 0; i < count && i < (size_t)(cols * rows); i++) {
     int col = (int)i % cols;
     int row = (int)i / cols;
-    int x = grid_x + x_offset + col * (tile_size + gap);
-    int y = grid_y + y_offset + row * (tile_size + gap);
-    plumos_fbdev_draw_top_tile(r, p, &entries[i], x, y, tile_size, tile_size);
+    int x = grid_x + x_offset + col * (tile_width + gap);
+    int y = grid_y + y_offset + row * (tile_height + gap);
+    plumos_fbdev_draw_top_tile(r, p, &entries[i], x, y, tile_width,
+                               tile_height);
   }
 }
 
@@ -3261,14 +3305,15 @@ static void plumos_fbdev_draw_rom_preview(struct plumos_fbdev_renderer *r,
                                           const struct plumos_fbdev_palette *p,
                                           const struct plumos_fbdev_entry *entry,
                                           int x, int y, int w, int h) {
-  int media_x = x + 16;
-  int media_y = y + 18;
-  int media_w = w - 32;
-  int media_h = 156;
+  int compact = (int)r->var.xres <= 480 || (int)r->var.yres <= 320;
+  int media_x = x + (compact ? 10 : 16);
+  int media_y = y + (compact ? 10 : 18);
+  int media_w = w - (compact ? 20 : 32);
+  int media_h = compact ? 140 : 156;
   int thumbnail_drawn = 0;
   char badge[8];
-  int text_x = x + 16;
-  int text_right_x = x + w - 16;
+  int text_x = x + (compact ? 10 : 16);
+  int text_right_x = x + w - (compact ? 10 : 16);
   int text_available_w = text_right_x - text_x;
   int title_scroll_px = 0;
   int detail_scroll_px = 0;
@@ -3291,10 +3336,11 @@ static void plumos_fbdev_draw_rom_preview(struct plumos_fbdev_renderer *r,
                                     p->foreground);
     }
     if (text_available_w > 0) {
-      int title_width =
-          plumos_fbdev_text_width_font(r, entry->title, 2, 1);
-      int detail_width =
-          plumos_fbdev_text_width_font(r, entry->detail, 2, 1);
+      int text_scale = compact ? 1 : 2;
+      int title_width = plumos_fbdev_text_width_font(
+          r, entry->title, text_scale, 1);
+      int detail_width = plumos_fbdev_text_width_font(
+          r, entry->detail, text_scale, 1);
       if (title_width > text_available_w) {
         title_scroll_px =
             plumos_fbdev_marquee_offset(r, title_width, text_available_w, 12);
@@ -3304,12 +3350,15 @@ static void plumos_fbdev_draw_rom_preview(struct plumos_fbdev_renderer *r,
             plumos_fbdev_marquee_offset(r, detail_width, text_available_w, 12);
       }
     }
-    plumos_fbdev_draw_text_clipped(r, text_x - title_scroll_px, y + 200,
-                                   entry->title, 2, 1, text_x, text_right_x,
+    plumos_fbdev_draw_text_clipped(r, text_x - title_scroll_px,
+                                   y + (compact ? 166 : 200),
+                                   entry->title, compact ? 1 : 2, 1,
+                                   text_x, text_right_x,
                                    p->foreground);
     if (entry->detail[0]) {
-      plumos_fbdev_draw_text_clipped(r, text_x - detail_scroll_px, y + 232,
-                                     entry->detail, 2, 1, text_x,
+      plumos_fbdev_draw_text_clipped(r, text_x - detail_scroll_px,
+                                     y + (compact ? 190 : 232),
+                                     entry->detail, compact ? 1 : 2, 1, text_x,
                                      text_right_x, p->muted);
     }
   } else {
@@ -3330,14 +3379,15 @@ static int plumos_fbdev_render_roms(struct plumos_fbdev_renderer *r,
   size_t i;
   int w = (int)r->var.xres;
   int h = (int)r->var.yres;
-  int list_x = 18;
-  int list_y = 70;
+  int compact = w <= 480 || h <= 320;
+  int list_x = compact ? 12 : 18;
+  int list_y = compact ? 64 : 70;
   int list_w = w > 680 ? 360 : w / 2 - 28;
-  int row_h = 38;
-  int preview_x = list_x + list_w + 16;
-  int preview_y = 72;
-  int preview_w = w - preview_x - 16;
-  int preview_h = h - preview_y - 16;
+  int row_h = compact ? 34 : 38;
+  int preview_x = list_x + list_w + (compact ? 10 : 16);
+  int preview_y = compact ? 64 : 72;
+  int preview_w = w - preview_x - (compact ? 10 : 16);
+  int preview_h = h - preview_y - (compact ? 10 : 16);
 
   if (list_w < 190) {
     list_w = 190;
@@ -3367,7 +3417,7 @@ static int plumos_fbdev_render_roms(struct plumos_fbdev_renderer *r,
 
   for (i = 0; i < count; i++) {
     int y = list_y + (int)i * row_h;
-    int name_x = list_x + 24;
+    int name_x = list_x + (compact ? 18 : 24);
     int name_right_x = list_x + list_w - 10;
     int scroll_px = 0;
     uint32_t fg = entries[i].selected ? p->selection_foreground : p->foreground;
@@ -3378,8 +3428,8 @@ static int plumos_fbdev_render_roms(struct plumos_fbdev_renderer *r,
       plumos_fbdev_fill_rect(r, list_x - 6, y - 7, list_w, row_h - 4,
                              p->selection_background);
       if (name_right_x > name_x) {
-        int title_width =
-            plumos_fbdev_text_width_font(r, entries[i].title, 2, 1);
+        int title_width = plumos_fbdev_text_width_font(
+            r, entries[i].title, compact ? 1 : 2, 1);
         int available_width = name_right_x - name_x;
         if (title_width > available_width) {
           scroll_px =
@@ -3388,9 +3438,9 @@ static int plumos_fbdev_render_roms(struct plumos_fbdev_renderer *r,
       }
     }
     plumos_fbdev_draw_text(r, list_x, y + 3, entries[i].selected ? ">" : " ",
-                           2, fg, name_right_x);
+                           compact ? 1 : 2, fg, name_right_x);
     plumos_fbdev_draw_text_clipped(r, name_x - scroll_px, y,
-                                   entries[i].title, 2, 1, name_x,
+                                   entries[i].title, compact ? 1 : 2, 1, name_x,
                                    name_right_x, fg);
   }
 
@@ -3931,6 +3981,58 @@ static void plumos_fbdev_draw_text_token_row(
   }
 }
 
+struct plumos_fbdev_generic_layout {
+  int compact;
+  int title_y;
+  int first_entry_y;
+  int entry_scale;
+  int line_height;
+  int footer_height;
+  int content_bottom_y;
+};
+
+static void plumos_fbdev_generic_layout_metrics(
+    const struct plumos_fbdev_renderer *r, int settings_family,
+    int core_settings_page, int footer_reserved, int wifi_keyboard,
+    struct plumos_fbdev_generic_layout *layout) {
+  int w;
+  int h;
+
+  if (!layout) {
+    return;
+  }
+  memset(layout, 0, sizeof(*layout));
+  w = plumos_fbdev_logical_width(r);
+  h = plumos_fbdev_logical_height(r);
+  if (w <= 0) {
+    w = 480;
+  }
+  if (h <= 0) {
+    h = 320;
+  }
+  layout->compact = w <= 480 || h <= 320;
+  if (layout->compact) {
+    layout->title_y = 44;
+    layout->first_entry_y = 72;
+    layout->entry_scale = 1;
+    layout->line_height = 22;
+    layout->footer_height = footer_reserved ? 58 : 0;
+    layout->content_bottom_y =
+        h - layout->footer_height - (footer_reserved ? 10 : 14);
+    return;
+  }
+  layout->title_y = 48;
+  layout->first_entry_y = settings_family ? 82 : 104;
+  layout->entry_scale = core_settings_page ? 3 : 2;
+  if (wifi_keyboard && layout->entry_scale > 2) {
+    layout->entry_scale = 2;
+  }
+  layout->line_height = layout->entry_scale * 12;
+  layout->footer_height = footer_reserved ? 74 : 0;
+  layout->content_bottom_y =
+      h - layout->footer_height - (footer_reserved ? 10 : 34);
+}
+
 static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
                                        char lines[][PLUMOS_FBDEV_RENDER_LINE_MAX],
                                        size_t line_count,
@@ -3942,6 +4044,7 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
   size_t i;
   int w = (int)r->var.xres;
   int h = (int)r->var.yres;
+  struct plumos_fbdev_generic_layout layout;
   int settings_family;
   int settings_page;
   int core_settings_page;
@@ -3956,6 +4059,7 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
   int wifi_connect_page;
   int wifi_keyboard_row = -1;
   int wifi_keyboard_col = -1;
+  int footer_reserved;
   uint32_t accent;
   const char *footer1;
   const char *footer2;
@@ -3973,12 +4077,6 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
                     plumos_fbdev_has_prefixed_line(lines, line_count,
                                                    "menu_screen=1") ||
                     settings_page;
-  entry_scale = core_settings_page ? 3 : 2;
-  line_height = entry_scale * 12;
-  cursor_x = settings_family ? 12 : 18;
-  name_x = cursor_x + (settings_family ? 18 : 24);
-  right_x = w - 14;
-  cell_width = 6 * entry_scale;
   accent = settings_family ? plumos_fbdev_pack_color(r, 56, 148, 255)
                            : p->accent;
   footer1 = plumos_fbdev_find_value(lines, line_count, "footer1=");
@@ -3988,11 +4086,18 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
   plumos_fbdev_find_wifi_keyboard_cursor(lines, line_count,
                                          &wifi_keyboard_row,
                                          &wifi_keyboard_col);
-  if (wifi_connect_page && wifi_keyboard_row >= 0) {
-    entry_scale = 3;
-    line_height = entry_scale * 12;
-    cell_width = 6 * entry_scale;
-  }
+  footer_reserved = (footer1 && footer1[0]) || (footer2 && footer2[0]) ||
+                    (wifi_password && wifi_password[0]);
+  plumos_fbdev_generic_layout_metrics(
+      r, settings_family, core_settings_page, footer_reserved,
+      wifi_connect_page && wifi_keyboard_row >= 0, &layout);
+  entry_scale = layout.entry_scale;
+  line_height = layout.line_height;
+  cursor_x = settings_family ? 12 : 18;
+  name_x = cursor_x + (settings_family ? (layout.compact ? 14 : 18)
+                                       : (layout.compact ? 18 : 24));
+  right_x = w - 14;
+  cell_width = 6 * entry_scale;
 
   for (i = 1; i < line_count && item_count < 18; i++) {
     const char *line = plumos_fbdev_ltrim(lines[i]);
@@ -4014,15 +4119,17 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
   plumos_fbdev_fill_rect(r, 0, 0, w, h, p->background);
   plumos_fbdev_draw_tty_top_bar(r);
   plumos_fbdev_fill_rect(r, 0, 0, 5, h, accent);
-  plumos_fbdev_draw_text_font(r, 14, 48, title, 2, wifi_connect_page,
+  plumos_fbdev_draw_text_font(r, 14, layout.title_y, title,
+                              layout.compact ? 1 : 2,
+                              layout.compact || wifi_connect_page,
                               p->muted, w - 8);
-  y = settings_family ? 82 : 104;
+  y = layout.first_entry_y;
 
   for (i = 0; i < item_count; i++) {
     int keyboard_row = wifi_keyboard_row >= 0;
     int keyboard_selected = keyboard_row && (int)i == wifi_keyboard_row;
     uint32_t fg = selected[i] ? p->selection_foreground : p->foreground;
-    if (y > h - 34) {
+    if (y > layout.content_bottom_y) {
       break;
     }
     if (selected[i] && !keyboard_selected) {
@@ -4046,21 +4153,25 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
                                              sizeof(setting_label),
                                              setting_control,
                                              sizeof(setting_control))) {
-        control_width = plumos_fbdev_text_width(setting_control, entry_scale);
+        control_width = plumos_fbdev_text_width_font(
+            r, setting_control, entry_scale, layout.compact);
         control_x = right_x - control_width;
         if (control_x < name_x + 6 * cell_width) {
           control_x = name_x + 6 * cell_width;
         }
-        plumos_fbdev_draw_text(r, name_x, y, setting_label, entry_scale, fg,
-                               control_x - cell_width);
-        plumos_fbdev_draw_text(r, control_x, y, setting_control, entry_scale, fg,
-                               right_x);
+        plumos_fbdev_draw_text_font(
+            r, name_x, y, setting_label, entry_scale, layout.compact, fg,
+            control_x - cell_width);
+        plumos_fbdev_draw_text_font(
+            r, control_x, y, setting_control, entry_scale, layout.compact, fg,
+            right_x);
       } else {
-        plumos_fbdev_draw_text(r, name_x, y, items[i], entry_scale, fg, w - 8);
+        plumos_fbdev_draw_text_font(r, name_x, y, items[i], entry_scale,
+                                    layout.compact, fg, w - 8);
       }
     } else {
       int scroll_px = 0;
-      int prefer_freetype = wifi_connect_page || rom_list_page;
+      int prefer_freetype = layout.compact || wifi_connect_page || rom_list_page;
       if (rom_list_page && selected[i] && right_x > name_x) {
         int name_width = plumos_fbdev_text_width_font(
             r, items[i], entry_scale, prefer_freetype);
@@ -4076,27 +4187,37 @@ static int plumos_fbdev_render_generic(struct plumos_fbdev_renderer *r,
     }
     y += line_height;
   }
-  if ((footer1 && footer1[0]) || (footer2 && footer2[0]) ||
-      (wifi_password && wifi_password[0])) {
-    plumos_fbdev_fill_rect(r, 0, h - 74, w, 74, p->panel_inner);
-    plumos_fbdev_fill_rect(r, 0, h - 76, w, 2, p->panel);
+  if (footer_reserved) {
+    int footer_y = h - layout.footer_height;
+    int footer_line1_y = footer_y + (layout.compact ? 10 : 18);
+    int footer_line2_y = footer_y + (layout.compact ? 32 : 40);
+    int footer_scale = layout.compact ? 1 : 2;
+
+    plumos_fbdev_fill_rect(r, 0, footer_y, w, layout.footer_height,
+                           p->panel_inner);
+    plumos_fbdev_fill_rect(r, 0, footer_y - 2, w, 2, p->panel);
     if (wifi_password && wifi_password[0]) {
       const char *label = "Password:";
-      int password_scale = wifi_keyboard_row >= 0 ? 3 : 2;
+      int password_scale = layout.compact ? 1 : 2;
       int label_width = plumos_fbdev_text_width_font(
           r, label, password_scale, 1);
-      plumos_fbdev_draw_text_font(r, 14, h - 56, label, password_scale, 1,
+      plumos_fbdev_draw_text_font(r, 14, footer_line1_y, label,
+                                  password_scale, 1,
                                   p->muted, w - 8);
-      plumos_fbdev_draw_text_font(r, 14 + label_width + 12, h - 56,
+      plumos_fbdev_draw_text_font(r, 14 + label_width + 6, footer_line1_y,
                                   wifi_password, password_scale, 1,
                                   p->selection_foreground, w - 8);
     } else if (footer1 && footer1[0]) {
-      plumos_fbdev_draw_text_font(r, 14, h - 56, footer1, 2,
-                                  wifi_connect_page, p->muted, w - 8);
+      plumos_fbdev_draw_text_font(r, 14, footer_line1_y, footer1,
+                                  footer_scale,
+                                  layout.compact || wifi_connect_page,
+                                  p->muted, w - 8);
     }
     if (footer2 && footer2[0]) {
-      plumos_fbdev_draw_text_font(r, 14, h - 34, footer2, 2,
-                                  wifi_connect_page, p->muted, w - 8);
+      plumos_fbdev_draw_text_font(r, 14, footer_line2_y, footer2,
+                                  footer_scale,
+                                  layout.compact || wifi_connect_page,
+                                  p->muted, w - 8);
     }
   }
   return 1;

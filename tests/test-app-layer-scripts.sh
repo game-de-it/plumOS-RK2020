@@ -635,13 +635,25 @@ grep -q 'wifi_back_to_network_settings(ui, connected_status)' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'wifi_connect_page && wifi_keyboard_row >= 0' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
-grep -q 'password_scale = wifi_keyboard_row >= 0 ? 3 : 2' \
+grep -q 'layout->entry_scale = 1' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
-grep -Fq 'entry->detail[0] ? 58 : 32' \
+grep -q 'layout->line_height = 22' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
+grep -q 'layout->footer_height = footer_reserved ? 58 : 0' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
+grep -q 'plumos_fbdev_logical_height' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+grep -q 'return 7;' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+grep -Fq "memset(password_mask, '*', password_length)" \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+grep -Fq 'int title_scale = compact ? 1 : 2' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 grep -Fq 'title_width > title_available' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 grep -Fq 'plumos_fbdev_draw_text_clipped(r, title_x, title_draw_y' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
+grep -Fq 'tile_width, tile_height' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 font_source="$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 sed -n '/static int choose_mali_font_path/,/static int choose_mali_fallback_font_path/p' \

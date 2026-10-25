@@ -8488,33 +8488,36 @@ static int ui_fbdev_reserves_footer_space(const struct ui_state *ui) {
 
 static size_t ui_fbdev_text_window_size(const struct ui_state *ui) {
 #ifdef PLUMOS_ENABLE_FBDEV_RENDERER
-  int h = 480;
+  struct plumos_fbdev_generic_layout layout;
+  int h;
   int settings_family;
   int footer_reserved;
-  int entry_scale;
-  int line_height;
-  int first_entry_y;
-  int bottom_y;
   size_t rows;
 
   if (!ui || !ui->renderer_fbdev) {
     return 0;
   }
-  if (ui->renderer_active && ui->fbdev_renderer.var.yres > 0) {
-    h = (int)ui->fbdev_renderer.var.yres;
+  h = plumos_fbdev_logical_height(&ui->fbdev_renderer);
+  if (h <= 0) {
+    h = 320;
   }
 
   settings_family = ui_fbdev_uses_settings_family_layout(ui);
   footer_reserved = ui_fbdev_reserves_footer_space(ui);
-  entry_scale = 2;
-  line_height = entry_scale * 12;
-  first_entry_y = settings_family ? 82 : 104;
-  bottom_y = h - (footer_reserved ? 76 : 34);
-  if (line_height <= 0 || bottom_y < first_entry_y) {
+  plumos_fbdev_generic_layout_metrics(
+      &ui->fbdev_renderer, settings_family,
+      ui->screen == SCREEN_CORE_SELECT, footer_reserved,
+      ui->screen == SCREEN_WIFI_CONNECT &&
+          ui->wifi_stage == WIFI_CONNECT_PASSWORD,
+      &layout);
+  if (layout.line_height <= 0 ||
+      layout.content_bottom_y < layout.first_entry_y) {
     return 1;
   }
 
-  rows = (size_t)((bottom_y - first_entry_y) / line_height) + 1;
+  rows = (size_t)((layout.content_bottom_y - layout.first_entry_y) /
+                  layout.line_height) +
+         1;
   if (rows > 18) {
     rows = 18;
   }
@@ -8566,6 +8569,12 @@ static size_t ui_graphic_rom_page_size(const struct ui_state *ui) {
 #ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
   if (ui && ui->renderer_rk2020_compat_gfx && ui->renderer_active) {
     return plumos_rk2020_compat_gfx_renderer_graphic_rom_page_size(&ui->rk2020_compat_gfx_renderer);
+  }
+#endif
+#ifdef PLUMOS_ENABLE_FBDEV_RENDERER
+  if (ui && ui->renderer_fbdev && ui->renderer_active &&
+      plumos_fbdev_logical_height(&ui->fbdev_renderer) <= 320) {
+    return 7;
   }
 #endif
   (void)ui;
@@ -10243,6 +10252,7 @@ static void render_wifi_connect(struct ui_state *ui) {
   size_t end = 0;
   char footer1[160];
   char footer2[160];
+  char password_mask[UI_WIFI_PASSWORD_MAX + 1];
 
   if (window == 0) {
     window = 1;
@@ -10273,6 +10283,9 @@ static void render_wifi_connect(struct ui_state *ui) {
     const char *ssid = ui->wifi_count > 0 && ui->wifi_cursor < ui->wifi_count
                            ? ui->wifi_networks[ui->wifi_cursor].ssid
                            : "-";
+    size_t password_length = strlen(ui->wifi_password);
+    memset(password_mask, '*', password_length);
+    password_mask[password_length] = '\0';
     ui_printf(ui, "A: type/run  B: SSID list  UP/DOWN/LEFT/RIGHT: move  Q: quit\n");
     ui_printf(ui, "target=%s\n", ssid);
     ui_printf(ui, "entries=%d cursor=%zu\n", UI_WIFI_KEYBOARD_ROWS,
@@ -10281,7 +10294,7 @@ static void render_wifi_connect(struct ui_state *ui) {
       ui_printf(ui, "wifi_keyboard_cursor=%zu,%zu\n", ui->wifi_key_row,
                 ui->wifi_key_col);
       ui_printf(ui, "wifi_password=%s\n",
-                ui->wifi_password[0] ? ui->wifi_password : "-");
+                password_mask[0] ? password_mask : "-");
     }
     ui_printf(ui, "\n");
     for (i = 0; i < UI_WIFI_KEYBOARD_ROWS; i++) {
@@ -10292,7 +10305,7 @@ static void render_wifi_connect(struct ui_state *ui) {
                 i + 1, row);
     }
     snprintf(footer1, sizeof(footer1), "Password: %s (%zu chars)",
-             ui->wifi_password[0] ? ui->wifi_password : "-",
+             password_mask[0] ? password_mask : "-",
              strlen(ui->wifi_password));
     snprintf(footer2, sizeof(footer2), "SHIFT toggles case. CONNECT runs.");
     ui_printf(ui, "footer1=%s\n", footer1);

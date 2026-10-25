@@ -52,6 +52,10 @@ install -m 0644 /usr/share/doc/fonts-noto-cjk/copyright \
     "$PLUMOS_DIR/licenses/plumos-frontend/fonts-noto-cjk-copyright"
 
 common=(-std=gnu99 -Os -pipe -Wall -Wextra -D_GNU_SOURCE)
+gcc "${common[@]}" -Wno-unused-function \
+    "$ROOT_DIR/tests/test-rk2020-fbdev-layout.c" \
+    -o /tmp/test-rk2020-fbdev-layout
+/tmp/test-rk2020-fbdev-layout
 png_cflags=$(pkg-config --cflags libpng)
 png_libs=$(pkg-config --libs libpng)
 freetype_cflags=$(pkg-config --cflags freetype2)
