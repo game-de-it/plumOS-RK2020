@@ -95,8 +95,39 @@ GO-Advance gamepad with modifier code 708.
 - Audible output through the built-in speaker: **PASS** (operator confirmed).
 - Route initialization deployed to the live installation: **PASS**.
 - Active NES audio stream remained running through the route change: **PASS**.
-- L2 + Up/Down changes the displayed/audible volume: **PENDING physical input**.
-- L2 + Left/Right changes brightness: **PENDING physical input**.
+- L2 + Up/Down changes the displayed/audible volume: **PASS** (operator
+  confirmed).
+- L2 + Left/Right changes brightness: **PASS** (operator confirmed).
 
-The pending hotkey checks do not require a reboot or a new SD image.  They can
-be performed while the current NES session remains active.
+## Low-volume curve follow-up
+
+The operator confirmed that volume control worked but reported that the first
+step above mute was too loud. At the observed saved/runtime level 1, the old
+linear scale applied 5% software gain before the configured +15 dB internal
+speaker boost. The resulting effective gain was approximately 28%, explaining
+the abrupt 0-to-1 transition.
+
+Commit `8c28ac6` replaces the linear amplitude mapping with 2 dB perceptual
+steps from -38 dB at level 1 through unity gain at level 20. The UI and stored
+range remain 0..20, mute and maximum output remain unchanged, and level 1 with
+the existing speaker boost is approximately 7% full scale.
+
+The AArch64 and ARMHF ALSA plugins were rebuilt and atomically deployed while
+the active PCM stream remained `RUNNING`. The previous managed files are kept
+under:
+
+```text
+/mnt/plumos-user/Backups/rk2020-volume-curve-8c28ac6
+```
+
+Post-deployment audio-component and complete app-layer checksum verification
+passed, and the live manifest reports source ref `8c28ac6`. An already-running
+emulator keeps the old shared object mapped; the new curve takes effect after
+exiting and relaunching a game.
+
+- New 0-to-1 transition after game relaunch: **PENDING operator test**.
+- Progressive response across the low and middle levels: **PENDING operator
+  test**.
+
+The pending curve checks do not require a reboot or a new SD image. They only
+require exiting the currently running game once and launching it again.

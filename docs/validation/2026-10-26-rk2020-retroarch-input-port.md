@@ -94,14 +94,15 @@ RetroArch component checksum: PASS
 app-layer checksum: PASS (11,282 files)
 ```
 
-## Remaining physical gates
+## Physical results
 
 The active NES process loaded the prior RetroArch configuration before
 deployment. System L2 hotkeys can be tested immediately. To test SELECT+B,
 exit once with SELECT+START, relaunch the NES game, and then open the Quick
 Menu with SELECT+B.
 
-- L2 + Up/Down volume response: **PENDING operator test**.
-- L2 + Left/Right brightness response: **PENDING operator test**.
-- Relaunched RetroArch SELECT+B menu: **PENDING operator test**.
+- L2 + Up/Down volume response: **PASS** (operator confirmed).
+- L2 + Left/Right brightness response: **PASS** (operator confirmed).
+- Relaunched RetroArch SELECT+B menu: **PASS** (operator confirmed).
+- SELECT+START exit: **PASS** (operator confirmed).
 - Relaunched game D-pad and L2/R2 gameplay mapping: **PENDING operator test**.
