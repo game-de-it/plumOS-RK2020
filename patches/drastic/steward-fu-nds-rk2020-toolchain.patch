@@ -80,6 +80,29 @@ index 7c6844a..55250e5 100644
  
          EXTRA_LDFLAGS="$EXTRA_LDFLAGS -ldrm -lgbm"
  
+@@ -2473,6 +2476,14 @@ CheckNDSVideo()
+         EXTRA_LDFLAGS="$EXTRA_LDFLAGS"
+     fi
+ 
++    if test x$MOD = xgkd_rk2020; then
++        EXTRA_CFLAGS="$EXTRA_CFLAGS -DGKD_PIXEL2"
++        EXTRA_CFLAGS="$EXTRA_CFLAGS -DGKD_RK2020"
++        EXTRA_CFLAGS="$EXTRA_CFLAGS -I../runner"
++
++        EXTRA_LDFLAGS="$EXTRA_LDFLAGS"
++    fi
++
+     if test x$MOD = xgkd_miniplus; then
+         EXTRA_CFLAGS="$EXTRA_CFLAGS -DGKD_MINIPLUS"
+         EXTRA_CFLAGS="$EXTRA_CFLAGS -I../runner"
+@@ -3807,6 +3818,7 @@ CheckWarnAll()
+             *trimui_smart*)     CheckNDSVideo ;;
+             *trimui_brick*)     CheckNDSVideo ;;
+             *gkd_pixel2*)       CheckNDSVideo ;;
++            *gkd_rk2020*)       CheckNDSVideo ;;
+             *gkd_miniplus*)     CheckNDSVideo ;;
+             *moto_xt897*)       CheckNDSVideo ;;
+             *fxtec_qx1000*)     CheckNDSVideo ;;
 diff --git a/sdl2/src/video/nds/nds_debug_compat.c b/sdl2/src/video/nds/nds_debug_compat.c
 new file mode 100644
 index 0000000..ab550ec

@@ -717,6 +717,21 @@ grep -q 'MUPEN64PLUS_VIDEO_REF=.*fcf00779f08a9503ef30d26422f6b0350684820d' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'GO-Advance Gamepad' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -Fq 'Makefile.gkd_pixel2' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -Fq 's/gkd_pixel2/gkd_rk2020/g' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -Fq 'assets/gkd_pixel2' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -Fq '*gkd_rk2020*)       CheckNDSVideo ;;' \
+    "$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-toolchain.patch"
+grep -Fq 'EXTRA_CFLAGS="$EXTRA_CFLAGS -DGKD_PIXEL2"' \
+    "$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-toolchain.patch"
+grep -Fq '#if defined(GKD_RK2020) || defined(GKD_MINIPLUS)' \
+    "$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
+for patch in "$ROOT_DIR"/patches/drastic/*.patch; do
+  git apply --numstat "$patch" >/dev/null
+done
 grep -q 'BTN_TRIGGER_HAPPY3' \
     "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'FUNCTION_EXIT_HOLD_MS 1500L' \

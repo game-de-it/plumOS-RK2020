@@ -479,10 +479,10 @@ build_drastic() {
     >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" sparse-checkout set \
     Makefile.base \
-    Makefile.gkd_rk2020 \
+    Makefile.gkd_pixel2 \
     LICENSE \
     alsa \
-    assets/gkd_rk2020 \
+    assets/gkd_pixel2 \
     common \
     detour \
     drastic \
@@ -491,6 +491,14 @@ build_drastic() {
     sdl2 >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" checkout "$DRASTIC_REF" \
     >>"$DRASTIC_LOG" 2>&1
+  cp "$DRASTIC_SOURCE_DIR/Makefile.gkd_pixel2" \
+    "$DRASTIC_SOURCE_DIR/Makefile.gkd_rk2020"
+  sed -i \
+    -e 's/gkd_pixel2/gkd_rk2020/g' \
+    -e 's/GKD_PIXEL2/GKD_RK2020/g' \
+    "$DRASTIC_SOURCE_DIR/Makefile.gkd_rk2020"
+  cp -a "$DRASTIC_SOURCE_DIR/assets/gkd_pixel2" \
+    "$DRASTIC_SOURCE_DIR/assets/gkd_rk2020"
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_PATCH" \
     >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_RUNNER_PATCH" \

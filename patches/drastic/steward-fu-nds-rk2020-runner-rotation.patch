@@ -38,8 +38,18 @@ diff --git a/runner/runner.h b/runner/runner.h
 index 2fbd7cd..d21966f 100644
 --- a/runner/runner.h
 +++ b/runner/runner.h
+@@ -4,7 +4,7 @@
+ #ifndef __RUNNER_H__
+ #define __RUNNER_H__
+ 
+-#if defined(GKD_PIXEL2) || defined(GKD_MINIPLUS) || defined(TRIMUI_BRICK)
++#if defined(GKD_RK2020) || defined(GKD_MINIPLUS) || defined(TRIMUI_BRICK)
+ #include <EGL/egl.h>
+ #include <GLES2/gl2.h>
+ #endif
 @@ -19,16 +19,27 @@
- #if defined(GKD_RK2020)
+-#if defined(GKD_PIXEL2)
++#if defined(GKD_RK2020)
  #define R_LCD_W 640
  #define R_LCD_H 480
 +#define R_DISPLAY_W 320

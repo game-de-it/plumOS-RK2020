@@ -103,7 +103,7 @@ index 7763cc0..20f79dc 100644
 -        system("kill -9 `pidof ld-linux-armhf.so.3`");
 -#endif
 -
--#if defined(GKD_RK2020) || defined(GKD_MINIPLUS)
+-#if defined(GKD_PIXEL2) || defined(GKD_MINIPLUS)
 -        system("kill -9 `pidof drastic`");
 -#endif
 -
