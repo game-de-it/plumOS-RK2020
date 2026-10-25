@@ -151,17 +151,20 @@ test -f "$tmp/rootfs/lib/firmware/ath9k_htc/htc_9271-1.4.0.fw"
 test -f "$tmp/rootfs/lib/firmware/mt7601u.bin"
 test -f "$tmp/rootfs/lib/firmware/rtlwifi/rtl8188eufw.bin"
 test -f "$tmp/rootfs/lib/firmware/rtlwifi/rtl8192cufw.bin"
-test -f "$tmp/rootfs/lib/modules/$release/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko"
+module_path="$tmp/rootfs/lib/modules/$release/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko"
+test -f "$module_path"
 test -f "$tmp/rootfs/usr/lib/libmali.so"
 test -L "$tmp/rootfs/usr/lib/libEGL.so.1"
 test "$(readlink "$tmp/rootfs/usr/lib/libEGL.so.1")" = libmali.so
-test "$(modinfo -b "$tmp/rootfs" -k "$release" -F name 8821cu)" = 8821cu
-test "$(modinfo -b "$tmp/rootfs" -k "$release" -F vermagic 8821cu)" = \
+test "$(modinfo -F filename "$module_path")" = "$module_path"
+test "$(modinfo -F vermagic "$module_path")" = \
     "$release SMP mod_unload aarch64"
-modinfo -b "$tmp/rootfs" -k "$release" -F alias 8821cu | \
+modinfo -F alias "$module_path" | \
     grep -Fq 'usb:v0BDApC811'
-modinfo -b "$tmp/rootfs" -k "$release" -F alias 8821cu | \
+modinfo -F alias "$module_path" | \
     grep -Fq 'usb:v0BDApC820'
+modprobe -d "$tmp/rootfs" -S "$release" -n -v 8821cu | \
+    grep -Fq "$module_path"
 grep -Fq 'usb:v0BDApC811' "$tmp/rootfs/lib/modules/$release/modules.alias"
 grep -Fq 'usb:v0BDApC820' "$tmp/rootfs/lib/modules/$release/modules.alias"
 (cd "$tmp/rootfs" && sha256sum -c usr/lib/plumos/kernel-runtime.sha256 >/dev/null)

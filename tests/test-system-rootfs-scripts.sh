@@ -176,7 +176,7 @@ grep -q 'lib/modules/4.4.189/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko' \
     "$ROOT_DIR/scripts/verify-rk2020-stock-artifacts.sh"
 grep -q 'cp -a.*MODULES_SRC' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
-grep -q 'modinfo -b.*8821cu' \
+grep -q 'modprobe -d.*8821cu' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
 grep -q 'lib/firmware/rtlwifi/rtl8188eufw.bin' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
