@@ -3097,6 +3097,12 @@ static void plumos_fbdev_draw_top_tile(struct plumos_fbdev_renderer *r,
   int media_w = w - 28;
   int media_h = title_y - media_y - 10;
   int title_scale = 2;
+  int title_left = x + 12;
+  int title_right = x + w - 12;
+  int title_available = title_right - title_left;
+  int title_width;
+  int title_x;
+  int title_draw_y = title_y;
   int logo_drawn = 0;
   char badge[8];
 
@@ -3124,8 +3130,19 @@ static void plumos_fbdev_draw_top_tile(struct plumos_fbdev_renderer *r,
         r, media_x, media_y + (media_h - 28) / 2, media_w, badge, 4,
         entry->selected ? p->selection_foreground : p->foreground);
   }
-  plumos_fbdev_draw_text(r, x + 12, title_y, entry->title, title_scale,
-                         title_color, x + w - 12);
+  title_width = plumos_fbdev_text_width_for(r, entry->title, title_scale);
+  if (title_width > title_available) {
+    title_scale = 1;
+    title_draw_y += 4;
+    title_width = plumos_fbdev_text_width_for(r, entry->title, title_scale);
+  }
+  title_x = title_left + (title_available - title_width) / 2;
+  if (title_x < title_left) {
+    title_x = title_left;
+  }
+  plumos_fbdev_draw_text_clipped(r, title_x, title_draw_y, entry->title,
+                                 title_scale, 0, title_left, title_right,
+                                 title_color);
   if (entry->detail[0]) {
     plumos_fbdev_draw_text(r, x + 12, detail_y, entry->detail, 2, p->muted,
                            x + w - 12);
