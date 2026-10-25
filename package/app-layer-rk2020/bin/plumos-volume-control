@@ -7,6 +7,8 @@ RUNTIME_STATE="${PLUMOS_VOLUME_RUNTIME_STATE:-/run/plumos/volume/current}"
 BOOST_RUNTIME_STATE="${PLUMOS_SPEAKER_BOOST_RUNTIME_STATE:-/run/plumos/volume/speaker-boost-step}"
 BOOST_SAVED_STATE="${PLUMOS_SPEAKER_BOOST_SAVED_STATE:-$PLUMOS_ROOT/config/system/speaker-boost-step}"
 LOG="${PLUMOS_VOLUME_LOG:-/run/plumos/volume/last-apply.log}"
+RK817_HELPER="${PLUMOS_RK817_MIXER_HELPER:-$PLUMOS_ROOT/bin/plumos-rk817-resume}"
+RK817_CARD_ID_PATH="${PLUMOS_RK817_CARD_ID_PATH:-/proc/asound/card0/id}"
 VOLUME_MAX=20
 VOLUME_DEFAULT=8
 BOOST_STEP_DEFAULT=30
@@ -199,11 +201,28 @@ apply_volume() {
   volume="$(normalize "${1:-$(read_runtime)}")" || return 2
   write_runtime "$volume" || return 1
   ensure_boost_runtime || return 1
+  card_id="$(sed -n '1p' "$RK817_CARD_ID_PATH" 2>/dev/null || true)"
+  route_result=not-applicable
+  case "$card_id" in
+    rockchiprk817|rockchiprk817co)
+      if [ ! -x "$RK817_HELPER" ]; then
+        route_result=helper-missing
+        return 1
+      fi
+      if PLUMOS_ROOT="$PLUMOS_ROOT" "$RK817_HELPER" init >/dev/null 2>&1; then
+        route_result=initialized
+      else
+        route_result=failed
+        return 1
+      fi
+      ;;
+  esac
   {
-    printf 'backend=rk2020-state-only\n'
+    printf 'backend=rk2020-hotplug-software-volume\n'
     printf 'volume=%s\n' "$volume"
     printf 'speaker_boost_db=%s\n' "$(boost_step_to_db "$(read_boost_runtime)")"
-    printf 'note=RK817 mixer command backend is not packaged yet\n'
+    printf 'rk817_route=%s\n' "$route_result"
+    printf 'note=RK817 hardware route with per-sample managed volume\n'
   } >"$LOG"
 }
 
@@ -247,7 +266,7 @@ case "${1:-}" in
     ;;
   get) read_saved ;;
   status)
-    printf 'backend=rk2020-state-only\n'
+    printf 'backend=rk2020-hotplug-software-volume\n'
     printf 'volume=%s\n' "$(read_runtime)"
     printf 'speaker_boost_db=%s\n' "$(boost_step_to_db "$(read_boost_runtime)")"
     printf 'alsa_card='

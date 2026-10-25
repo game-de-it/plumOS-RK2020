@@ -36,6 +36,86 @@ static snd_mixer_elem_t *find_element(snd_mixer_t *mixer, const char *name) {
   return snd_mixer_find_selem(mixer, id);
 }
 
+static int set_playback_volume_max(snd_mixer_t *mixer) {
+  snd_mixer_elem_t *element = find_element(mixer, "Playback");
+  long minimum;
+  long maximum;
+
+  if (!element || !snd_mixer_selem_has_playback_volume(element)) {
+    return -ENOENT;
+  }
+  if (snd_mixer_selem_get_playback_volume_range(element, &minimum, &maximum) <
+      0) {
+    return -EIO;
+  }
+  (void)minimum;
+  return snd_mixer_selem_set_playback_volume_all(element, maximum) < 0
+             ? -EIO
+             : 0;
+}
+
+static int set_route_enum(snd_mixer_t *mixer, const char *route) {
+  snd_mixer_elem_t *element = find_element(mixer, "Playback Path");
+  unsigned int count;
+  unsigned int index;
+
+  if (!element || !snd_mixer_selem_is_enumerated(element)) {
+    return -ENOENT;
+  }
+  count = snd_mixer_selem_get_enum_items(element);
+  for (index = 0; index < count; index++) {
+    char name[64] = "";
+
+    if (snd_mixer_selem_get_enum_item_name(element, index, sizeof(name), name) <
+        0) {
+      continue;
+    }
+    if (strcmp(name, route) == 0) {
+      return snd_mixer_selem_set_enum_item(
+                 element, SND_MIXER_SCHN_FRONT_LEFT, index) < 0
+                 ? -EIO
+                 : 0;
+    }
+  }
+  return -ENOENT;
+}
+
+static int headphone_connected(void) {
+  const char *path = getenv("PLUMOS_RK817_HEADPHONE_GPIO");
+  FILE *file;
+  int value = 0;
+
+  if (!path || !path[0]) {
+    path = "/sys/class/gpio/gpio86/value";
+  }
+  file = fopen(path, "r");
+  if (!file) {
+    return 0;
+  }
+  if (fscanf(file, "%d", &value) != 1) {
+    value = 0;
+  }
+  fclose(file);
+  return value == 1;
+}
+
+static int initialize_rk2020_audio(snd_mixer_t *mixer, const char **route) {
+  const char *override = getenv("PLUMOS_RK817_ROUTE");
+  int result;
+
+  if (override &&
+      (strcmp(override, "SPK") == 0 || strcmp(override, "HP") == 0)) {
+    *route = override;
+  } else {
+    *route = headphone_connected() ? "HP" : "SPK";
+  }
+  result = set_playback_volume_max(mixer);
+  if (result < 0) {
+    return result;
+  }
+  return set_route_enum(mixer, *route);
+}
+
 static int reapply_route_switch(snd_mixer_t *mixer, const char *name,
                                 int nudge) {
   snd_mixer_elem_t *element = find_element(mixer, name);
@@ -128,11 +208,17 @@ static int reapply_rk2020_routes(snd_mixer_t *mixer, int nudge) {
 int main(int argc, char **argv) {
   const char *action = argc > 1 ? argv[1] : "arm";
   const char *card = getenv("PLUMOS_RK817_ALSA_CARD");
+  const char *route = NULL;
   snd_mixer_t *mixer = NULL;
   int result;
 
-  if (strcmp(action, "arm") != 0 && strcmp(action, "rearm") != 0) {
-    fprintf(stderr, "usage: %s [arm|rearm]\n", argv[0]);
+  if (strcmp(action, "init") != 0 && strcmp(action, "arm") != 0 &&
+      strcmp(action, "rearm") != 0 &&
+      strcmp(action, "route-speaker") != 0 &&
+      strcmp(action, "route-headphone") != 0) {
+    fprintf(stderr,
+            "usage: %s [init|arm|rearm|route-speaker|route-headphone]\n",
+            argv[0]);
     return 2;
   }
   if (!card || !card[0]) {
@@ -157,13 +243,32 @@ int main(int argc, char **argv) {
     }
     return 1;
   }
-  result = reapply_rk2020_routes(mixer, strcmp(action, "rearm") == 0);
+  if (strcmp(action, "init") == 0) {
+    result = initialize_rk2020_audio(mixer, &route);
+  } else if (strcmp(action, "route-speaker") == 0) {
+    route = "SPK";
+    result = set_route_enum(mixer, route);
+  } else if (strcmp(action, "route-headphone") == 0) {
+    route = "HP";
+    result = set_route_enum(mixer, route);
+  } else {
+    result = reapply_rk2020_routes(mixer, strcmp(action, "rearm") == 0);
+  }
   snd_mixer_close(mixer);
   if (result < 0) {
+    fprintf(stderr, "rk817-resume: action failed action=%s error=%s\n", action,
+            snd_strerror(result));
     return 1;
   }
-  printf("rk817_resume=result-ok action=%s card=%s "
-         "routes=Speaker,Headphone,Playback_Path\n",
-         action, card);
+  if (route) {
+    printf("rk817_resume=result-ok action=%s card=%s route=%s "
+           "playback=%s\n",
+           action, card, route,
+           strcmp(action, "init") == 0 ? "max" : "unchanged");
+  } else {
+    printf("rk817_resume=result-ok action=%s card=%s "
+           "routes=Speaker,Headphone,Playback_Path\n",
+           action, card);
+  }
   return 0;
 }
