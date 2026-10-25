@@ -125,7 +125,7 @@ copy_runtime_tree() {
             # These are provided by the stock RK2020 System ABI. Everything
             # else belongs to this managed graphics/emulator runtime.
             case "$base" in
-                libc.so.*|libm.so.*|ld-linux-*.so.*|libEGL.so.*|libGLES*.so.*|libgbm.so.*|libGL.so.*|libGLX*.so.*|libOpenGL*.so.*)
+                libc.so.*|libm.so.*|ld-linux-*.so.*|libEGL.so.*|libGLES*.so.*|libgbm.so.*|libGL.so.*|libGLdispatch.so.*|libGLX*.so.*|libOpenGL*.so.*)
                     continue
                     ;;
             esac
