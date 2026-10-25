@@ -2,6 +2,23 @@
 
 Date: 2026-10-25
 
+## Hardware-result correction
+
+The next hardware boot proved that this boot-FAT hotfix was **not applied**.
+The frontend remained unchanged and Wi-Fi still reported `MISSING`.
+
+Extraction of the stock `KERNEL` initramfs established the cause: the stock
+boot sequence sources `/flash/post-sysroot.sh` inside `mount_sysroot`, before
+`mount_storage` mounts p2 at `/storage`. The installer therefore could not see
+its `/storage/bin` targets and exited as `target-missing`. In addition, the
+stock `mount_roms` path only accepts a partition labelled `EEROMS`; it does not
+expose this plumOS image's `PLUMOS_USER` partition as `/storage/roms`.
+
+The staged files and readback hashes below remain valid evidence that the host
+copied the intended bytes, but they are not evidence that runtime replacement
+occurred. This one-shot approach is superseded by rebuilding the affected
+components into a complete SD image.
+
 Target media: `/dev/disk5`, a removable 62.5 GB SD card in the built-in Mac
 reader. The mounted volumes were `PLUMOS_BOOT` (`disk5s1`) and `PLUMOS_USER`
 (`disk5s3`). `PLUMOS_SYS` (`disk5s2`) remained unmounted on macOS.
@@ -61,9 +78,9 @@ initramfs handoff.
 - rebuilt image SHA-256:
   `5fe603087b55535a7d11b7d61f2ac6181770ebdeafb15efaff4f2a24d1e6d104`.
 
-## Remaining hardware gates
+## Superseded hardware gates
 
-- the hook reports `plumos-hotfix=e536b78 result=applied` on first boot;
+- do not use the hook's presence on the boot volume as an application result;
 - all three top cards have visually balanced artwork;
 - the dongle changes from `0bda:1a2b` to `0bda:c811`, `8821cu` loads, and a
   `wlan0` interface appears;

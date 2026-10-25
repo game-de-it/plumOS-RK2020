@@ -32,11 +32,14 @@ runtime command line matches the default `rk3326-odroidgo2-linux.dtb` stanza:
 
 1. U-Boot loads `/KERNEL` and `/rk3326-odroidgo2-linux.dtb` from p1.
 2. The uncompressed ARM64 kernel contains a gzip initramfs at byte 15,373,488.
-3. The initramfs mounts p1 at `/flash`, loop-mounts `/flash/SYSTEM` at
-   `/sysroot`, mounts p2 at `/storage`, and mounts `EEROMS` at `/storage/roms`.
-4. Optional `/flash/post-flash.sh` and `/flash/post-sysroot.sh` hooks are
-   sourced before the final handoff.
-5. It moves `/dev`, `/proc`, `/sys`, and `/run`, runs `kernel-overlays-setup`,
+3. The initramfs runs `mount_flash`, which mounts p1 at `/flash` and sources
+   the optional `/flash/post-flash.sh` hook.
+4. It then runs `mount_sysroot`, loop-mounts `/flash/SYSTEM` at `/sysroot`, and
+   sources `/flash/post-sysroot.sh` before any persistent storage is mounted.
+5. Only after both flash hooks return does it run `mount_storage` for p2 at
+   `/storage`, followed by `mount_roms` for the partition labelled `EEROMS` at
+   `/storage/roms`.
+6. It moves `/dev`, `/proc`, `/sys`, and `/run`, runs `kernel-overlays-setup`,
    then executes `switch_root /sysroot /usr/lib/systemd/systemd`.
 
 The stock initramfs therefore provides the same controlled `SYSTEM` replacement
