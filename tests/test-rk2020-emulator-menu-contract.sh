@@ -30,19 +30,27 @@ fail() {
 }
 
 grep -Fqx 'PLUMOS_INPUT_FUNCTION_CODE=706' "$INPUT_ENV" ||
-    fail 'raw RK2020 FUNCTION code is not documented'
+    fail 'raw RK2020 L2/function code is not documented'
 grep -Fqx 'PLUMOS_INPUT_FUNCTION_UDEV_BTN=12' "$INPUT_ENV" ||
-    fail 'RetroArch compact FUNCTION index is not documented'
+    fail 'RetroArch compact L2/function index is not documented'
+grep -Fqx 'PLUMOS_INPUT_VOLUME_MODIFIER_CODE=706' "$INPUT_ENV" ||
+    fail 'RK2020 L2 volume modifier is not documented'
+grep -Fqx 'PLUMOS_INPUT_L2_UDEV_BTN=12' "$INPUT_ENV" ||
+    fail 'RetroArch compact L2 index is not documented'
+grep -Fqx 'PLUMOS_INPUT_R2_UDEV_BTN=13' "$INPUT_ENV" ||
+    fail 'RetroArch compact R2 index is not documented'
 
-grep -Fqx 'input_menu_toggle_btn = "12"' "$RA_CFG" ||
-    fail 'RetroArch persistent FUNCTION menu binding is missing'
-grep -Fqx 'input_menu_toggle_btn = "12"' "$RA_AUTOCONFIG" ||
-    fail 'RetroArch controller FUNCTION menu binding is missing'
+grep -Fqx 'input_enable_hotkey_btn = "10"' "$RA_CFG" ||
+    fail 'RetroArch SELECT hotkey modifier is missing'
+grep -Fqx 'input_menu_toggle_btn = "0"' "$RA_CFG" ||
+    fail 'RetroArch persistent SELECT+B menu binding is missing'
+grep -Fqx 'input_menu_toggle_btn = "0"' "$RA_AUTOCONFIG" ||
+    fail 'RetroArch controller SELECT+B menu binding is missing'
 if grep -Eq '^input_(enable_hotkey|exit_emulator)_btn[[:space:]]*=' "$RA_AUTOCONFIG"; then
-    fail 'RetroArch controller menu must not be gated by Select'
+    fail 'RetroArch global hotkey modifier must remain in the main config'
 fi
-grep -Fq 'PLUMOS_INPUT_FUNCTION_UDEV_BTN:-12' "$RA_LAUNCHER" ||
-    fail 'RetroArch launch append config does not enforce FUNCTION menu'
+grep -Fq 'PLUMOS_INPUT_B_UDEV_BTN:-0' "$RA_LAUNCHER" ||
+    fail 'RetroArch launch append config does not enforce SELECT+B menu'
 
 for binding in \
     'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, EACTION_MENU' \

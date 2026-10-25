@@ -136,11 +136,15 @@ grep -q '^auto_overrides_enable = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^auto_remaps_enable = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_menu_toggle_btn = "12"$' \
+grep -q '^input_menu_toggle_btn = "0"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_menu_toggle_gamepad_combo = "0"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_enable_hotkey_btn = "10"$' \
+    "$ROOT/factory-defaults/retroarch/retroarch.cfg"
+grep -q '^input_player1_l2_btn = "12"$' \
+    "$ROOT/factory-defaults/retroarch/retroarch.cfg"
+grep -q '^input_player1_r2_btn = "13"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_exit_emulator_btn = "15"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
@@ -148,10 +152,16 @@ grep -q '^input_load_state_btn = "4"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_save_state_btn = "5"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_toggle_slowmotion_btn = "11"$' \
+grep -q '^input_toggle_slowmotion_btn = "12"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_toggle_fast_forward_btn = "14"$' \
+grep -q '^input_toggle_fast_forward_btn = "13"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
+grep -q '^input_l2_btn = "12"$' \
+    "$ROOT/factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg"
+grep -q '^input_r2_btn = "13"$' \
+    "$ROOT/factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg"
+grep -q '^input_menu_toggle_btn = "0"$' \
+    "$ROOT/factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg"
 grep -q '^savefiles_in_content_dir = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^savestates_in_content_dir = "true"$' \

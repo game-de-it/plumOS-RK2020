@@ -7,6 +7,13 @@ sdcard_root="${PLUMOS_SDCARD_ROOT:-/mnt/plumos-user}"
 config="$root/config/retroarch/retroarch.cfg"
 factory="$root/factory-defaults/retroarch/retroarch.cfg"
 append="$runtime_root/retroarch/menu-append.cfg"
+input_env=${PLUMOS_INPUT_MAP_ENV:-$root/config/system/input-map.env}
+
+if [ -r "$input_env" ]; then
+    set -a
+    . "$input_env"
+    set +a
+fi
 
 mkdir -p "$root/config/retroarch/config" "$root/config/retroarch/remaps" \
     "$root/config/retroarch/playlists/builtin" "$root/config/retroarch/filters/audio" \
@@ -70,7 +77,7 @@ aspect_ratio_index = "$aspect_ratio_index"
 input_driver = "udev"
 input_joypad_driver = "udev"
 joypad_autoconfig_dir = "$root/factory-defaults/retroarch/autoconfig"
-input_menu_toggle_btn = "14"
+input_menu_toggle_btn = "${PLUMOS_INPUT_B_UDEV_BTN:-0}"
 system_directory = "${PLUMOS_BIOS_ROOT:-/mnt/plumos-user/bios}"
 EOF
 

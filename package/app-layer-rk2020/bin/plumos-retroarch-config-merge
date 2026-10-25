@@ -18,6 +18,7 @@ osd_disabled_factory_sha256=2db551beda3cd62e4f87d15d77a56ae2df1905fa3bc3925dbf5a
 black_osd_factory_sha256=231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280
 black_osd_go_advance_factory_sha256=a709c747328cdd953ce08c218d1b360dddd6d2a246da0ce77ae62e7978d5eaa5
 small_menu_factory_sha256=0fe41cce8ee36e4ca0b346ad2aee17563f08afb9f402fe1a3f8ea5e46a1744ef
+pre_physical_input_factory_sha256=a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85
 
 [ -s "$factory" ] || {
     printf 'retroarch_config=result-error reason=factory-missing path=%s\n' "$factory" >&2
@@ -93,13 +94,13 @@ migrate_legacy_incomplete_values() {
             $0 = "input_toggle_fast_forward_axis = \"nul\""; changed++
         }
         $0 == "input_toggle_fast_forward_btn = \"nul\"" {
-            $0 = "input_toggle_fast_forward_btn = \"14\""; changed++
+            $0 = "input_toggle_fast_forward_btn = \"13\""; changed++
         }
         $0 == "input_toggle_slowmotion_axis = \"+4\"" {
             $0 = "input_toggle_slowmotion_axis = \"nul\""; changed++
         }
         $0 == "input_toggle_slowmotion_btn = \"nul\"" {
-            $0 = "input_toggle_slowmotion_btn = \"11\""; changed++
+            $0 = "input_toggle_slowmotion_btn = \"12\""; changed++
         }
         $0 == "savefiles_in_content_dir = \"false\"" {
             $0 = "savefiles_in_content_dir = \"true\""; changed++
@@ -224,6 +225,38 @@ migrate_rk2020_menu_scale_values() {
     fi
 }
 
+migrate_rk2020_physical_input_values() {
+    migrate_next="${config}.next.$$"
+    migrate_count="$state_dir/migrate-physical-input-count.$$"
+    $bb awk '
+        $0 == "input_menu_toggle_btn = \"12\"" {
+            $0 = "input_menu_toggle_btn = \"0\""; changed++
+        }
+        $0 == "input_player1_l2_btn = \"11\"" {
+            $0 = "input_player1_l2_btn = \"12\""; changed++
+        }
+        $0 == "input_player1_r2_btn = \"14\"" {
+            $0 = "input_player1_r2_btn = \"13\""; changed++
+        }
+        $0 == "input_toggle_slowmotion_btn = \"11\"" {
+            $0 = "input_toggle_slowmotion_btn = \"12\""; changed++
+        }
+        $0 == "input_toggle_fast_forward_btn = \"14\"" {
+            $0 = "input_toggle_fast_forward_btn = \"13\""; changed++
+        }
+        { print }
+        END { print changed + 0 > count_file }
+    ' count_file="$migrate_count" "$config" >"$migrate_next"
+    physical_input_changed=$($bb sed -n '1p' "$migrate_count" 2>/dev/null || printf '0')
+    $bb rm -f "$migrate_count"
+    if [ "$physical_input_changed" -gt 0 ]; then
+        $bb sync
+        $bb mv "$migrate_next" "$config"
+    else
+        $bb rm -f "$migrate_next"
+    fi
+}
+
 write_marker() {
     printf '%s\n' "$factory_sha256" >"$marker.next"
     $bb sync
@@ -250,6 +283,13 @@ elif set -- $($bb sha256sum "$config") &&
     # normally below, so an explicit custom message colour is not overwritten.
     atomic_copy "$factory" "$config"
     main_result=replaced-black-osd
+elif set -- $($bb sha256sum "$config") &&
+        [ "$1" = "$pre_physical_input_factory_sha256" ]; then
+    # This exact generation inherited Pixel2 compact button numbers for the
+    # RK2020 triggers and game-launch D-pad. Replace the untouched snapshot
+    # with the corrected RK2020 physical map.
+    atomic_copy "$factory" "$config"
+    main_result=replaced-physical-input
 elif [ -r "$marker" ] &&
         [ "$($bb sed -n '1p' "$marker")" = "$legacy_incomplete_full_sha256" ]; then
     migrate_legacy_incomplete_values
@@ -277,6 +317,14 @@ elif [ -r "$marker" ] &&
     merge_key_file "$factory" "$config" config
     main_result=migrated-menu-scale
     main_added=$((menu_scale_changed + merge_added))
+elif [ -r "$marker" ] &&
+        [ "$($bb sed -n '1p' "$marker")" = "$pre_physical_input_factory_sha256" ]; then
+    # Preserve unrelated user settings. Only values that still equal the
+    # previous RK2020 defaults are translated to the physical button map.
+    migrate_rk2020_physical_input_values
+    merge_key_file "$factory" "$config" config
+    main_result=migrated-physical-input
+    main_added=$((physical_input_changed + merge_added))
 elif [ ! -r "$marker" ] ||
         [ "$($bb sed -n '1p' "$marker")" != "$factory_sha256" ]; then
     merge_key_file "$factory" "$config" config

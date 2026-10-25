@@ -318,10 +318,10 @@ fi
     printf 'input_driver = "udev"\n'
     printf 'input_joypad_driver = "udev"\n'
     printf 'joypad_autoconfig_dir = "%s"\n' "$root/factory-defaults/retroarch/autoconfig"
-    printf 'input_player1_up_btn = "10"\n'
-    printf 'input_player1_down_btn = "11"\n'
-    printf 'input_player1_left_btn = "12"\n'
-    printf 'input_player1_right_btn = "13"\n'
+    printf 'input_player1_up_btn = "%s"\n' "${PLUMOS_INPUT_UP_UDEV_BTN:-6}"
+    printf 'input_player1_down_btn = "%s"\n' "${PLUMOS_INPUT_DOWN_UDEV_BTN:-7}"
+    printf 'input_player1_left_btn = "%s"\n' "${PLUMOS_INPUT_LEFT_UDEV_BTN:-8}"
+    printf 'input_player1_right_btn = "%s"\n' "${PLUMOS_INPUT_RIGHT_UDEV_BTN:-9}"
     printf 'input_player1_left_axis = "-0"\n'
     printf 'input_player1_right_axis = "+0"\n'
     printf 'input_player1_up_axis = "-1"\n'
@@ -331,7 +331,9 @@ fi
     printf 'input_player1_l_y_minus_axis = "-1"\n'
     printf 'input_player1_l_y_plus_axis = "+1"\n'
     printf 'input_player1_analog_dpad_mode = "0"\n'
-    printf 'input_menu_toggle_btn = "%s"\n' "${PLUMOS_INPUT_FUNCTION_UDEV_BTN:-12}"
+    # SELECT is the global hotkey-enable button. Physical B is compact udev
+    # button 0, so this produces the RK2020 SELECT+B menu chord.
+    printf 'input_menu_toggle_btn = "%s"\n' "${PLUMOS_INPUT_B_UDEV_BTN:-0}"
     printf 'savefile_directory = "%s"\n' "$root/saves/$system_id"
     printf 'savestate_directory = "%s"\n' "$state_root"
     case "${core##*/}" in

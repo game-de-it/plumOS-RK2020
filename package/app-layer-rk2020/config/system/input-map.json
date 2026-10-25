@@ -10,7 +10,7 @@
       "x": 307,
       "y": 308,
       "function": 706,
-      "volume_modifier": 708
+      "volume_modifier": 706
     }
   },
   "udev": {
@@ -21,8 +21,8 @@
       "y": 3,
       "l": 4,
       "r": 5,
-      "l2": 11,
-      "r2": 14,
+      "l2": 12,
+      "r2": 13,
       "select": 10,
       "start": 15,
       "up": 6,

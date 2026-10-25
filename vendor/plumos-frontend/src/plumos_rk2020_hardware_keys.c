@@ -36,8 +36,8 @@
 #define USB_POWER_EVENT_GUARD_MS 1500
 #define DRM_PLANE_SNAPSHOT_LIMIT 16
 
-#ifndef BTN_TRIGGER_HAPPY5
-#define BTN_TRIGGER_HAPPY5 708
+#ifndef BTN_TRIGGER_HAPPY3
+#define BTN_TRIGGER_HAPPY3 706
 #endif
 
 struct input_source {
@@ -86,12 +86,12 @@ static unsigned int volume_modifier_code(void) {
   long value;
 
   if (!configured || !configured[0]) {
-    return BTN_TRIGGER_HAPPY5;
+    return BTN_TRIGGER_HAPPY3;
   }
   errno = 0;
   value = strtol(configured, &end, 10);
   if (errno || !end || *end || value <= 0 || value > KEY_MAX) {
-    return BTN_TRIGGER_HAPPY5;
+    return BTN_TRIGGER_HAPPY3;
   }
   return (unsigned int)value;
 }

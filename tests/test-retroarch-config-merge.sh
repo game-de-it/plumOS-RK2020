@@ -60,9 +60,9 @@ test "$(grep -c "^np2kai_joymode[[:space:]]*=" \
 # RK2020 defaults, while retaining an unrelated explicit user value.
 sed -i \
     -e "s/input_toggle_fast_forward_axis = \"nul\"/input_toggle_fast_forward_axis = \"+5\"/" \
-    -e "s/input_toggle_fast_forward_btn = \"14\"/input_toggle_fast_forward_btn = \"nul\"/" \
+    -e "s/input_toggle_fast_forward_btn = \"13\"/input_toggle_fast_forward_btn = \"nul\"/" \
     -e "s/input_toggle_slowmotion_axis = \"nul\"/input_toggle_slowmotion_axis = \"+4\"/" \
-    -e "s/input_toggle_slowmotion_btn = \"11\"/input_toggle_slowmotion_btn = \"nul\"/" \
+    -e "s/input_toggle_slowmotion_btn = \"12\"/input_toggle_slowmotion_btn = \"nul\"/" \
     -e "s/savefiles_in_content_dir = \"true\"/savefiles_in_content_dir = \"false\"/" \
     -e "s/savestates_in_content_dir = \"true\"/savestates_in_content_dir = \"false\"/" \
     -e "s/sort_savefiles_by_content_enable = \"true\"/sort_savefiles_by_content_enable = \"false\"/" \
@@ -79,8 +79,8 @@ PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
 grep -q "retroarch_config=result-migrated-legacy added=10" /tmp/migrate.log
 grep -q "^input_exit_emulator_btn = \"15\"$" "$active/retroarch.cfg"
 grep -q "^input_menu_toggle_gamepad_combo = \"0\"$" "$active/retroarch.cfg"
-grep -q "^input_toggle_fast_forward_btn = \"14\"$" "$active/retroarch.cfg"
-grep -q "^input_toggle_slowmotion_btn = \"11\"$" "$active/retroarch.cfg"
+grep -q "^input_toggle_fast_forward_btn = \"13\"$" "$active/retroarch.cfg"
+grep -q "^input_toggle_slowmotion_btn = \"12\"$" "$active/retroarch.cfg"
 grep -q "^savefiles_in_content_dir = \"true\"$" "$active/retroarch.cfg"
 grep -q "^savestates_in_content_dir = \"true\"$" "$active/retroarch.cfg"
 grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
@@ -231,4 +231,49 @@ PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
     > /tmp/aspect-user.log
 grep -q "^aspect_ratio_index = \"0\"$" "$active/retroarch.cfg"
 grep -q "retroarch_config=result-unchanged added=0" /tmp/aspect-user.log
+
+# Correct the Pixel2 compact-button numbers that were initially carried into
+# RK2020. An untouched old factory is replaced as one unit.
+cp "$factory/retroarch.cfg" "$active/retroarch.cfg"
+sed -i \
+    -e "s/input_menu_toggle_btn = \"0\"/input_menu_toggle_btn = \"12\"/" \
+    -e "s/input_player1_l2_btn = \"12\"/input_player1_l2_btn = \"11\"/" \
+    -e "s/input_player1_r2_btn = \"13\"/input_player1_r2_btn = \"14\"/" \
+    -e "s/input_toggle_slowmotion_btn = \"12\"/input_toggle_slowmotion_btn = \"11\"/" \
+    -e "s/input_toggle_fast_forward_btn = \"13\"/input_toggle_fast_forward_btn = \"14\"/" \
+    "$active/retroarch.cfg"
+test "$(sha256sum "$active/retroarch.cfg" | cut -d " " -f 1)" = \
+    "a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85"
+printf "%s\n" "a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85" \
+    > "$root/state/retroarch/factory-config.sha256"
+PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
+    > /tmp/physical-input-replace.log
+grep -q "retroarch_config=result-replaced-physical-input added=0" \
+    /tmp/physical-input-replace.log
+cmp "$factory/retroarch.cfg" "$active/retroarch.cfg"
+
+# A config edited by the user keeps unrelated values. Only the five old
+# RK2020 defaults are translated when the old factory marker is present.
+sed -i \
+    -e "s/input_menu_toggle_btn = \"0\"/input_menu_toggle_btn = \"12\"/" \
+    -e "s/input_player1_l2_btn = \"12\"/input_player1_l2_btn = \"11\"/" \
+    -e "s/input_player1_r2_btn = \"13\"/input_player1_r2_btn = \"14\"/" \
+    -e "s/input_toggle_slowmotion_btn = \"12\"/input_toggle_slowmotion_btn = \"11\"/" \
+    -e "s/input_toggle_fast_forward_btn = \"13\"/input_toggle_fast_forward_btn = \"14\"/" \
+    -e "s/input_screenshot_btn = \"2\"/input_screenshot_btn = \"42\"/" \
+    "$active/retroarch.cfg"
+printf "%s\n" "a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85" \
+    > "$root/state/retroarch/factory-config.sha256"
+PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
+    > /tmp/physical-input-migrate.log
+grep -q "retroarch_config=result-migrated-physical-input added=5" \
+    /tmp/physical-input-migrate.log
+grep -q '^input_menu_toggle_btn = "0"$' "$active/retroarch.cfg"
+grep -q '^input_player1_l2_btn = "12"$' "$active/retroarch.cfg"
+grep -q '^input_player1_r2_btn = "13"$' "$active/retroarch.cfg"
+grep -q '^input_toggle_slowmotion_btn = "12"$' "$active/retroarch.cfg"
+grep -q '^input_toggle_fast_forward_btn = "13"$' "$active/retroarch.cfg"
+grep -q '^input_screenshot_btn = "42"$' "$active/retroarch.cfg"
 '

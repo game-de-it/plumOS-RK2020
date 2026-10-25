@@ -230,7 +230,7 @@ import sys
 
 path = Path(sys.argv[1])
 data = path.read_bytes()
-assert hashlib.sha256(data).hexdigest() == "a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85"
+assert hashlib.sha256(data).hexdigest() == "cfe3ae27727e3be83b885419ef42c1244801693064fcf991d5efc4c8a9dca5e8"
 lines = data.decode().splitlines()
 pairs = [line.split(" = ", 1) for line in lines if " = " in line]
 values = dict(pairs)
@@ -245,7 +245,7 @@ required = {
     "content_video_history_path": "\"/roms/content_video_history.lpl\"",
     "input_driver": "\"udev\"",
     "input_joypad_driver": "\"udev\"",
-    "input_menu_toggle_btn": "\"12\"",
+    "input_menu_toggle_btn": "\"0\"",
     "input_menu_toggle_gamepad_combo": "\"0\"",
     "menu_show_core_updater": "\"false\"",
     "menu_show_online_updater": "\"false\"",
@@ -253,10 +253,12 @@ required = {
     "input_exit_emulator_btn": "\"15\"",
     "input_load_state_btn": "\"4\"",
     "input_save_state_btn": "\"5\"",
+    "input_player1_l2_btn": "\"12\"",
+    "input_player1_r2_btn": "\"13\"",
     "input_toggle_fast_forward_axis": "\"nul\"",
-    "input_toggle_fast_forward_btn": "\"14\"",
+    "input_toggle_fast_forward_btn": "\"13\"",
     "input_toggle_slowmotion_axis": "\"nul\"",
-    "input_toggle_slowmotion_btn": "\"11\"",
+    "input_toggle_slowmotion_btn": "\"12\"",
     "joypad_autoconfig_dir": "\"/mnt/plumos/factory-defaults/retroarch/autoconfig\"",
     "fps_show": "\"false\"",
     "menu_show_dump_disc": "\"true\"",
@@ -372,9 +374,9 @@ grep -q '^PLUMOS_INPUT_B_CODE=304$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_FUNCTION_CODE=706$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
-grep -q '^PLUMOS_INPUT_VOLUME_MODIFIER_CODE=708$' \
+grep -q '^PLUMOS_INPUT_VOLUME_MODIFIER_CODE=706$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
-grep -q 'BTN_TRIGGER_HAPPY5' \
+grep -q 'BTN_TRIGGER_HAPPY3' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'volume_modifier_down' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
@@ -388,6 +390,10 @@ grep -q '^PLUMOS_INPUT_A_UDEV_BTN=1$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_UDEV_BTN=0$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
+grep -q '^PLUMOS_INPUT_L2_UDEV_BTN=12$' \
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
+grep -q '^PLUMOS_INPUT_R2_UDEV_BTN=13$' \
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_DOWN_UDEV_AXIS=+1$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=7$' \
@@ -395,6 +401,14 @@ grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=7$' \
 grep -q '^PLUMOS_INPUT_ANALOG_DPAD_MODE=none$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q 'input-map.env' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
+grep -q 'PLUMOS_INPUT_UP_UDEV_BTN:-6' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
+grep -q 'PLUMOS_INPUT_DOWN_UDEV_BTN:-7' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
+grep -q 'PLUMOS_INPUT_LEFT_UDEV_BTN:-8' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
+grep -q 'PLUMOS_INPUT_RIGHT_UDEV_BTN:-9' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'flycast_xtreme_libretro.so|' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
