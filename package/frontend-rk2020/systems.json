@@ -1907,7 +1907,7 @@
         "retroarch:fbneo",
         "retroarch:fbalpha2012"
       ],
-      "default_launch_profile": "retroarch:fbneo",
+      "default_launch_profile": "retroarch:fbalpha2012",
       "default_cpu_policy": "ondemand",
       "scraper": {
         "enabled": false,
@@ -3155,7 +3155,7 @@
         "retroarch:atari800",
         "retroarch:a5200"
       ],
-      "default_launch_profile": "retroarch:atari800",
+      "default_launch_profile": "retroarch:a5200",
       "default_cpu_policy": "ondemand",
       "scraper": {
         "enabled": true,

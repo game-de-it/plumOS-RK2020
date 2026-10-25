@@ -332,6 +332,8 @@ grep -q '^reicast_cpu_mode = "dynamic_recompiler"$' \
     "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg"
 grep -q '^parallel-n64-gfxplugin = "gliden64"$' \
     "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg"
+grep -q '^atari800_system = "800XL (64K)"$' \
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg"
 grep -q '^input_player1_btn_up = "19"$' \
     "$ROOT_DIR/package/retroarch-rk2020/remaps/ParaLLEl N64/ParaLLEl N64.rmp"
 grep -q 'retroarch-core-options.cfg' "$ROOT_DIR/scripts/build-retroarch.sh"
