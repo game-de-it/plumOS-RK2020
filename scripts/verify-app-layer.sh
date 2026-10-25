@@ -35,7 +35,7 @@ for path in \
     bin/plumos-audio-output lib/alsa-lib/libasound_module_pcm_plumos_hotplug.so \
     bin/plumos-python-rk2020 bin/plumos-pyxel-rk2020-launch bin/plumos-pyxel-setup \
     apps/python/bin/python3.11 apps/pyxel/site/pyxel/__init__.py \
-    emulator/lib/libpthread.so.0 \
+    emulator/lib/libpthread.so.0 emulator/lib/libdl.so.2 \
     factory-defaults/alsa/alsa.conf \
     config/frontend/systems.json config/frontend/feature-contract.json factory-defaults/retroarch/retroarch.cfg \
     factory-defaults/retroarch/retroarch-core-options.cfg \

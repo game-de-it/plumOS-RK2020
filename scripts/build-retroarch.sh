@@ -142,7 +142,15 @@ copy_runtime_tree "$PLUMOS_DIR/bin/retroarch"
 # System. A modern Mesa Panfrost userspace is not compatible with the stock
 # Linux 4.4.189 legacy Mali kernel interface.
 
-for required_library in libpthread.so.0; do
+for required_library in libpthread.so.0 libdl.so.2; do
+    if [ ! -f "$PLUMOS_DIR/emulator/lib/$required_library" ]; then
+        for runtime_dir in /lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu; do
+            [ -f "$runtime_dir/$required_library" ] || continue
+            install -m 0644 "$runtime_dir/$required_library" \
+                "$PLUMOS_DIR/emulator/lib/$required_library"
+            break
+        done
+    fi
     [ -f "$PLUMOS_DIR/emulator/lib/$required_library" ] || {
         printf 'error: RetroArch runtime library was not bundled: %s\n' \
             "$required_library" >&2
