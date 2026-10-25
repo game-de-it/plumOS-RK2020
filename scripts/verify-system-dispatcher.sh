@@ -27,6 +27,11 @@ test -x "$tmp/rootfs/bin/busybox"
 test -L "$tmp/rootfs/bin/sh"
 test "$(readlink "$tmp/rootfs/sbin/init")" = /init
 test "$(readlink "$tmp/rootfs/usr/lib/systemd/systemd")" = /init
+find "$tmp/rootfs/usr/lib/kernel-overlays/base/lib/modules" \
+    -mindepth 1 -maxdepth 1 -type d -print -quit | grep -q . || {
+    printf 'error: stock initramfs module sentinel missing from dispatcher\n' >&2
+    exit 1
+}
 for directory in dev dev/pts proc sys flash storage newroot; do
     test -d "$tmp/rootfs/$directory" || {
         printf 'error: dispatcher mountpoint missing: /%s\n' "$directory" >&2

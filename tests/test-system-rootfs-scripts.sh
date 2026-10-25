@@ -168,8 +168,12 @@ grep -q '/state/plumos/logs/\*.txt' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q '4.4.189' "$ROOT_DIR/scripts/install-kernel-runtime.sh"
 grep -q 'usr/lib/kernel-overlays/base/lib/modules' \
     "$ROOT_DIR/scripts/build-system-rootfs.sh"
+grep -q 'DISPATCHER_DIR/usr/lib/kernel-overlays/base/lib/modules' \
+    "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'usr/lib/kernel-overlays/base/lib/modules' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
+grep -q 'stock initramfs module sentinel missing from dispatcher' \
+    "$ROOT_DIR/scripts/verify-system-dispatcher.sh"
 grep -q 'kernel/extracted/lib/modules' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
 grep -q 'kernel/extracted/lib/firmware' \

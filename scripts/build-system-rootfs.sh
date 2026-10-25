@@ -132,12 +132,15 @@ sed -i "s/PRETTY_NAME=.*/PRETTY_NAME=\"plumOS RK2020 $VERSION\"/" \
     "$ROOTFS_DIR/etc/os-release"
 KERNEL_RELEASE=$(find "$ROOTFS_DIR/lib/modules" -mindepth 1 -maxdepth 1 \
     -type d -printf '%f\n')
-# The retained EmuELEC initramfs uses this directory only as a compatibility
-# sentinel before switch_root.  plumOS keeps the real matched module tree at
-# /lib/modules, but the sentinel must exist or the stock initramfs exposes a
-# misleading 60-second "NEVER TOUCH boot=" recovery warning on every boot.
+# The retained stock initramfs uses this directory only as a compatibility
+# sentinel before switch_root. That check runs against the fixed SYSTEM
+# dispatcher, not the later A/B slot root. Keep the marker in both images: the
+# dispatcher satisfies the pre-handoff check and the slot preserves the same
+# path after pivot_root. The real matched module tree remains under
+# /lib/modules.
 mkdir -p \
-    "$ROOTFS_DIR/usr/lib/kernel-overlays/base/lib/modules/$KERNEL_RELEASE"
+    "$ROOTFS_DIR/usr/lib/kernel-overlays/base/lib/modules/$KERNEL_RELEASE" \
+    "$DISPATCHER_DIR/usr/lib/kernel-overlays/base/lib/modules/$KERNEL_RELEASE"
 cat >"$ROOTFS_DIR/usr/lib/plumos/system-manifest.json" <<EOF
 {
   "name": "plumOS RK2020 System",
