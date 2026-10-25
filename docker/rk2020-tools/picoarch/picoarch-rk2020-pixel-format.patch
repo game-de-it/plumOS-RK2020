@@ -195,7 +195,8 @@
 @@ -480,6 +555,10 @@ void plat_finish(void)
  	SDL_FreeSurface(screen);
  	SDL_FreeSurface(display);
-	rk2020_fb_finish();
+-	rk2020_fb_finish();
++	rk2020_fb_finish();
 +	free(converted_frame);
 +	converted_frame = NULL;
 +	converted_frame_pixels = 0;
