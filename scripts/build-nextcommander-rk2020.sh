@@ -39,6 +39,11 @@ copy_dependency_tree() {
         awk -F'[][]' '/NEEDED/ { print $2 }' |
         while IFS= read -r dependency; do
             case "$dependency" in
+                libEGL.so.*|libGLES*.so.*|libgbm.so.*|libGL.so.*|libGLdispatch.so.*|libGLX*.so.*|libOpenGL*.so.*)
+                    # Graphics provider SONAMEs belong to the stock RK2020
+                    # libmali runtime installed in System /usr/lib.
+                    continue
+                    ;;
                 ld-linux-aarch64.so.1|libc.so.6|libm.so.6|libpthread.so.0|libdl.so.2|librt.so.1|libgcc_s.so.1|libstdc++.so.6)
                     continue
                     ;;

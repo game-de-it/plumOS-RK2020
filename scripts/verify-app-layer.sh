@@ -206,6 +206,24 @@ done < <(jq -r '.cores[] | select(.rendering == "hardware-gles") | .binary' \
     "$ROOT/components/libretro-cores/manifest.json")
 test ! -e "$ROOT/emulator/dri/rockchip_dri.so"
 test ! -e "$ROOT/emulator/egl_vendor.d/50_mesa.json"
+for graphics_root in "$ROOT/lib" "$ROOT/emulator/lib" \
+    "$ROOT/apps/nextcommander/lib" "$ROOT/apps/pyxel/lib"; do
+    [ -d "$graphics_root" ] || continue
+    if find "$graphics_root" -maxdepth 1 \
+        \( -name 'libEGL.so*' -o -name 'libGLES*.so*' \
+           -o -name 'libgbm.so*' -o -name 'libGL.so*' \
+           -o -name 'libGLdispatch.so*' -o -name 'libGLX*.so*' \
+           -o -name 'libOpenGL*.so*' \) -print -quit | grep -q .; then
+        printf 'error: app-layer shadows stock libmali provider: %s\n' \
+            "$graphics_root" >&2
+        exit 1
+    fi
+done
+if grep -Eq '^lib(EGL|GLES|gbm|GL|GLdispatch|GLX|OpenGL)' \
+    "$ROOT/config/standalone/soname-links.tsv"; then
+    printf 'error: standalone SONAME map shadows stock libmali\n' >&2
+    exit 1
+fi
 test -s "$ROOT/apps/pyxel/lib/plumos-pyxel-fit.so"
 test -s "$ROOT/apps/pyxel/lib/plumos-pyxel-gl-rotate.so"
 grep -q 'plumos-audio-output' "$ROOT/bin/plumos-picoarch-launch"

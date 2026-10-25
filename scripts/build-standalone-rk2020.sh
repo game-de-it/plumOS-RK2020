@@ -174,6 +174,12 @@ copy_runtime_deps() {
           # PCSX-ReARMed uses its pinned package-local sdl12-compat build.
           continue
           ;;
+        libEGL.so.*|libGLES*.so.*|libgbm.so.*|libGL.so.*|libGLdispatch.so.*|libGLX*.so.*|libOpenGL*.so.*)
+          # The RK2020 System provides these SONAMEs through the
+          # checksum-registered stock libmali.  Bundling Debian Mesa/GLVND
+          # here would put it ahead of /usr/lib in the launcher search path.
+          continue
+          ;;
         ld-linux-aarch64.so.1|libc.so.6|libm.so.6|libpthread.so.0|libdl.so.2|librt.so.1)
           continue
           ;;
