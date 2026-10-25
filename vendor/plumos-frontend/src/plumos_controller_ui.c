@@ -40,6 +40,7 @@ extern char **environ;
 #define PLUMOS_VOLUME_DEFAULT 8
 
 static volatile sig_atomic_t g_terminate_requested = 0;
+static volatile sig_atomic_t g_screenshot_requested = 0;
 static long long g_frame_stats_window_ms = 0;
 static unsigned int g_frame_stats_count = 0;
 
@@ -49,6 +50,11 @@ static long long current_time_us(void);
 static void handle_terminate_signal(int signo) {
   (void)signo;
   g_terminate_requested = 1;
+}
+
+static void handle_screenshot_signal(int signo) {
+  (void)signo;
+  g_screenshot_requested = 1;
 }
 
 static void record_frame_stats(void) {
@@ -15543,6 +15549,15 @@ static int run_event_loop(struct ui_state *ui, const char *event_path) {
       ui->exit_requested = 1;
       break;
     }
+    if (g_screenshot_requested) {
+      g_screenshot_requested = 0;
+      (void)capture_frontend_screenshot(ui);
+      render_ui(ui);
+      if (ui_needs_periodic_refresh(ui)) {
+        next_refresh_us = ui_next_refresh_deadline_us(ui, 0);
+      }
+      continue;
+    }
     now_ms = current_time_ms();
     (void)run_scheduled_rk2020_compat_brightness_reapply(ui, now_ms);
     if (poll_rom_scan_refresh(ui)) {
@@ -15865,6 +15880,7 @@ int main(int argc, char **argv) {
   memset(&ui, 0, sizeof(ui));
   signal(SIGTERM, handle_terminate_signal);
   signal(SIGINT, handle_terminate_signal);
+  signal(SIGUSR1, handle_screenshot_signal);
   ui.input_event_fd = -1;
   ui.power_event_fd = -1;
   ui.rom_entry_screen = SCREEN_ROMS;
