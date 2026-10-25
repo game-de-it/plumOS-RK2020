@@ -15,6 +15,7 @@ wait_sec=${PLUMOS_POWER_WAIT_SEC:-0}
 sleep_settle_sec=${PLUMOS_SLEEP_SETTLE_SEC:-1}
 log_dir=${PLUMOS_POWER_LOG_DIR:-/state/plumos/logs}
 log_file=$log_dir/power.log
+user_log_file=${PLUMOS_POWER_USER_LOG_FILE:-/mnt/plumos-user/plumos-logs/power.log}
 lock_dir=${PLUMOS_POWER_LOCK_DIR:-$runtime_root/power-action.lock}
 power_state=${PLUMOS_POWER_STATE:-/sys/power/state}
 rtc_wakealarm=${PLUMOS_RTC_WAKEALARM:-/sys/class/rtc/rtc0/wakealarm}
@@ -54,10 +55,16 @@ charge_mode_reboot_enabled=${PLUMOS_RK2020_CHARGE_MODE_REBOOT:-0}
 sleep_usb_guard_armed=0
 
 mkdir -p "$log_dir" "$runtime_root" 2>/dev/null || true
+[ "$user_log_file" = "$log_file" ] || \
+    mkdir -p "${user_log_file%/*}" 2>/dev/null || true
 
 log() {
     printf '%s\n' "$*"
     printf '%s\n' "$*" >>"$log_file" 2>/dev/null || true
+    if [ "$user_log_file" != "$log_file" ] &&
+        [ -d "${user_log_file%/*}" ]; then
+        printf '%s\n' "$*" >>"$user_log_file" 2>/dev/null || true
+    fi
 }
 
 is_uint() {

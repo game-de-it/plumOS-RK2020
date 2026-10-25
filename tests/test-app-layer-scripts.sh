@@ -658,6 +658,10 @@ grep -q 'plumos-reboot-mode' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'PLUMOS_RK2020_CHARGE_MODE_REBOOT' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
+grep -q 'PLUMOS_POWER_USER_LOG_FILE' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
+grep -q 'PLUMOS_NETWORK_USER_LOG' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-control"
 grep -q 'LINUX_REBOOT_CMD_RESTART2' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_reboot_mode.c"
 grep -q 'printf.*sleep_backend.*power_state' \

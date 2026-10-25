@@ -201,6 +201,15 @@ done
 
 /usr/bin/plumos-diagnostics > /state/plumos/logs/runtime-diagnostics.txt 2>&1 || true
 
+# Keep a Mac-readable boot snapshot on PLUMOS_USER. Runtime network and power
+# helpers continue mirroring their later events into this directory.
+$bb mkdir -p /mnt/plumos-user/plumos-logs 2>/dev/null || true
+for diagnostic in /mnt/plumos/logs/*.log /state/plumos/logs/*.txt; do
+    [ -f "$diagnostic" ] || continue
+    $bb cp -f "$diagnostic" /mnt/plumos-user/plumos-logs/ 2>/dev/null || true
+done
+$bb sync
+
 printf 'plumos-init=result-ready console=tty1\n'
 # Keep a real init as PID 1 after the one-shot plumOS boot setup.  The previous
 # frontend wait followed by a login shell left no child reaper once the first

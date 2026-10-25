@@ -15,7 +15,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$TEST_ROOT/plumos/bin" "$TEST_ROOT/run" "$TEST_ROOT/logs"
+mkdir -p "$TEST_ROOT/plumos/bin" "$TEST_ROOT/run" "$TEST_ROOT/logs" \
+    "$TEST_ROOT/user-logs"
+export PLUMOS_POWER_USER_LOG_FILE="$TEST_ROOT/user-logs/power.log"
 printf 'network={}\n' >"$TEST_ROOT/plumos/wpa_supplicant.conf"
 
 cat >"$TEST_ROOT/busybox" <<'EOF'
@@ -251,6 +253,8 @@ grep -q 'power=charge-mode-disabled action=pmic-off' \
     "$TEST_ROOT/logs/power.log"
 grep -q 'power=terminal-test action=rk817-dev-off' \
     "$TEST_ROOT/logs/power.log"
+grep -q 'power=terminal-test action=rk817-dev-off' \
+    "$TEST_ROOT/user-logs/power.log"
 
 # restart2 charge mode remains available only as an explicit, future
 # hardware-profile opt-in; it is not the RK2020 default.

@@ -8,9 +8,11 @@ PATH="${PLUMOS_ROOT}/bin:${PLUMOS_ROOT}/gnu/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export PATH
 
 LOG_DIR="${PLUMOS_ROOT}/logs"
+USER_LOG_DIR="${PLUMOS_SDCARD_ROOT}/plumos-logs"
 CONFIG_DIR="${PLUMOS_ROOT}/config"
 RUN_DIR="${PLUMOS_NETWORK_RUN_DIR:-$RUNTIME_ROOT/network-control}"
 LOG_FILE="${LOG_DIR}/network-control.log"
+USER_LOG_FILE="${PLUMOS_NETWORK_USER_LOG:-$USER_LOG_DIR/network-control.log}"
 WPA_STATUS="${PLUMOS_WPA_STATUS:-$RUN_DIR/wpa_status.txt}"
 WPA_STATUS_PERSIST="${CONFIG_DIR}/wpa_status.txt"
 WPA_CONFIG="${PLUMOS_WPA_CONFIG:-${CONFIG_DIR}/wpa_supplicant.conf}"
@@ -63,7 +65,7 @@ Options:
 USAGE
 }
 
-mkdir -p "$LOG_DIR" "$CONFIG_DIR" "$RUN_DIR" 2>/dev/null || true
+mkdir -p "$LOG_DIR" "$USER_LOG_DIR" "$CONFIG_DIR" "$RUN_DIR" 2>/dev/null || true
 
 set_ensure_wifi_stage() {
   ENSURE_WIFI_STAGE="$1"
@@ -95,9 +97,13 @@ uptime_now() {
 }
 
 log() {
-  printf '%s uptime=%s %s\n' \
+  line="$(printf '%s uptime=%s %s' \
     "$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || printf unknown-time)" \
-    "$(uptime_now)" "$*" >> "$LOG_FILE" 2>/dev/null || true
+    "$(uptime_now)" "$*")"
+  printf '%s\n' "$line" >> "$LOG_FILE" 2>/dev/null || true
+  if [ "$USER_LOG_FILE" != "$LOG_FILE" ] && [ -d "${USER_LOG_FILE%/*}" ]; then
+    printf '%s\n' "$line" >> "$USER_LOG_FILE" 2>/dev/null || true
+  fi
 }
 
 run_limited() {
