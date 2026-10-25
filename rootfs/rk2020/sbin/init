@@ -117,7 +117,11 @@ fi
 $bb mkdir -p /mnt/plumos/state /mnt/plumos/config /mnt/plumos/logs \
     /mnt/plumos/root/.ssh /mnt/plumos-user/roms /mnt/plumos-user/bios \
     /mnt/plumos-user/Images /mnt/plumos-user/Screenshots \
-    /mnt/plumos-user/updates
+    /mnt/plumos-user/updates /mnt/plumos-user/plumos-logs
+if [ -f /mnt/plumos/provision/first-boot.log ]; then
+    $bb cp -f /mnt/plumos/provision/first-boot.log \
+        /mnt/plumos-user/plumos-logs/first-boot.log 2>/dev/null || true
+fi
 $bb mount --bind /mnt/plumos/state /state 2>/dev/null || true
 [ -e /state/plumos ] || $bb ln -s /mnt/plumos /state/plumos
 $bb mount --bind /mnt/plumos-user/roms /roms 2>/dev/null || true

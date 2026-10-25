@@ -20,12 +20,17 @@ MMD=${PLUMOS_PROVISION_MMD:-mmd}
 MCOPY=${PLUMOS_PROVISION_MCOPY:-mcopy}
 PROGRESS_ROOT=${PLUMOS_PROVISION_PROGRESS_ROOT:-/usr/share/plumos/update-progress}
 FRAMEBUFFER=${PLUMOS_PROVISION_FRAMEBUFFER:-/dev/fb0}
+PROGRESS_HOLD_SECONDS=${PLUMOS_PROVISION_PROGRESS_HOLD_SECONDS:-1}
 
 RUNTIME_ROOT=${PLUMOS_PROVISION_RUNTIME_ROOT:-/storage}
 STATE_DIR=${PLUMOS_PROVISION_STATE_DIR:-$RUNTIME_ROOT/provision}
 USER_ROOT=${PLUMOS_PROVISION_USER_ROOT:-/mnt/plumos-user}
 SYS_CLASS_BLOCK=${PLUMOS_PROVISION_SYS_CLASS_BLOCK:-/sys/class/block}
 HOST_MODE=${PLUMOS_PROVISION_HOST_MODE:-0}
+
+case "$PROGRESS_HOLD_SECONDS" in
+    ''|*[!0-9]*) PROGRESS_HOLD_SECONDS=1 ;;
+esac
 
 BOOT_START=32768
 BOOT_SECTORS=1048576
@@ -63,7 +68,7 @@ mkdir -p "$STATE_DIR" 2>/dev/null || {
 log() {
     line="$($BB date -u +%Y-%m-%dT%H:%M:%SZ) plumos-provision=$*"
     printf '%s\n' "$line" >>"$LOG" 2>/dev/null || true
-    printf '%s\n' "$line" >/dev/console 2>/dev/null || true
+    printf '%s\n' "$line" >/dev/kmsg 2>/dev/null || true
 }
 
 show_progress() {
@@ -71,7 +76,10 @@ show_progress() {
     [ "${PLUMOS_PROVISION_PROGRESS:-1}" = 0 ] && return 0
     frame=$PROGRESS_ROOT/$1.raw
     [ -r "$frame" ] && [ -e "$FRAMEBUFFER" ] || return 0
-    "$BB" cat "$frame" >"$FRAMEBUFFER" 2>/dev/null || true
+    if "$BB" cat "$frame" >"$FRAMEBUFFER" 2>/dev/null; then
+        [ "$PROGRESS_HOLD_SECONDS" = 0 ] ||
+            "$BB" sleep "$PROGRESS_HOLD_SECONDS"
+    fi
 }
 
 fail() {
