@@ -221,6 +221,15 @@ assert contract["start_menu_ids"] == ids
 PY
 grep -q '"id": "pyxel_setup"' "$ROOT_DIR/package/frontend-rk2020/apps.json"
 grep -q '"id": "scraping"' "$ROOT_DIR/package/frontend-rk2020/apps.json"
+python3 - "$ROOT_DIR/package/frontend-rk2020/apps.json" <<'PY'
+import json
+import sys
+
+apps = {entry["id"]: entry for entry in json.load(open(sys.argv[1]))["apps"]}
+for app_id in ("pyxel_setup", "portmaster_update"):
+    if apps[app_id].get("confirm") is not True:
+        raise SystemExit(f"{app_id}: mutating frontend app must require confirmation")
+PY
 grep -q 'confirm_or_run_menu_shell_action' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'app_confirm_pending_until_ms = now + 5000' \
