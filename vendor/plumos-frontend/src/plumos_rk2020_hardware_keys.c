@@ -36,6 +36,10 @@
 #define USB_POWER_EVENT_GUARD_MS 1500
 #define DRM_PLANE_SNAPSHOT_LIMIT 16
 
+#ifndef BTN_TRIGGER_HAPPY5
+#define BTN_TRIGGER_HAPPY5 708
+#endif
+
 struct input_source {
   const char *name;
   int fd;
@@ -74,6 +78,22 @@ static long long monotonic_ms(void) {
     return 0;
   }
   return (long long)now.tv_sec * 1000LL + now.tv_nsec / 1000000LL;
+}
+
+static unsigned int volume_modifier_code(void) {
+  const char *configured = getenv("PLUMOS_INPUT_VOLUME_MODIFIER_CODE");
+  char *end = NULL;
+  long value;
+
+  if (!configured || !configured[0]) {
+    return BTN_TRIGGER_HAPPY5;
+  }
+  errno = 0;
+  value = strtol(configured, &end, 10);
+  if (errno || !end || *end || value <= 0 || value > KEY_MAX) {
+    return BTN_TRIGGER_HAPPY5;
+  }
+  return (unsigned int)value;
 }
 
 static int open_named_event(const char *target_name) {
@@ -818,10 +838,13 @@ int main(void) {
   long long usb_power_event_guard_due = 0;
   int usb_online = -1;
   int select_down = 0;
+  int volume_modifier_down = 0;
   int held_direction = 0;
   int held_is_display = 0;
+  int held_from_gamepad = 0;
   int volume_pending = 0;
   int display_pending = 0;
+  unsigned int volume_modifier = volume_modifier_code();
 
   if (!runtime_root || !runtime_root[0]) {
     runtime_root = "/run/plumos";
@@ -847,7 +870,10 @@ int main(void) {
   signal(SIGTERM, stop_running);
   signal(SIGUSR1, request_power_menu);
   setvbuf(stderr, NULL, _IOLBF, 0);
-  fprintf(stderr, "hardware-keys: start owner=plumos device=rk2020\n");
+  fprintf(stderr,
+          "hardware-keys: start owner=plumos device=rk2020 "
+          "volume_modifier=%u\n",
+          volume_modifier);
   usb_online = read_usb_online();
   (void)run_helper("plumos-volume-control", "apply");
   (void)run_helper("plumos-display-control", "apply");
@@ -921,6 +947,49 @@ int main(void) {
               power_menu_debounce_due = now + POWER_MENU_DEBOUNCE_MS;
             }
           } else if (source == &gamepad && event.type == EV_KEY &&
+                     event.code == volume_modifier) {
+            volume_modifier_down = event.value != 0;
+            if (!volume_modifier_down && held_from_gamepad) {
+              held_direction = 0;
+              held_from_gamepad = 0;
+              repeat_due = 0;
+            }
+          } else if (source == &gamepad && event.type == EV_KEY &&
+                     volume_modifier_down &&
+                     (event.code == BTN_DPAD_UP ||
+                      event.code == BTN_DPAD_DOWN ||
+                      event.code == BTN_DPAD_LEFT ||
+                      event.code == BTN_DPAD_RIGHT)) {
+            int direction =
+                (event.code == BTN_DPAD_UP || event.code == BTN_DPAD_RIGHT)
+                    ? 1
+                    : -1;
+            int display_action = event.code == BTN_DPAD_LEFT ||
+                                 event.code == BTN_DPAD_RIGHT;
+
+            if (event.value == 1) {
+              int result;
+
+              held_direction = direction;
+              held_is_display = display_action;
+              held_from_gamepad = 1;
+              result = apply_key_action(direction, display_action);
+              if (result == 0) {
+                if (display_action) {
+                  display_pending = 1;
+                } else {
+                  volume_pending = 1;
+                }
+                persist_due = now + PERSIST_DELAY_MS;
+              }
+              repeat_due = now + REPEAT_DELAY_MS;
+            } else if (event.value == 0 && held_from_gamepad &&
+                       direction == held_direction) {
+              held_direction = 0;
+              held_from_gamepad = 0;
+              repeat_due = 0;
+            }
+          } else if (source == &gamepad && event.type == EV_KEY &&
               (event.code == BTN_SELECT || event.code == BTN_TRIGGER_HAPPY1)) {
             select_down = event.value != 0;
           } else if (source == &volume_keys && event.type == EV_KEY &&
@@ -933,6 +1002,7 @@ int main(void) {
 
               held_direction = direction;
               held_is_display = select_down;
+              held_from_gamepad = 0;
               result = apply_key_action(direction, held_is_display);
               if (result == 0) {
                 if (held_is_display) {
@@ -962,6 +1032,12 @@ int main(void) {
         source->fd = -1;
         if (source == &gamepad) {
           select_down = 0;
+          volume_modifier_down = 0;
+          if (held_from_gamepad) {
+            held_direction = 0;
+            held_from_gamepad = 0;
+            repeat_due = 0;
+          }
         }
         if (source == &volume_keys) {
           held_direction = 0;

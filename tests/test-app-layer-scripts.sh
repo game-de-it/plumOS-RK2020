@@ -372,6 +372,18 @@ grep -q '^PLUMOS_INPUT_B_CODE=304$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_FUNCTION_CODE=706$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
+grep -q '^PLUMOS_INPUT_VOLUME_MODIFIER_CODE=708$' \
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
+grep -q 'BTN_TRIGGER_HAPPY5' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'volume_modifier_down' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'rk2020-hotplug-software-volume' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-volume-control"
+grep -Fq '"$RK817_HELPER" init' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-volume-control"
+grep -q 'initialize_rk2020_audio' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk817_resume.c"
 grep -q '^PLUMOS_INPUT_A_UDEV_BTN=1$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_UDEV_BTN=0$' \

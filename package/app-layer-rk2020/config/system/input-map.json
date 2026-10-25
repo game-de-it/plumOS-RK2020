@@ -9,7 +9,8 @@
       "b": 304,
       "x": 307,
       "y": 308,
-      "function": 706
+      "function": 706,
+      "volume_modifier": 708
     }
   },
   "udev": {
