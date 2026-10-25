@@ -177,8 +177,8 @@ assert "access(rk2020_dpad_mode_path, F_OK)" in standalone_mupen_input_patch
 assert "controller[Control].joystick, 14" not in standalone_mupen_input_patch
 assert 'MUPEN64PLUS_INPUT_PATCH' in standalone_build
 assert "DPad R =\n" in standalone_build
-assert "X Axis = button(12,13)" in standalone_build
-assert "Y Axis = button(10,11)" in standalone_build
+assert "X Axis = axis(0-,0+)" in standalone_build
+assert "Y Axis = axis(1-,1+)" in standalone_build
 assert "PLUMOS_MUPEN64PLUS_GL_ROTATION=270" in standalone_launch
 assert "mupen64plus-video-rice.so" in standalone_launch
 assert 'mupen_data_dir="${XDG_CACHE_HOME}/data.$$"' in standalone_launch
@@ -227,7 +227,7 @@ import sys
 
 path = Path(sys.argv[1])
 data = path.read_bytes()
-assert hashlib.sha256(data).hexdigest() == "97f4a4952dd5fa3b3e3bafb0af00609e72e1825c373af1ed3926a9caf792db6a"
+assert hashlib.sha256(data).hexdigest() == "a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85"
 lines = data.decode().splitlines()
 pairs = [line.split(" = ", 1) for line in lines if " = " in line]
 values = dict(pairs)
@@ -242,18 +242,18 @@ required = {
     "content_video_history_path": "\"/roms/content_video_history.lpl\"",
     "input_driver": "\"udev\"",
     "input_joypad_driver": "\"udev\"",
-    "input_menu_toggle_btn": "\"14\"",
+    "input_menu_toggle_btn": "\"12\"",
     "input_menu_toggle_gamepad_combo": "\"0\"",
     "menu_show_core_updater": "\"false\"",
     "menu_show_online_updater": "\"false\"",
-    "input_enable_hotkey_btn": "\"8\"",
-    "input_exit_emulator_btn": "\"9\"",
+    "input_enable_hotkey_btn": "\"10\"",
+    "input_exit_emulator_btn": "\"15\"",
     "input_load_state_btn": "\"4\"",
     "input_save_state_btn": "\"5\"",
     "input_toggle_fast_forward_axis": "\"nul\"",
-    "input_toggle_fast_forward_btn": "\"7\"",
+    "input_toggle_fast_forward_btn": "\"14\"",
     "input_toggle_slowmotion_axis": "\"nul\"",
-    "input_toggle_slowmotion_btn": "\"6\"",
+    "input_toggle_slowmotion_btn": "\"11\"",
     "joypad_autoconfig_dir": "\"/mnt/plumos/factory-defaults/retroarch/autoconfig\"",
     "fps_show": "\"false\"",
     "menu_show_dump_disc": "\"true\"",
@@ -297,7 +297,7 @@ grep -q 'input_joypad_driver = "udev"' \
     "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 grep -q 'input_player1_analog_dpad_mode = "0"' \
     "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
-grep -q 'input_player1_down_btn = "11"' \
+grep -q 'input_player1_down_btn = "7"' \
     "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 grep -q 'legacy_rk2020_sha256=b97c897b' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
@@ -340,15 +340,15 @@ grep -q '^input_a_btn = "1"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_b_btn = "0"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
-grep -q '^input_start_btn = "9"$' \
+grep -q '^input_start_btn = "15"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_down_axis = "+1"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
-grep -q '^input_down_btn = "11"$' \
+grep -q '^input_down_btn = "7"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_l_y_plus_axis = "+1"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
-grep -q '^input_device = "rk2020_joypad"$' \
+grep -q '^input_device = "GO-Advance Gamepad"$' \
     "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q 'SOURCE_COMMIT=69a4f0ea' "$ROOT_DIR/scripts/build-retroarch.sh"
 grep -q 'drm_set_rotation' \
@@ -363,7 +363,7 @@ grep -q '^PLUMOS_INPUT_A_CODE=305$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_CODE=304$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
-grep -q '^PLUMOS_INPUT_FUNCTION_CODE=704$' \
+grep -q '^PLUMOS_INPUT_FUNCTION_CODE=706$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_A_UDEV_BTN=1$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
@@ -371,7 +371,7 @@ grep -q '^PLUMOS_INPUT_B_UDEV_BTN=0$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_DOWN_UDEV_AXIS=+1$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
-grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=11$' \
+grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=7$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_ANALOG_DPAD_MODE=none$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
@@ -606,7 +606,7 @@ grep -q 'plumos-hardware-keys-service' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'plumos_rk2020_hardware_keys.c' \
     "$ROOT_DIR/scripts/build-frontend-component.sh"
-grep -q 'rk2020_joypad' \
+grep -q 'GO-Advance Gamepad' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'gpio-keys' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
@@ -622,7 +622,7 @@ grep -q 'BTN_SELECT' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'strcmp(ab_layout, "east-confirm")' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
-grep -q 'case BTN_TRIGGER_HAPPY1:' \
+grep -q 'case BTN_TRIGGER_HAPPY3:' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'value=%d action=%s' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
@@ -708,9 +708,9 @@ grep -q 'MUPEN64PLUS_CORE_REF=.*b0d68c20f49b8f833afa21450e0e8874c87c13c4' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'MUPEN64PLUS_VIDEO_REF=.*fcf00779f08a9503ef30d26422f6b0350684820d' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
-grep -q 'rk2020_joypad' \
+grep -q 'GO-Advance Gamepad' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
-grep -q 'BTN_TRIGGER_HAPPY1' \
+grep -q 'BTN_TRIGGER_HAPPY3' \
     "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'FUNCTION_EXIT_HOLD_MS 1500L' \
     "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
@@ -722,7 +722,7 @@ grep -q 'mupen64plus-dpad-mode.%ld' \
     "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'Function held; stopping' \
     "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
-grep -q 'PLUMOS_MUPEN64PLUS_LOGICAL_SIZE=640x480' \
+grep -q 'PLUMOS_MUPEN64PLUS_LOGICAL_SIZE=480x320' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PLUMOS_RK2020_PYTHON_EXTRA_LIBRARY_PATH' \
     "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
@@ -734,7 +734,7 @@ grep -q 'PLUMOS_PYXEL_HIDE_CURSOR.*1' \
     "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'plumos-pyxel-gl-rotate.so' \
     "$ROOT_DIR/scripts/build-pyxel-runtime-rk2020.sh"
-grep -q 'PLUMOS_PYXEL_LOGICAL_SIZE.*640x480' \
+grep -q 'PLUMOS_PYXEL_LOGICAL_SIZE.*480x320' \
     "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'plumos_pyxel_rk2020_shim' \
     "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
@@ -752,7 +752,7 @@ grep -q 'LOAD_NEXT(sdl_gl_get_proc_address, "SDL_GL_GetProcAddress")' \
     "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 grep -q '^Gpu3 = builtin_gpu$' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
-grep -q 'logical=640x480 ccw' \
+grep -q 'logical=480x320 ccw' \
     "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
 if grep -ERiq 'V9[0]S|M[F]|Miy[o]o|ROCKNIX' \
     "$ROOT_DIR/patches/pcsx_rearmed" \
@@ -863,13 +863,13 @@ grep -q 'CXXFLAGS += -DCMDR_KEY_OPEN=1' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'CXXFLAGS += -DCMDR_KEY_PARENT=0' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
-grep -q 'CXXFLAGS += -DCMDR_KEY_SELECT=8' \
+grep -q 'CXXFLAGS += -DCMDR_KEY_SELECT=10' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
-grep -q 'CXXFLAGS += -DCMDR_KEY_TRANSFER=9' \
+grep -q 'CXXFLAGS += -DCMDR_KEY_TRANSFER=15' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
-grep -q 'CXXFLAGS += -DCMDR_KEY_MENU=14' \
+grep -q 'CXXFLAGS += -DCMDR_KEY_MENU=12' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
-grep -q 'RK2020 virtual D-pad is SDL joystick buttons 10-13' \
+grep -q 'RK2020 D-pad is SDL joystick buttons 6-9' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q '"/bin/busybox", AsConstCStr(args)' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
@@ -915,7 +915,7 @@ grep -q 'case BTN_EAST:' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'case BTN_SOUTH:' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
-grep -q 'case BTN_TRIGGER_HAPPY1:' \
+grep -q 'case BTN_TRIGGER_HAPPY3:' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'B/FUNCTION Exit' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"

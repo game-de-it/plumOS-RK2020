@@ -163,7 +163,7 @@ cat >"$TARGET_DIR/plumos/components/music-player/manifest.json" <<EOF
   "source_sha256": "$SOURCE_SHA256",
   "miniaudio_ref": "$MINIAUDIO_REF",
   "generated_at": "$generated_at",
-  "display": "DRM page flip 640x480",
+  "display": "DRM page flip 480x320",
   "audio": "ALSA plumos_output",
   "input": "plumOS RK2020 Controller"
 }

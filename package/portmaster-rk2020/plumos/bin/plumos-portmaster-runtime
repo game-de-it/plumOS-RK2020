@@ -180,7 +180,7 @@ prepare() {
     "${ADAPTER_DIR}/lib/aarch64/libpixman-1.so.0"
 
   cat > "${RUN_ROOT}/gamecontrollerdb.txt" <<'EOF'
-19008d96010000000221000000010000,plumOS RK2020 Controller,a:b1,b:b0,x:b2,y:b3,leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7,back:b8,start:b9,guide:b14,dpup:b10,dpdown:b11,dpleft:b12,dpright:b13,platform:Linux,
+190000004b4800000010000000010000,GO-Advance Gamepad,a:b1,b:b0,x:b2,y:b3,leftshoulder:b4,rightshoulder:b5,lefttrigger:b11,righttrigger:b14,back:b10,guide:b12,start:b15,dpup:b6,dpdown:b7,dpleft:b8,dpright:b9,leftx:a0,lefty:a1,platform:Linux,
 EOF
   cp -f "${ADAPTER_DIR}/control.txt" "${PM_DIR}/control.txt"
   cp -f "${ADAPTER_DIR}/mod_plumOS.txt" "${PM_DIR}/mod_plumOS.txt"

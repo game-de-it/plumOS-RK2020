@@ -7,10 +7,10 @@ import sdl2.ext
 
 
 class RK2020Renderer(sdl2.ext.Renderer):
-    """Render at logical 640x480 and present CCW to native 480x640."""
+    """Render at logical 480x320 and present CCW to native 320x480."""
 
-    LOGICAL_WIDTH = 640
-    LOGICAL_HEIGHT = 480
+    LOGICAL_WIDTH = 480
+    LOGICAL_HEIGHT = 320
 
     def __init__(self, target, *args, **kwargs):
         super().__init__(target, *args, **kwargs)
@@ -41,13 +41,13 @@ class RK2020Renderer(sdl2.ext.Renderer):
         if sdl2.SDL_SetRenderTarget(renderer, None) != 0:
             raise sdl2.ext.SDLError(sdl2.SDL_GetError())
 
-        # A 640x480 rectangle centred on the 480x640 output fills it exactly
+        # A 480x320 rectangle centred on the 320x480 output fills it exactly
         # after the counter-clockwise quarter turn.
         if sdl2.SDL_RenderSetLogicalSize(renderer, 0, 0) != 0:
             raise sdl2.ext.SDLError(sdl2.SDL_GetError())
         sdl2.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255)
         sdl2.SDL_RenderClear(renderer)
-        destination = sdl2.SDL_Rect(-80, 80, 640, 480)
+        destination = sdl2.SDL_Rect(-80, 80, 480, 320)
         if (
             sdl2.SDL_RenderCopyEx(
                 renderer,

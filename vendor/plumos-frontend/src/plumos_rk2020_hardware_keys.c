@@ -804,7 +804,7 @@ static void persist_pending(int *volume_pending, int *display_pending) {
 }
 
 int main(void) {
-  struct input_source gamepad = {"rk2020_joypad", -1};
+  struct input_source gamepad = {"GO-Advance Gamepad", -1};
   struct input_source volume_keys = {"gpio-keys", -1};
   struct input_source power_key = {"rk805 pwrkey", -1};
   const char *runtime_root = getenv("PLUMOS_RUNTIME_ROOT");
@@ -921,7 +921,7 @@ int main(void) {
               power_menu_debounce_due = now + POWER_MENU_DEBOUNCE_MS;
             }
           } else if (source == &gamepad && event.type == EV_KEY &&
-              event.code == BTN_SELECT) {
+              (event.code == BTN_SELECT || event.code == BTN_TRIGGER_HAPPY1)) {
             select_down = event.value != 0;
           } else if (source == &volume_keys && event.type == EV_KEY &&
                      (event.code == KEY_VOLUMEUP ||

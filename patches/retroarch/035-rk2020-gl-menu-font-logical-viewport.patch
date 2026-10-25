@@ -6,10 +6,10 @@ diff --git a/gfx/drivers/gl2.c b/gfx/drivers/gl2.c
  static unsigned gl2_menu_font_width(gl2_t *gl)
  {
 -   return gl2_menu_display_rotation() ? gl->vp.height : gl->vp.width;
-+   /* gl->vp is already the graphical menu's logical 640x480 viewport.
-+    * The menu MVP rotates these vertices into RK2020's 480x640 scanout;
++   /* gl->vp is already the graphical menu's logical 480x320 viewport.
++    * The menu MVP rotates these vertices into RK2020's 320x480 scanout;
 +    * swapping the normalization dimensions here clips text at logical
-+    * x=480 while backgrounds and icons continue to the 640-pixel edge. */
++    * x=320 while backgrounds and icons continue to the 640-pixel edge. */
 +   return gl->vp.width;
  }
  

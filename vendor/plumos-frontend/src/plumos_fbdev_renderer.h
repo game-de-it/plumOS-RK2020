@@ -3413,8 +3413,8 @@ static double plumos_fbdev_ease_progress(double progress, const char *easing) {
 static void plumos_fbdev_gallery_slot(
     const struct plumos_fbdev_renderer *r, long rel,
     struct plumos_fbdev_gallery_slot *slot) {
-  int screen_w = r ? (int)r->var.xres : 640;
-  int screen_h = r ? (int)r->var.yres : 480;
+  int screen_w = r ? (int)r->var.xres : 480;
+  int screen_h = r ? (int)r->var.yres : 320;
   int center_w = plumos_fbdev_min_int(360, screen_w - 170);
   int footer_y = screen_h - 84;
   int center_y = 84;

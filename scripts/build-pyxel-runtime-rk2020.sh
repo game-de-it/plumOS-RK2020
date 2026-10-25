@@ -73,6 +73,11 @@ copy_dependency_tree() {
         awk -F'[][]' '/NEEDED/ { print $2 }' |
         while IFS= read -r dependency; do
             [ "$dependency" = "ld-linux-aarch64.so.1" ] && continue
+            case "$dependency" in
+                libEGL.so.*|libGLES*.so.*|libgbm.so.*|libGL.so.*|libGLdispatch.so.*|libGLX*.so.*|libOpenGL*.so.*)
+                    continue
+                    ;;
+            esac
             [ -e "$destination/$dependency" ] && continue
             source="$(find_target_lib "$dependency" || true)"
             [ -n "$source" ] || fail "runtime dependency not found: $dependency"
@@ -201,10 +206,6 @@ done < <(
 )
 
 for library in \
-    libEGL.so.1 \
-    libGLESv2.so.2 \
-    libGLdispatch.so.0 \
-    libgbm.so.1 \
     libdrm.so.2 \
     libudev.so.1 \
     libglib-2.0.so.0 \

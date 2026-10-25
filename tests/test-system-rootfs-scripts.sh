@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 test -x "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/05-gpu"
-grep -q 'modprobe panfrost' \
+grep -q 'driver=stock-mali' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/05-gpu"
 grep -q '/dev/shm' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'exec \$bb init' "$ROOT_DIR/rootfs/rk2020/sbin/init"
@@ -61,7 +61,7 @@ grep -q 'phase=pre-start' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'input-map.env' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
-grep -q 'rk2020_joypad' \
+grep -q 'GO-Advance\\ Gamepad' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'physical_yres' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
@@ -140,14 +140,14 @@ for frame in blank prepare resize userdata verify start error update_verify \
     update_runtime update_system update_finalize update_rollback update_error; do
     test -f "$progress_dir/$frame.raw"
     [ "$(stat -f '%z' "$progress_dir/$frame.raw" 2>/dev/null || \
-        stat -c '%s' "$progress_dir/$frame.raw")" -eq $((480 * 640 * 4)) ]
+        stat -c '%s' "$progress_dir/$frame.raw")" -eq $((320 * 480 * 4)) ]
 done
 python3 - "$progress_dir/blank.raw" <<'PY'
 from pathlib import Path
 import sys
 
 payload = Path(sys.argv[1]).read_bytes()
-assert payload == b"\x00\x00\x00\xff" * (480 * 640)
+assert payload == b"\x00\x00\x00\xff" * (320 * 480)
 PY
 grep -q 'build-rk2020-update-package.py' "$ROOT_DIR/scripts/docker-build.sh"
 

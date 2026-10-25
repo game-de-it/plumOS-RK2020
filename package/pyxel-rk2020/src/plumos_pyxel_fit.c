@@ -34,8 +34,8 @@ static SDLShowCursor real_sdl_show_cursor;
 static struct program_state programs[MAX_PROGRAMS];
 static GLuint current_program;
 static int fit_enabled = -1;
-static float output_width = 640.0f;
-static float output_height = 480.0f;
+static float output_width = 480.0f;
+static float output_height = 320.0f;
 static int fit_reported;
 static int hide_cursor = -1;
 
@@ -70,8 +70,8 @@ static void init_config(void)
     }
     fit_enabled = env_enabled("PLUMOS_PYXEL_FIT", 1);
     hide_cursor = env_enabled("PLUMOS_PYXEL_HIDE_CURSOR", 1);
-    output_width = env_dimension("PLUMOS_PYXEL_FIT_WIDTH", 640.0f);
-    output_height = env_dimension("PLUMOS_PYXEL_FIT_HEIGHT", 480.0f);
+    output_width = env_dimension("PLUMOS_PYXEL_FIT_WIDTH", 480.0f);
+    output_height = env_dimension("PLUMOS_PYXEL_FIT_HEIGHT", 320.0f);
 }
 
 int SDL_ShowCursor(int toggle)

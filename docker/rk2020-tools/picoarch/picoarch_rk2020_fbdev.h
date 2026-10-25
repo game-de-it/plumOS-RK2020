@@ -97,8 +97,8 @@ static void rk2020_fb_present_pixels(const uint16_t *pixels)
 	reactivate = rk2020_fb_take_scanout_reactivate();
 	draw_base = rk2020_fb_map +
 		(size_t)rk2020_fb_draw_yoffset * rk2020_fb_fix.line_length;
-	/* RK2020 exposes the landscape LCD as a physical 480x640 framebuffer.
-	 * Present the logical 640x480 PicoArch surface counter-clockwise, matching
+	/* RK2020 exposes the landscape LCD as a physical 320x480 framebuffer.
+	 * Present the logical 480x320 PicoArch surface counter-clockwise, matching
 	 * the frontend, RetroArch, and PCSX-ReARMed contract. */
 	for (dst_y = 0; dst_y < dst_height; dst_y++) {
 		unsigned logical_x = dst_height - 1U - dst_y;

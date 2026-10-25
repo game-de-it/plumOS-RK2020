@@ -105,7 +105,7 @@ static int open_rk2020_joypad(char *device_path, size_t device_path_size) {
     fclose(name_file);
     length = strcspn(name, "\r\n");
     name[length] = '\0';
-    if (strcmp(name, "rk2020_joypad") != 0) {
+    if (strcmp(name, "GO-Advance Gamepad") != 0) {
       continue;
     }
     snprintf(device_path, device_path_size, "/dev/input/event%d", index);
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
 
   input_fd = open_rk2020_joypad(device_path, sizeof(device_path));
   if (input_fd < 0) {
-    fprintf(stderr, "mupen64plus-hotkey: rk2020_joypad input not found\n");
+    fprintf(stderr, "mupen64plus-hotkey: GO-Advance Gamepad input not found\n");
     return 4;
   }
   signal(SIGINT, request_stop);
@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
   input_poll.fd = input_fd;
   input_poll.events = POLLIN;
   fprintf(stderr,
-          "mupen64plus-hotkey: monitoring %s BTN_TRIGGER_HAPPY1\n",
+          "mupen64plus-hotkey: monitoring %s BTN_TRIGGER_HAPPY3\n",
           device_path);
 
   while (!stop_requested && target_matches(target_pid, expected_exe)) {
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
       event_count = (size_t)bytes_read / sizeof(events[0]);
       for (index = 0; index < event_count; index++) {
         if (events[index].type == EV_KEY &&
-          events[index].code == BTN_TRIGGER_HAPPY1) {
+          events[index].code == BTN_TRIGGER_HAPPY3) {
           if (events[index].value == 1) {
             if (!function_gesture) {
               function_gesture = 1;

@@ -16,7 +16,7 @@ index d16a23d..6455dc6 100644
  #CXXFLAGS += -DSCREEN_WIDTH=1024 #640
  #CXXFLAGS += -DSCREEN_HEIGHT=768 #480
 -# Miyoo Flip: 640x480 @3.5in, 229ppi -> 229/72 = 3.1805 PPU -> we use 3 (font size 24)
-+# GKD RK2020: 640x480 @3.5in, 229ppi -> 229/72 = 3.1805 PPU -> we use 3 (font size 24)
++# Miyoo Flip legacy branch: retain 640x480 PPU 3 settings.
  CXXFLAGS += -DPPU_X=3
  CXXFLAGS += -DPPU_Y=3
  CXXFLAGS += -DSCREEN_BPP=32
@@ -44,9 +44,9 @@ index d16a23d..6455dc6 100644
 +CXXFLAGS += -DCMDR_KEY_SYSTEM=3
 +CXXFLAGS += -DCMDR_KEY_PAGEUP=4
 +CXXFLAGS += -DCMDR_KEY_PAGEDOWN=5
-+CXXFLAGS += -DCMDR_KEY_SELECT=8
-+CXXFLAGS += -DCMDR_KEY_TRANSFER=9
-+CXXFLAGS += -DCMDR_KEY_MENU=14
++CXXFLAGS += -DCMDR_KEY_SELECT=10
++CXXFLAGS += -DCMDR_KEY_TRANSFER=15
++CXXFLAGS += -DCMDR_KEY_MENU=12
 +
 +CXXFLAGS += -DAUTOSCALE=0
 +CXXFLAGS += -DAUTOSCALE_DPI=0
@@ -325,17 +325,17 @@ index e3e646e..2b8c89c 100644
                      SDL_Event key_event;
 -                    key_event.key.keysym.sym = event.jbutton.button == CMDR_KEY_MENU ? CMDR_KEY_SYSTEM : event.jbutton.button;
 +                    switch (event.jbutton.button) {
-+                    /* RK2020 virtual D-pad is SDL joystick buttons 10-13. */
-+                    case 10:
++                    /* RK2020 D-pad is SDL joystick buttons 6-9. */
++                    case 6:
 +                        key_event.key.keysym.sym = CMDR_KEY_UP;
 +                        break;
-+                    case 11:
++                    case 7:
 +                        key_event.key.keysym.sym = CMDR_KEY_DOWN;
 +                        break;
-+                    case 12:
++                    case 8:
 +                        key_event.key.keysym.sym = CMDR_KEY_LEFT;
 +                        break;
-+                    case 13:
++                    case 9:
 +                        key_event.key.keysym.sym = CMDR_KEY_RIGHT;
 +                        break;
 +                    default:

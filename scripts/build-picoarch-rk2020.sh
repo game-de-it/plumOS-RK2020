@@ -59,6 +59,9 @@ git -C "$SRC" submodule update --init --recursive
 git -C "$SRC" submodule foreach --recursive 'git reset --hard; git clean -ffdx'
 checkout_source "$SDL12_REPO" "$SDL12_REF" "$SDL12_SRC"
 
+perl -0pi -e 's/#define SCREEN_WIDTH 640\n#define SCREEN_HEIGHT 480/#define SCREEN_WIDTH 480\n#define SCREEN_HEIGHT 320/ or die "PicoArch screen geometry marker missing\n"' \
+  "$SRC/scale.h"
+
 perl -0pi -e 's/scaler_neon\.o/scaler_c.o picoarch_rk2020_host.o/ or die "scaler object marker missing\n";
   s/-lpng12/-lpng/ or die "libpng marker missing\n";
   s/else ifeq \(\$\(platform\), unix\)/else ifeq (\$(platform), rk2020)\n\tOBJS += plat_linux.o\n\tCFLAGS += -march=armv8-a+crc -mtune=cortex-a35 -pthread -DCONTENT_DIR='"'"'"\/roms"'"'"'\n\tLDFLAGS += -fPIE -pthread\nelse ifeq (\$(platform), unix)/ or die "platform marker missing\n"' "$SRC/Makefile"

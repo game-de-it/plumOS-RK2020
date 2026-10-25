@@ -104,7 +104,7 @@ grep -q '"complete": true' "$ROOT/manifest.json"
 grep -q '"retroarch:quicknes"' "$ROOT/config/frontend/systems.json"
 jq -e '.systems[] | select(.id == "ports" and .enabled == true and .default_launch_profile == "external:port")' \
     "$ROOT/config/frontend/systems.json" >/dev/null
-grep -q '^input_device = "rk2020_joypad"$' \
+grep -q '^input_device = "GO-Advance Gamepad"$' \
     "$ROOT/factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg"
 grep -q '^input_joypad_driver = "udev"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
@@ -128,7 +128,7 @@ grep -q '^input_player1_analog_dpad_mode = "1"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg" && exit 1
 grep -q '^input_player1_analog_dpad_mode = "0"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_player1_down_btn = "11"$' \
+grep -q '^input_player1_down_btn = "7"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^config_save_on_exit = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
@@ -136,21 +136,21 @@ grep -q '^auto_overrides_enable = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^auto_remaps_enable = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_menu_toggle_btn = "14"$' \
+grep -q '^input_menu_toggle_btn = "12"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_menu_toggle_gamepad_combo = "0"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_enable_hotkey_btn = "8"$' \
+grep -q '^input_enable_hotkey_btn = "10"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_exit_emulator_btn = "9"$' \
+grep -q '^input_exit_emulator_btn = "15"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_load_state_btn = "4"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^input_save_state_btn = "5"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_toggle_slowmotion_btn = "6"$' \
+grep -q '^input_toggle_slowmotion_btn = "11"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
-grep -q '^input_toggle_fast_forward_btn = "7"$' \
+grep -q '^input_toggle_fast_forward_btn = "14"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^savefiles_in_content_dir = "true"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
@@ -176,7 +176,8 @@ grep -q 'main_result=migrated-regression' "$ROOT/bin/plumos-retroarch-config-mer
 grep -q '"device": "rk2020"' "$ROOT/config/frontend/menus.json"
 grep -q 'ID_INPUT_JOYSTICK=1' "$ROOT/bin/plumos-ensure-udev-input-db"
 grep -q 'plumos-audio-output' "$ROOT/bin/plumos-retroarch-launch"
-grep -q 'LIBGL_DRIVERS_PATH' "$ROOT/bin/plumos-retroarch-launch"
+grep -q 'unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES' \
+    "$ROOT/bin/plumos-retroarch-launch"
 grep -q 'flycast_xtreme_libretro.so|' "$ROOT/bin/plumos-retroarch-launch"
 grep -q 'video_driver=gl' "$ROOT/bin/plumos-retroarch-launch"
 grep -q 'video_rotation=1' "$ROOT/bin/plumos-retroarch-launch"
@@ -203,8 +204,8 @@ while IFS= read -r gles_binary; do
     }
 done < <(jq -r '.cores[] | select(.rendering == "hardware-gles") | .binary' \
     "$ROOT/components/libretro-cores/manifest.json")
-test -s "$ROOT/emulator/dri/rockchip_dri.so"
-test -s "$ROOT/emulator/egl_vendor.d/50_mesa.json"
+test ! -e "$ROOT/emulator/dri/rockchip_dri.so"
+test ! -e "$ROOT/emulator/egl_vendor.d/50_mesa.json"
 test -s "$ROOT/apps/pyxel/lib/plumos-pyxel-fit.so"
 test -s "$ROOT/apps/pyxel/lib/plumos-pyxel-gl-rotate.so"
 grep -q 'plumos-audio-output' "$ROOT/bin/plumos-picoarch-launch"
@@ -222,9 +223,9 @@ grep -q '"component": "pyxel"' "$ROOT/components/pyxel/manifest.json"
 grep -q '"device": "rk2020"' "$ROOT/components/picoarch/manifest.json"
 grep -q '"device": "rk2020"' "$ROOT/components/standalone/manifest.json"
 grep -q '"device": "rk2020"' "$ROOT/components/pyxel/manifest.json"
-grep -Fq 'SDL_VIDEO_EGL_DRIVER="${SDL_VIDEO_EGL_DRIVER:-$PYXEL_ROOT/lib/libEGL.so.1}"' \
+grep -Fq 'unset SDL_VIDEO_EGL_DRIVER SDL_VIDEO_GL_DRIVER' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
-grep -Fq '"$DRI_DIR/rockchip_dri.so"' \
+grep -Fq 'unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
@@ -246,7 +247,7 @@ grep -Fq 'PLUMOS_PYXEL_HIDE_CURSOR="${PLUMOS_PYXEL_HIDE_CURSOR:-1}"' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'PLUMOS_PYXEL_GL_ROTATION="${PLUMOS_PYXEL_GL_ROTATION:-270}"' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
-grep -Fq 'PLUMOS_PYXEL_LOGICAL_SIZE="${PLUMOS_PYXEL_LOGICAL_SIZE:-640x480}"' \
+grep -Fq 'PLUMOS_PYXEL_LOGICAL_SIZE="${PLUMOS_PYXEL_LOGICAL_SIZE:-480x320}"' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq -- '-m plumos_pyxel_rk2020_shim' \
     "$ROOT/bin/plumos-pyxel-rk2020-launch"
@@ -296,7 +297,7 @@ if jq -e '.emulators[] | select(.id == "mupen64plus" and .status == "built")' \
             exit 1
         }
     done
-    grep -Fq '[rk2020_joypad]' \
+    grep -Fq '[GO-Advance Gamepad]' \
         "$ROOT/standalone/mupen64plus/share/mupen64plus/InputAutoCfg.ini"
     grep -q 'rice-gles2-rk2020-final-present-ccw' \
         "$ROOT/standalone/mupen64plus/build-manifest.json"
@@ -323,7 +324,7 @@ grep -q '^PLUMOS_INPUT_B_CODE=304$' "$ROOT/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_A_UDEV_BTN=1$' "$ROOT/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_UDEV_BTN=0$' "$ROOT/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_DOWN_UDEV_AXIS=+1$' "$ROOT/config/system/input-map.env"
-grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=11$' "$ROOT/config/system/input-map.env"
+grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=7$' "$ROOT/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_ANALOG_DPAD_MODE=none$' "$ROOT/config/system/input-map.env"
 grep -q '"ab_layout": "east-confirm"' "$ROOT/config/system/input-map.json"
 grep -q '"udev": {' "$ROOT/config/system/input-map.json"

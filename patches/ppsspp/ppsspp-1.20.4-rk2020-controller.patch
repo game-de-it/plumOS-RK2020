@@ -14,7 +14,7 @@ index 746e3dd..42c647a 100644
 -	char pszGUID[cbGUID];
 +	char pszGUID[cbGUID] = {};
 +
-+	// RK2020 exposes a compact 15-button joystick without an SDL database
++	// RK2020 exposes a compact 16-button joystick without an SDL database
 +	// entry.  PPSSPP's generic PS3 fallback assigns button 14 to D-pad Down
 +	// and uses invalid D-pad button indices, so install the measured hardware
 +	// contract before SDL decides whether this is a game controller.
@@ -22,11 +22,11 @@ index 746e3dd..42c647a 100644
 +	if (rk2020Joystick) {
 +		SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(rk2020Joystick), pszGUID, cbGUID);
 +		const char *deviceName = SDL_JoystickName(rk2020Joystick);
-+		if (deviceName && !strcmp(deviceName, "rk2020_joypad")) {
++		if (deviceName && !strcmp(deviceName, "GO-Advance Gamepad")) {
 +			const std::string mapping = std::string(pszGUID) +
-+				",rk2020_joypad,a:b1,b:b0,x:b2,y:b3,back:b8,guide:b14,start:b9,"
-+				"dpup:b10,dpdown:b11,dpleft:b12,dpright:b13,"
-+				"leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7,platform:Linux,";
++				",GO-Advance Gamepad,a:b1,b:b0,x:b2,y:b3,back:b10,guide:b12,start:b15,"
++				"dpup:b6,dpdown:b7,dpleft:b8,dpright:b9,"
++				"leftshoulder:b4,rightshoulder:b5,lefttrigger:b11,righttrigger:b14,platform:Linux,";
 +			const int result = SDL_GameControllerAddMapping(mapping.c_str());
 +			if (result >= 0) {
 +				INFO_LOG(Log::System, "Installed RK2020 controller mapping: %s", mapping.c_str());

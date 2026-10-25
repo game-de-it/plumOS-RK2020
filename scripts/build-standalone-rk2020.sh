@@ -429,7 +429,7 @@ build_pcsx_rearmed() {
     "fbdev_presenter": "$fbdev_sha256"
   },
   "renderer": "builtin-neon-threaded-rk2020-fbdev-ccw",
-  "display": "640x480-logical-on-480x640-physical",
+  "display": "480x320-logical-on-320x480-physical",
   "audio": "alsa-plumos-output-44100-to-48000",
   "input": "rk2020-evdev-function-menu-and-sdl-fallback",
   "factory_config": "factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
@@ -894,10 +894,10 @@ build_mupen64plus() {
     "$MUPEN64PLUS_GL_ROTATE_SOURCE" -ldl
 
   M64_INPUT_CFG="$M64_DST/share/mupen64plus/InputAutoCfg.ini"
-  grep -Fqx '[rk2020_joypad]' "$M64_INPUT_CFG" || cat >>"$M64_INPUT_CFG" <<'EOF'
+  grep -Fqx '[GO-Advance Gamepad]' "$M64_INPUT_CFG" || cat >>"$M64_INPUT_CFG" <<'EOF'
 
 ; plumOS RK2020 built-in controls
-[rk2020_joypad]
+[GO-Advance Gamepad]
 plugged = True
 mouse = False
 AnalogDeadzone = 0,0
@@ -906,20 +906,20 @@ DPad R =
 DPad L =
 DPad D =
 DPad U =
-Start = button(9)
-Z Trig = button(8)
+Start = button(15)
+Z Trig = button(10)
 B Button = button(0)
 A Button = button(1)
-C Button R = button(7)
-C Button L = button(6)
+C Button R = button(14)
+C Button L = button(11)
 C Button D = button(2)
 C Button U = button(3)
 R Trig = button(5)
 L Trig = button(4)
 Mempak switch =
 Rumblepak switch =
-X Axis = button(12,13)
-Y Axis = button(10,11)
+X Axis = axis(0-,0+)
+Y Axis = axis(1-,1+)
 EOF
 
   # Mupen installs ABI symlinks. App-layer payloads must not retain absolute
@@ -978,9 +978,9 @@ EOF
   },
   "binary_sha256": "$(sha256_file "$M64_BINARY")",
   "renderer": "rice-gles2-rk2020-final-present-ccw",
-  "display": "640x480-logical-on-480x640-physical",
+  "display": "480x320-logical-on-320x480-physical",
   "audio": "sdl2-alsa-plumos-output",
-  "input": "rk2020_joypad-sdl2-function-exit"
+  "input": "GO-Advance-Gamepad-sdl2-function-exit"
 }
 EOF
 }

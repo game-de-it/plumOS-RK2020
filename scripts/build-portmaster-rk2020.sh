@@ -864,7 +864,7 @@ cat > "$stage_dir/plumos/components/portmaster/manifest.json" <<EOF
   "sdl2_mixer_version": "${SDL2_MIXER_VERSION}",
   "runtime_abi": "plumos-rk2020-portmaster-v1",
   "depends_on": ["frontend", "nextcommander", "pyxel"],
-  "display": "SDL2 KMSDRM 640x480",
+  "display": "SDL2 KMSDRM 480x320",
   "audio": "ALSA plumos_output",
   "input": "plumOS RK2020 Controller",
   "mutable_data": "state/portmaster"

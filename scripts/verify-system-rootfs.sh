@@ -94,7 +94,7 @@ for frame in blank prepare resize userdata verify start error update_verify \
         printf 'error: update progress frame missing: %s.raw\n' "$frame" >&2
         exit 1
     }
-    [ "$(stat -c '%s' "$path")" -eq $((480 * 640 * 4)) ] || {
+    [ "$(stat -c '%s' "$path")" -eq $((320 * 480 * 4)) ] || {
         printf 'error: invalid RK2020 update progress frame: %s.raw\n' "$frame" >&2
         exit 1
     }
@@ -104,7 +104,7 @@ from pathlib import Path
 import sys
 
 payload = Path(sys.argv[1]).read_bytes()
-assert payload == b"\x00\x00\x00\xff" * (480 * 640), \
+assert payload == b"\x00\x00\x00\xff" * (320 * 480), \
     "RK2020 frontend handoff frame is not opaque black"
 PY
 grep -q 'clear_frontend_handoff_framebuffer' \

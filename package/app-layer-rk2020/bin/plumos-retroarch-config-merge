@@ -16,6 +16,7 @@ legacy_incomplete_full_sha256=9f4aaebdab3cc3a9be24b203161e63f63f1887e4eb0b79c826
 regressed_rk2020_sha256=8d9a8e71cc38e63d1c6084d6bcf99701507cb632ff2dd1f4ebf9963b82beae77
 osd_disabled_factory_sha256=2db551beda3cd62e4f87d15d77a56ae2df1905fa3bc3925dbf5aaee803a4dcc6
 black_osd_factory_sha256=231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280
+black_osd_go_advance_factory_sha256=a709c747328cdd953ce08c218d1b360dddd6d2a246da0ce77ae62e7978d5eaa5
 small_menu_factory_sha256=0fe41cce8ee36e4ca0b346ad2aee17563f08afb9f402fe1a3f8ea5e46a1744ef
 
 [ -s "$factory" ] || {
@@ -92,13 +93,13 @@ migrate_legacy_incomplete_values() {
             $0 = "input_toggle_fast_forward_axis = \"nul\""; changed++
         }
         $0 == "input_toggle_fast_forward_btn = \"nul\"" {
-            $0 = "input_toggle_fast_forward_btn = \"7\""; changed++
+            $0 = "input_toggle_fast_forward_btn = \"14\""; changed++
         }
         $0 == "input_toggle_slowmotion_axis = \"+4\"" {
             $0 = "input_toggle_slowmotion_axis = \"nul\""; changed++
         }
         $0 == "input_toggle_slowmotion_btn = \"nul\"" {
-            $0 = "input_toggle_slowmotion_btn = \"6\""; changed++
+            $0 = "input_toggle_slowmotion_btn = \"11\""; changed++
         }
         $0 == "savefiles_in_content_dir = \"false\"" {
             $0 = "savefiles_in_content_dir = \"true\""; changed++
@@ -136,7 +137,7 @@ migrate_regressed_exit_values() {
     migrate_count="$state_dir/migrate-regression-count.$$"
     $bb awk '
         $0 == "input_exit_emulator_btn = \"nul\"" {
-            $0 = "input_exit_emulator_btn = \"9\""; changed++
+            $0 = "input_exit_emulator_btn = \"15\""; changed++
         }
         $0 == "input_menu_toggle_gamepad_combo = \"4\"" {
             $0 = "input_menu_toggle_gamepad_combo = \"0\""; changed++
@@ -241,7 +242,8 @@ elif set -- $($bb sha256sum "$config") &&
     atomic_copy "$factory" "$config"
     main_result=replaced-legacy
 elif set -- $($bb sha256sum "$config") &&
-        [ "$1" = "$black_osd_factory_sha256" ]; then
+        { [ "$1" = "$black_osd_factory_sha256" ] ||
+          [ "$1" = "$black_osd_go_advance_factory_sha256" ]; }; then
     # This exact factory generation accidentally made all plain-DRM OSD text
     # black. Replace it only when the complete active config is byte-identical
     # to that factory. A user-edited config with the same old marker is merged

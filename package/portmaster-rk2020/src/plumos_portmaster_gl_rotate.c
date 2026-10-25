@@ -28,8 +28,8 @@
 /*
  * SDL_Renderer ports are rotated by plumos_portmaster_sdl_rotate.  LÖVE and
  * other SDL/OpenGL ports bypass SDL_Renderer, so give them a landscape
- * 640x480 default framebuffer and rotate that framebuffer onto RK2020's
- * panel-native 480x640 scanout immediately before SDL_GL_SwapWindow.
+ * 480x320 default framebuffer and rotate that framebuffer onto RK2020's
+ * panel-native 320x480 scanout immediately before SDL_GL_SwapWindow.
  */
 
 static SDL_GLContext (*real_sdl_gl_create_context)(SDL_Window *);
@@ -120,12 +120,12 @@ static int gl_initialise_attempted;
 static int internal_gl;
 static unsigned redirected_default_count;
 static SDL_GLContext active_context;
-static int logical_width = 640;
-static int logical_height = 480;
+static int logical_width = 480;
+static int logical_height = 320;
 static int present_x;
 static int present_y;
-static int present_width = 480;
-static int present_height = 640;
+static int present_width = 320;
+static int present_height = 480;
 
 #define LOAD_NEXT(name, symbol)                                                \
     do {                                                                       \
@@ -156,8 +156,8 @@ static void configure_logical_geometry(void) {
     int fitted_width;
     int fitted_height;
 
-    logical_width = 640;
-    logical_height = 480;
+    logical_width = 480;
+    logical_height = 320;
     if (PLUMOS_GL_LOGICAL_SIZE_ENV[0])
         value = getenv(PLUMOS_GL_LOGICAL_SIZE_ENV);
     if (value && value[0]) {
@@ -172,21 +172,21 @@ static void configure_logical_geometry(void) {
         }
     }
 
-    width_scale = 640.0f / (float)logical_width;
-    height_scale = 480.0f / (float)logical_height;
+    width_scale = 480.0f / (float)logical_width;
+    height_scale = 320.0f / (float)logical_height;
     scale = width_scale < height_scale ? width_scale : height_scale;
     fitted_width = (int)((float)logical_width * scale + 0.5f);
     fitted_height = (int)((float)logical_height * scale + 0.5f);
     if (fitted_width < 1) fitted_width = 1;
     if (fitted_height < 1) fitted_height = 1;
-    if (fitted_width > 640) fitted_width = 640;
-    if (fitted_height > 480) fitted_height = 480;
+    if (fitted_width > 480) fitted_width = 480;
+    if (fitted_height > 320) fitted_height = 320;
 
     /* A 270-degree presentation swaps logical axes on the native panel. */
     present_width = fitted_height;
     present_height = fitted_width;
-    present_x = (480 - present_width) / 2;
-    present_y = (640 - present_height) / 2;
+    present_x = (320 - present_width) / 2;
+    present_y = (480 - present_height) / 2;
 }
 
 static void reset_context_state(SDL_GLContext context) {
@@ -474,7 +474,7 @@ static int initialise_rotation(void) {
     gl_ready = 1;
     fprintf(stderr,
             "[plumOS] %s GL rotation: logical=%dx%d present=%dx%d+%d+%d "
-            "scanout=480x640 @ 270\n",
+            "scanout=320x480 @ 270\n",
             PLUMOS_GL_ROTATION_LABEL, logical_width, logical_height,
             present_width, present_height, present_x, present_y);
     return 1;
@@ -535,7 +535,7 @@ static int present_rotation(SDL_Window *window) {
     GLint texture = 0;
     GLint texture_zero = 0;
     GLint vertex_array = 0;
-    GLint viewport[4] = {0, 0, 480, 640};
+    GLint viewport[4] = {0, 0, 320, 480};
     GLboolean blend;
     GLboolean cull;
     GLboolean depth;
@@ -561,7 +561,7 @@ static int present_rotation(SDL_Window *window) {
 
     internal_gl = 1;
     real_gl_bind_framebuffer(GL_FRAMEBUFFER, 0);
-    real_gl_viewport(0, 0, 480, 640);
+    real_gl_viewport(0, 0, 320, 480);
     real_gl_disable(GL_BLEND);
     real_gl_disable(GL_CULL_FACE);
     real_gl_disable(GL_DEPTH_TEST);

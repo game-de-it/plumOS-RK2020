@@ -115,7 +115,7 @@ static void rk2020_pcsx_fb_present_pixels(const struct rk2020_pcsx_frame *frame)
 		(size_t)rk2020_pcsx_fb_draw_yoffset * rk2020_pcsx_fb_fix.line_length;
 
 	/*
-	 * RK2020 exposes its landscape 640x480 LCD as a 480x640 framebuffer.
+	 * RK2020 exposes its landscape 480x320 LCD as a 320x480 framebuffer.
 	 * This is the same counter-clockwise logical rotation used by the plumOS
 	 * frontend and RetroArch.  Scaling in logical coordinates also gives PSX
 	 * video its intended 4:3 display aspect instead of its raw pixel aspect.
@@ -198,9 +198,9 @@ static int rk2020_pcsx_fb_init(void)
 			strerror(errno));
 		return -1;
 	}
-	if (rk2020_pcsx_fb_var.xres != 480 || rk2020_pcsx_fb_var.yres != 640 ||
+	if (rk2020_pcsx_fb_var.xres != 320 || rk2020_pcsx_fb_var.yres != 480 ||
 	    rk2020_pcsx_fb_var.bits_per_pixel != 32 ||
-	    rk2020_pcsx_fb_fix.line_length < 480U * 4U) {
+	    rk2020_pcsx_fb_fix.line_length < 320U * 4U) {
 		fprintf(stderr,
 			"RK2020 PCSX framebuffer contract mismatch: %ux%u bpp=%u stride=%u\n",
 			rk2020_pcsx_fb_var.xres, rk2020_pcsx_fb_var.yres,
@@ -239,7 +239,7 @@ static int rk2020_pcsx_fb_init(void)
 		return -1;
 	rk2020_pcsx_fb_thread_started = 1;
 	fprintf(stderr,
-		"RK2020 PCSX framebuffer presenter: physical=%ux%u logical=640x480 ccw double_buffer=%d\n",
+		"RK2020 PCSX framebuffer presenter: physical=%ux%u logical=480x320 ccw double_buffer=%d\n",
 		rk2020_pcsx_fb_var.xres, rk2020_pcsx_fb_var.yres,
 		rk2020_pcsx_fb_double_buffer);
 	return 0;

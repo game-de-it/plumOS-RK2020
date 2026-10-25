@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 /*
- * Rockbox's SDL application receives the RK2020 panel's initial 480x640
+ * Rockbox's SDL application receives the RK2020 panel's initial 320x480
  * SDL_WINDOWEVENT_RESIZED before it has created gui_texture.  Its resize
  * handler then clears new_gui_texture_needed, so every later UpdateTexture
  * and RenderCopy operates on NULL and the DRM plane stays black.

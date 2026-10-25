@@ -60,9 +60,9 @@ test "$(grep -c "^np2kai_joymode[[:space:]]*=" \
 # RK2020 defaults, while retaining an unrelated explicit user value.
 sed -i \
     -e "s/input_toggle_fast_forward_axis = \"nul\"/input_toggle_fast_forward_axis = \"+5\"/" \
-    -e "s/input_toggle_fast_forward_btn = \"7\"/input_toggle_fast_forward_btn = \"nul\"/" \
+    -e "s/input_toggle_fast_forward_btn = \"14\"/input_toggle_fast_forward_btn = \"nul\"/" \
     -e "s/input_toggle_slowmotion_axis = \"nul\"/input_toggle_slowmotion_axis = \"+4\"/" \
-    -e "s/input_toggle_slowmotion_btn = \"6\"/input_toggle_slowmotion_btn = \"nul\"/" \
+    -e "s/input_toggle_slowmotion_btn = \"11\"/input_toggle_slowmotion_btn = \"nul\"/" \
     -e "s/savefiles_in_content_dir = \"true\"/savefiles_in_content_dir = \"false\"/" \
     -e "s/savestates_in_content_dir = \"true\"/savestates_in_content_dir = \"false\"/" \
     -e "s/sort_savefiles_by_content_enable = \"true\"/sort_savefiles_by_content_enable = \"false\"/" \
@@ -77,10 +77,10 @@ PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
     /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/migrate.log
 grep -q "retroarch_config=result-migrated-legacy added=10" /tmp/migrate.log
-grep -q "^input_exit_emulator_btn = \"9\"$" "$active/retroarch.cfg"
+grep -q "^input_exit_emulator_btn = \"15\"$" "$active/retroarch.cfg"
 grep -q "^input_menu_toggle_gamepad_combo = \"0\"$" "$active/retroarch.cfg"
-grep -q "^input_toggle_fast_forward_btn = \"7\"$" "$active/retroarch.cfg"
-grep -q "^input_toggle_slowmotion_btn = \"6\"$" "$active/retroarch.cfg"
+grep -q "^input_toggle_fast_forward_btn = \"14\"$" "$active/retroarch.cfg"
+grep -q "^input_toggle_slowmotion_btn = \"11\"$" "$active/retroarch.cfg"
 grep -q "^savefiles_in_content_dir = \"true\"$" "$active/retroarch.cfg"
 grep -q "^savestates_in_content_dir = \"true\"$" "$active/retroarch.cfg"
 grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
@@ -89,7 +89,7 @@ grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
 # exit to a menu combo. A cfg saved by RetroArch is identified by its factory
 # marker, and only the two matching regression values are restored.
 sed -i \
-    -e "s/input_exit_emulator_btn = \"9\"/input_exit_emulator_btn = \"nul\"/" \
+    -e "s/input_exit_emulator_btn = \"15\"/input_exit_emulator_btn = \"nul\"/" \
     -e "s/input_menu_toggle_gamepad_combo = \"0\"/input_menu_toggle_gamepad_combo = \"4\"/" \
     "$active/retroarch.cfg"
 printf "%s\n" "8d9a8e71cc38e63d1c6084d6bcf99701507cb632ff2dd1f4ebf9963b82beae77" \
@@ -98,7 +98,7 @@ PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
     /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/regression.log
 grep -q "retroarch_config=result-migrated-regression added=2" /tmp/regression.log
-grep -q "^input_exit_emulator_btn = \"9\"$" "$active/retroarch.cfg"
+grep -q "^input_exit_emulator_btn = \"15\"$" "$active/retroarch.cfg"
 grep -q "^input_menu_toggle_gamepad_combo = \"0\"$" "$active/retroarch.cfg"
 grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
 
@@ -135,8 +135,8 @@ sed -i \
     -e "s/video_message_color = \"ffff00\"/video_message_color = \"0\"/" \
     "$active/retroarch.cfg"
 test "$(sha256sum "$active/retroarch.cfg" | cut -d " " -f 1)" = \
-    "231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280"
-printf "%s\n" "231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280" \
+    "a709c747328cdd953ce08c218d1b360dddd6d2a246da0ce77ae62e7978d5eaa5"
+printf "%s\n" "a709c747328cdd953ce08c218d1b360dddd6d2a246da0ce77ae62e7978d5eaa5" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
     /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
@@ -158,7 +158,7 @@ sed -i \
     -e "s/video_message_color = \"ffff00\"/video_message_color = \"0\"/" \
     -e "s/input_save_state_btn = \"5\"/input_save_state_btn = \"42\"/" \
     "$active/retroarch.cfg"
-printf "%s\n" "231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280" \
+printf "%s\n" "a709c747328cdd953ce08c218d1b360dddd6d2a246da0ce77ae62e7978d5eaa5" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
     /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \

@@ -124,7 +124,11 @@ copy_runtime_tree() {
             base=${library##*/}
             # These are provided by the stock RK2020 System ABI. Everything
             # else belongs to this managed graphics/emulator runtime.
-            case "$base" in libc.so.*|libm.so.*|ld-linux-*.so.*) continue ;; esac
+            case "$base" in
+                libc.so.*|libm.so.*|ld-linux-*.so.*|libEGL.so.*|libGLES*.so.*|libgbm.so.*|libGL.so.*|libGLX*.so.*|libOpenGL*.so.*)
+                    continue
+                    ;;
+            esac
             if [ ! -f "$PLUMOS_DIR/emulator/lib/$base" ]; then
                 install -m 0644 "$library" "$PLUMOS_DIR/emulator/lib/$base"
                 copy_runtime_tree "$library"
@@ -134,25 +138,9 @@ copy_runtime_tree() {
 
 copy_runtime_tree "$PLUMOS_DIR/bin/retroarch"
 
-# The stock boot substrate exposes Rockchip DRM but intentionally carries no
-# Mesa userspace. Libretro GLES cores, PPSSPP and Pyxel therefore share the
-# app-layer-owned Mesa runtime instead of modifying the stock System.
-MESA_DRI=/usr/lib/aarch64-linux-gnu/dri/rockchip_dri.so
-MESA_EGL=/usr/lib/aarch64-linux-gnu/libEGL_mesa.so.0
-MESA_EGL_JSON=/usr/share/glvnd/egl_vendor.d/50_mesa.json
-for required in "$MESA_DRI" "$MESA_EGL" "$MESA_EGL_JSON"; do
-    [ -r "$required" ] || {
-        printf 'error: Mesa RK2020 runtime input is missing: %s\n' "$required" >&2
-        exit 1
-    }
-done
-install -m 0644 "$MESA_DRI" "$PLUMOS_DIR/emulator/dri/rockchip_dri.so"
-install -m 0644 "$(readlink -f "$MESA_EGL")" \
-    "$PLUMOS_DIR/emulator/lib/libEGL_mesa.so.0"
-install -m 0644 "$MESA_EGL_JSON" \
-    "$PLUMOS_DIR/emulator/egl_vendor.d/50_mesa.json"
-copy_runtime_tree "$MESA_DRI"
-copy_runtime_tree "$(readlink -f "$MESA_EGL")"
+# EGL/GLES/GBM are supplied by the checksum-registered stock libmali in
+# System. A modern Mesa Panfrost userspace is not compatible with the stock
+# Linux 4.4.189 legacy Mali kernel interface.
 
 for required_library in libpthread.so.0; do
     [ -f "$PLUMOS_DIR/emulator/lib/$required_library" ] || {
@@ -176,7 +164,7 @@ cat >"$COMPONENT_DIR/manifest.json" <<EOF
   "source_ref": "$SOURCE_REF",
   "source_date_epoch": $SOURCE_EPOCH,
   "video_driver": "plain_drm",
-  "graphics_runtime": "app-layer-mesa-rockchip-dri",
+  "graphics_runtime": "system-stock-libmali",
   "display_rotation": "ccw",
   "audio_driver": "alsa",
   "input_driver": "udev",

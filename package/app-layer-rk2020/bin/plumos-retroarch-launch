@@ -20,8 +20,8 @@ archive_content_dir=
 menu_driver=rgui
 graphical_menu=0
 
-export LIBGL_DRIVERS_PATH="${LIBGL_DRIVERS_PATH:-$root/emulator/dri}"
-export __EGL_VENDOR_LIBRARY_FILENAMES="${__EGL_VENDOR_LIBRARY_FILENAMES:-$root/emulator/egl_vendor.d/50_mesa.json}"
+unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES
+unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE
 # Some cores (notably EasyRPG) have component-private shared libraries such as
 # ICU below lib/libretro.  Include every managed runtime library root instead
 # of relying on init's inherited path.
@@ -331,7 +331,7 @@ fi
     printf 'input_player1_l_y_minus_axis = "-1"\n'
     printf 'input_player1_l_y_plus_axis = "+1"\n'
     printf 'input_player1_analog_dpad_mode = "0"\n'
-    printf 'input_menu_toggle_btn = "%s"\n' "${PLUMOS_INPUT_FUNCTION_UDEV_BTN:-14}"
+    printf 'input_menu_toggle_btn = "%s"\n' "${PLUMOS_INPUT_FUNCTION_UDEV_BTN:-12}"
     printf 'savefile_directory = "%s"\n' "$root/saves/$system_id"
     printf 'savestate_directory = "%s"\n' "$state_root"
     case "${core##*/}" in

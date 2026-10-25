@@ -19,8 +19,8 @@ diff --git a/gfx/drivers/gl2.c b/gfx/drivers/gl2.c
 +   unsigned old_width  = *width;
 +   unsigned old_height = *height;
 +
-+   /* RK2020's physical scanout is 480x640 while graphical menus lay out a
-+    * logical 640x480 surface. Rotate the lower-left GL viewport rectangle
++   /* RK2020's physical scanout is 320x480 while graphical menus lay out a
++    * logical 480x320 surface. Rotate the lower-left GL viewport rectangle
 +    * counter-clockwise into the native scanout. The user then sees the same
 +    * landscape orientation as the plumOS frontend and plain-DRM RGUI. */
 +   *x      = logical_height - old_y - (float)old_height;

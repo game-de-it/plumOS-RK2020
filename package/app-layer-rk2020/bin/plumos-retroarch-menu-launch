@@ -50,13 +50,13 @@ case "$menu_driver" in
     glui|ozone|xmb)
         # Graphical menu drivers need GLES. Present them on RK2020's native
         # portrait scanout through the same app-layer Mesa stack as hardware
-        # cores, then rotate their logical 640x480 draw coordinates once.
+        # cores, then rotate their logical 480x320 draw coordinates once.
         video_driver=gl
         video_rotation=1
         aspect_ratio_index=24
         export PLUMOS_GL_MENU_ROTATION=display
-        export LIBGL_DRIVERS_PATH="${LIBGL_DRIVERS_PATH:-$root/emulator/dri}"
-        export __EGL_VENDOR_LIBRARY_FILENAMES="${__EGL_VENDOR_LIBRARY_FILENAMES:-$root/emulator/egl_vendor.d/50_mesa.json}"
+        unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES
+        unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE
         ;;
 esac
 

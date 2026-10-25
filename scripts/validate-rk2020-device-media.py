@@ -266,11 +266,11 @@ def analyze_capture(directory: Path, base: str) -> dict[str, Any]:
 
 def analyze_fbdev(directory: Path, base: str) -> dict[str, Any]:
     raw_path = directory / f"{base}.fbdev.xrgb8888"
-    expected_size = 480 * 640 * 4
+    expected_size = 320 * 480 * 4
     if not raw_path.is_file() or raw_path.stat().st_size < expected_size:
         return {"machine_visible": False, "error": "fbdev capture missing or short"}
     image = Image.frombytes(
-        "RGB", (480, 640), raw_path.read_bytes()[:expected_size], "raw", "BGRX", 1920, 1
+        "RGB", (320, 480), raw_path.read_bytes()[:expected_size], "raw", "BGRX", 1280, 1
     )
     physical = directory / f"{base}-fbdev-physical.png"
     logical = directory / f"{base}-fbdev-logical-cw.png"
@@ -363,7 +363,7 @@ def launch_one(
         f"pid=$(cat {prefix}.pid 2>/dev/null || true); "
         f"ps -eo pid,ppid,pgid,stat,comm,args >{prefix}.ps; "
         f"/tmp/drm-scanout-capture /dev/dri/card0 {prefix} 2>{prefix}.capture.log || true; "
-        f"dd if=/dev/fb0 of={prefix}.fbdev.xrgb8888 bs=1228800 count=1 2>/dev/null || true; "
+        f"dd if=/dev/fb0 of={prefix}.fbdev.xrgb8888 bs=614400 count=1 2>/dev/null || true; "
         f"cat /proc/asound/card0/pcm0p/sub0/status >{prefix}.audio1 2>&1 || true; "
         "sleep 1; "
         f"cat /proc/asound/card0/pcm0p/sub0/status >{prefix}.audio2 2>&1 || true; "

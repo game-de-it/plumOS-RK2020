@@ -8,10 +8,10 @@ from pathlib import Path
 import struct
 
 
-LOGICAL_WIDTH = 640
-LOGICAL_HEIGHT = 480
-PHYSICAL_WIDTH = 480
-PHYSICAL_HEIGHT = 640
+LOGICAL_WIDTH = 480
+LOGICAL_HEIGHT = 320
+PHYSICAL_WIDTH = 320
+PHYSICAL_HEIGHT = 480
 
 FONT = {
     " ": ["00000"] * 7,
@@ -102,12 +102,12 @@ def render(message: str, percent: int, error: bool = False) -> bytes:
     frame = bytearray(color(background) * (LOGICAL_WIDTH * LOGICAL_HEIGHT))
 
     fill_rect(frame, 0, 0, LOGICAL_WIDTH, 8, accent)
-    draw_text(frame, "PLUMOS RK2020", 68, 5, text)
-    fill_rect(frame, 56, 150, LOGICAL_WIDTH - 112, 180, panel)
-    draw_text(frame, message, 205, 4, text)
-    draw_text(frame, "CHECK LOGS" if error else "DO NOT POWER OFF", 270, 3, muted)
-    fill_rect(frame, 80, 370, 480, 28, 0xFF293B40)
-    fill_rect(frame, 84, 374, int(472 * percent / 100), 20, accent)
+    draw_text(frame, "PLUMOS RK2020", 36, 4, text)
+    fill_rect(frame, 34, 92, LOGICAL_WIDTH - 68, 120, panel)
+    draw_text(frame, message, 120, 3, text)
+    draw_text(frame, "CHECK LOGS" if error else "DO NOT POWER OFF", 172, 2, muted)
+    fill_rect(frame, 50, 258, 380, 24, 0xFF293B40)
+    fill_rect(frame, 54, 262, int(372 * percent / 100), 16, accent)
     return rotate_ccw(frame)
 
 

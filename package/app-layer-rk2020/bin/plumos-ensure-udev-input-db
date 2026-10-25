@@ -3,7 +3,7 @@ set -eu
 
 bb=/bin/busybox
 data_dir=${PLUMOS_UDEV_DATA_DIR:-/run/udev/data}
-event_name=${PLUMOS_INPUT_EVENT_NAME:-rk2020_joypad}
+event_name=${PLUMOS_INPUT_EVENT_NAME:-GO-Advance Gamepad}
 
 $bb mkdir -p "$data_dir"
 

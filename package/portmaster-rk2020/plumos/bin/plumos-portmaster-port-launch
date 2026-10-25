@@ -328,10 +328,6 @@ esac
 
 "$BB" sh "${PLUMOS_ROOT}/bin/plumos-portmaster-runtime" prepare >/dev/null || exit 1
 mkdir -p "$RUN_ROOT" "$DRI_DIR" "$(dirname "$LOG_FILE")" "$STATE_ROOT/home"
-if [ -f "${PLUMOS_ROOT}/emulator/dri/rockchip_dri.so" ]; then
-  ln -sf "${PLUMOS_ROOT}/emulator/dri/rockchip_dri.so" \
-    "${DRI_DIR}/rockchip_dri.so"
-fi
 audio_output="${PLUMOS_ROOT}/bin/plumos-audio-output"
 [ -x "$audio_output" ] || {
   printf 'plumos-portmaster-port-launch: audio router is missing\n' >&2
@@ -390,10 +386,8 @@ export SDL_GAMECONTROLLERCONFIG_FILE="${RUN_ROOT}/gamecontrollerdb.txt"
 export SDL_GAMECONTROLLERCONFIG="$(cat "$SDL_GAMECONTROLLERCONFIG_FILE")"
 export AUDIODEV="plumos_output"
 export SDL_VIDEO_KMSDRM_DEVICE_INDEX="${SDL_VIDEO_KMSDRM_DEVICE_INDEX:-0}"
-export SDL_VIDEO_EGL_DRIVER="${SDL_VIDEO_EGL_DRIVER:-${PLUMOS_ROOT}/apps/pyxel/lib/libEGL.so.1}"
-export SDL_VIDEO_GL_DRIVER="${SDL_VIDEO_GL_DRIVER:-${PLUMOS_ROOT}/apps/pyxel/lib/libGLESv2.so.2}"
-export LIBGL_DRIVERS_PATH="${DRI_DIR}"
-export __EGL_VENDOR_LIBRARY_FILENAMES="${__EGL_VENDOR_LIBRARY_FILENAMES:-${PLUMOS_ROOT}/emulator/egl_vendor.d/50_mesa.json}"
+unset SDL_VIDEO_EGL_DRIVER SDL_VIDEO_GL_DRIVER
+unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES
 unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE
 export MESA_SHADER_CACHE_DISABLE="${MESA_SHADER_CACHE_DISABLE:-true}"
 [ -r "$SDL_ROTATE_LIB" ] || {
@@ -417,7 +411,7 @@ case "$(basename "$script" | tr '[:upper:]' '[:lower:]')" in
   'moonlight new.sh')
     # Moonlight Embedded 2.7.0 presents red and blue channels reversed through
     # SDL's GLES2 renderer on the stock RK2020 KMS/Mesa path.  The SDL software
-    # renderer keeps the decoded 640x480 XR24 channel order and still uses the
+    # renderer keeps the decoded 480x320 XR24 channel order and still uses the
     # common final rotation presenter.  Do not impose this on unrelated ports.
     export SDL_RENDER_DRIVER="software"
     ;;

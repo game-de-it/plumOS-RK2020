@@ -89,7 +89,8 @@ diff --git a/plumos_music_player.c b/plumos_music_player.c
  }
  
 +static int input_name_matches_rk2020_gamepad(const char *name) {
-+  return name && (strstr(name, "rk2020_joypad") != NULL ||
++  return name && (strstr(name, "GO-Advance Gamepad") != NULL ||
++                  strstr(name, "rk2020_joypad") != NULL ||
 +                  strstr(name, "gkd-rk2020") != NULL ||
 +                  strstr(name, "GKD RK2020") != NULL);
 +}
@@ -143,8 +144,8 @@ diff --git a/plumos_music_player.c b/plumos_music_player.c
      return "BTN_SELECT";
    case BTN_MODE:
      return "BTN_MODE";
-+  case BTN_TRIGGER_HAPPY1:
-+    return "BTN_TRIGGER_HAPPY1/FUNCTION";
++  case BTN_TRIGGER_HAPPY3:
++    return "BTN_TRIGGER_HAPPY3/FUNCTION";
    case BTN_TL:
      return "BTN_TL";
    case BTN_TR:
@@ -193,7 +194,7 @@ diff --git a/plumos_music_player.c b/plumos_music_player.c
 -  case BTN_B:
 +  case BTN_SOUTH:
    case BTN_MODE:
-+  case BTN_TRIGGER_HAPPY1:
++  case BTN_TRIGGER_HAPPY3:
      if (repeat) {
        break;
      }

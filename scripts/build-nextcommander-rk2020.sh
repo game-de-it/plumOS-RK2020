@@ -95,8 +95,8 @@ for library in libstdc++.so.6 libgcc_s.so.1; do
 done
 
 cat >"$APP_ROOT/config/rk2020.cfg" <<'EOF'
-disp_width=640
-disp_height=480
+disp_width=480
+disp_height=320
 disp_bpp=32
 disp_ppu_x=2
 disp_ppu_y=2
@@ -149,7 +149,7 @@ cat >"$TARGET_DIR/plumos/components/nextcommander/manifest.json" <<EOF
   "upstream": "$NEXTCOMMANDER_REPO",
   "upstream_ref": "$NEXTCOMMANDER_REF",
   "generated_at": "$generated_at",
-  "display": "native RK2020 DRM page flip 640x480",
+  "display": "native RK2020 DRM page flip 480x320",
   "input": "SDL2 joystick via plumOS RK2020 Controller"
 }
 EOF

@@ -30,7 +30,7 @@ index b0acb113..74002587 100644
 +  { BTN_TR2,            IN_BINDTYPE_PLAYER12, DKEY_R2 },
 +  { BTN_SELECT,         IN_BINDTYPE_PLAYER12, DKEY_SELECT },
 +  { BTN_START,          IN_BINDTYPE_PLAYER12, DKEY_START },
-+  { BTN_TRIGGER_HAPPY1, IN_BINDTYPE_EMU, SACTION_ENTER_MENU },
++  { BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, SACTION_ENTER_MENU },
 +  { 0, 0, 0 }
 +};
 +
@@ -49,7 +49,7 @@ index b0acb113..74002587 100644
 +  { BTN_NORTH,          PBTN_MA3 },
 +  { BTN_TL,             PBTN_L },
 +  { BTN_TR,             PBTN_R },
-+  { BTN_TRIGGER_HAPPY1, PBTN_MENU },
++  { BTN_TRIGGER_HAPPY3, PBTN_MENU },
 +};
 +
 +static const struct in_pdata in_rk2020_evdev_platform_data = {

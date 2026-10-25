@@ -91,14 +91,7 @@ trap terminate_child HUP INT TERM
 mkdir -p "$RUN_ROOT" "$DRI_DIR" "$STATE_ROOT/config" "$STATE_ROOT/libs" \
   "$STATE_ROOT/themes" "$STATE_ROOT/home" "$(dirname "$LOG_FILE")"
 
-# RK2020 exposes a Rockchip KMS display node and a separate Panfrost render
-# node.  Keep the Debian combined driver's Rockchip name so Mesa's kmsro path
-# can pair both nodes; forcing the Panfrost name against card0 makes Mesa fall
-# through to unavailable zink/software drivers.
-if [ -f "${PLUMOS_ROOT}/emulator/dri/rockchip_dri.so" ]; then
-  ln -sf "${PLUMOS_ROOT}/emulator/dri/rockchip_dri.so" \
-    "${DRI_DIR}/rockchip_dri.so"
-fi
+# EGL/GLES/GBM come from System's checksum-registered stock libmali.
 
 if [ -f "$PID_FILE" ]; then
   old_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
@@ -191,10 +184,8 @@ export SDL_GAMECONTROLLERCONFIG_FILE="${RUN_ROOT}/gamecontrollerdb.txt"
 export SDL_GAMECONTROLLERCONFIG="$(cat "$SDL_GAMECONTROLLERCONFIG_FILE")"
 export AUDIODEV="plumos_output"
 export SDL_VIDEO_KMSDRM_DEVICE_INDEX="${SDL_VIDEO_KMSDRM_DEVICE_INDEX:-0}"
-export SDL_VIDEO_EGL_DRIVER="${SDL_VIDEO_EGL_DRIVER:-${PLUMOS_ROOT}/apps/pyxel/lib/libEGL.so.1}"
-export SDL_VIDEO_GL_DRIVER="${SDL_VIDEO_GL_DRIVER:-${PLUMOS_ROOT}/apps/pyxel/lib/libGLESv2.so.2}"
-export LIBGL_DRIVERS_PATH="${DRI_DIR}"
-export __EGL_VENDOR_LIBRARY_FILENAMES="${__EGL_VENDOR_LIBRARY_FILENAMES:-${PLUMOS_ROOT}/emulator/egl_vendor.d/50_mesa.json}"
+unset SDL_VIDEO_EGL_DRIVER SDL_VIDEO_GL_DRIVER
+unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES
 unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE
 export MESA_SHADER_CACHE_DISABLE="${MESA_SHADER_CACHE_DISABLE:-true}"
 fit_library="${PLUMOS_PORTMASTER_FIT_LIBRARY:-${PLUMOS_ROOT}/apps/pyxel/lib/plumos-pyxel-fit.so}"

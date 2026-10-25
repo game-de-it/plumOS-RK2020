@@ -42,8 +42,8 @@ index 2fbd7cd..d21966f 100644
  #if defined(GKD_RK2020)
  #define R_LCD_W 640
  #define R_LCD_H 480
-+#define R_DISPLAY_W 480
-+#define R_DISPLAY_H 640
++#define R_DISPLAY_W 320
++#define R_DISPLAY_H 480
  #endif
  
  #if defined(GKD_MINIPLUS)

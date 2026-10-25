@@ -29,24 +29,24 @@ fail() {
     exit 1
 }
 
-grep -Fqx 'PLUMOS_INPUT_FUNCTION_CODE=704' "$INPUT_ENV" ||
+grep -Fqx 'PLUMOS_INPUT_FUNCTION_CODE=706' "$INPUT_ENV" ||
     fail 'raw RK2020 FUNCTION code is not documented'
-grep -Fqx 'PLUMOS_INPUT_FUNCTION_UDEV_BTN=14' "$INPUT_ENV" ||
+grep -Fqx 'PLUMOS_INPUT_FUNCTION_UDEV_BTN=12' "$INPUT_ENV" ||
     fail 'RetroArch compact FUNCTION index is not documented'
 
-grep -Fqx 'input_menu_toggle_btn = "14"' "$RA_CFG" ||
+grep -Fqx 'input_menu_toggle_btn = "12"' "$RA_CFG" ||
     fail 'RetroArch persistent FUNCTION menu binding is missing'
-grep -Fqx 'input_menu_toggle_btn = "14"' "$RA_AUTOCONFIG" ||
+grep -Fqx 'input_menu_toggle_btn = "12"' "$RA_AUTOCONFIG" ||
     fail 'RetroArch controller FUNCTION menu binding is missing'
 if grep -Eq '^input_(enable_hotkey|exit_emulator)_btn[[:space:]]*=' "$RA_AUTOCONFIG"; then
     fail 'RetroArch controller menu must not be gated by Select'
 fi
-grep -Fq 'PLUMOS_INPUT_FUNCTION_UDEV_BTN:-14' "$RA_LAUNCHER" ||
+grep -Fq 'PLUMOS_INPUT_FUNCTION_UDEV_BTN:-12' "$RA_LAUNCHER" ||
     fail 'RetroArch launch append config does not enforce FUNCTION menu'
 
 for binding in \
-    'BTN_TRIGGER_HAPPY1, IN_BINDTYPE_EMU, EACTION_MENU' \
-    'BTN_TRIGGER_HAPPY1, PBTN_MENU'; do
+    'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, EACTION_MENU' \
+    'BTN_TRIGGER_HAPPY3, PBTN_MENU'; do
     grep -Fq "$binding" "$PICO_PATCH" ||
         fail "PicoArch FUNCTION menu binding missing: $binding"
 done
@@ -81,8 +81,8 @@ if grep -Fq 'BTN_MODE' "$PICO_PATCH"; then
 fi
 
 for binding in \
-    'BTN_TRIGGER_HAPPY1, IN_BINDTYPE_EMU, SACTION_ENTER_MENU' \
-    'BTN_TRIGGER_HAPPY1, PBTN_MENU' \
+    'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, SACTION_ENTER_MENU' \
+    'BTN_TRIGGER_HAPPY3, PBTN_MENU' \
     'in_evdev_init(&in_rk2020_evdev_platform_data)'; do
     grep -Fq "$binding" "$PCSX_PATCH" ||
         fail "PCSX-ReARMed raw FUNCTION contract missing: $binding"
@@ -108,11 +108,11 @@ done
 
 for binding in \
     'CONTROL_ESC                 (JOY_LIST_FIRST + 15)' \
-    'CONTROL_DEFAULT1_UP         (JOY_LIST_FIRST + 1)' \
-    'CONTROL_DEFAULT1_RIGHT      (JOY_LIST_FIRST + 2)' \
-    'CONTROL_DEFAULT1_DOWN       (JOY_LIST_FIRST + 3)' \
-    'CONTROL_DEFAULT1_LEFT       (JOY_LIST_FIRST + 4)' \
-    'CONTROL_DEFAULT1_START      (JOY_LIST_FIRST + 14)' \
+    'CONTROL_DEFAULT1_UP         (JOY_LIST_FIRST + 11)' \
+    'CONTROL_DEFAULT1_RIGHT      (JOY_LIST_FIRST + 14)' \
+    'CONTROL_DEFAULT1_DOWN       (JOY_LIST_FIRST + 12)' \
+    'CONTROL_DEFAULT1_LEFT       (JOY_LIST_FIRST + 13)' \
+    'CONTROL_DEFAULT1_START      (JOY_LIST_FIRST + 20)' \
     'CONTROL_DEFAULT1_ESC        (JOY_LIST_FIRST + 15)'; do
     grep -Fq "$binding" "$OPENBOR_PATCH" ||
         fail "OpenBOR RK2020 controller contract missing: $binding"
@@ -154,8 +154,8 @@ fi
 grep -Fq 'DRASTIC_RUNNER_PATCH' "$SA_BUILD" ||
     fail 'DraStic build does not consume runner readiness patch'
 for contract in \
-    '#define R_DISPLAY_W 480' \
-    '#define R_DISPLAY_H 640' \
+    '#define R_DISPLAY_W 320' \
+    '#define R_DISPLAY_H 480' \
     'vec4(-vert_tex_pos.y, vert_tex_pos.x' \
     'glViewport(0, 0, R_DISPLAY_W, R_DISPLAY_H)'; do
     grep -Fq "$contract" "$DRASTIC_ROTATION_PATCH" ||
@@ -177,7 +177,7 @@ for contract in \
     'SDL_RENDER_DRIVER=opengles2' \
     'PLUMOS_PICO8_PIXEL_PERFECT:-0' \
     'SDL_GAMECONTROLLERCONFIG=' \
-    'dpup:b10,dpdown:b11,dpleft:b12,dpright:b13' \
+    'dpup:b6,dpdown:b7,dpleft:b8,dpright:b9' \
     '-root_path "$pico8_system_root"' \
     '-pixel_perfect "$pico8_pixel_perfect"' \
     'PICO-8 HTTPS download adapter is missing' \
@@ -249,10 +249,10 @@ for contract in \
         fail "PPSSPP existing display config migration missing: $contract"
 done
 for contract in \
-    'rk2020_joypad,a:b1,b:b0,x:b2,y:b3' \
-    'back:b8,guide:b14,start:b9' \
-    'dpup:b10,dpdown:b11,dpleft:b12,dpright:b13' \
-    'leftshoulder:b4,rightshoulder:b5,lefttrigger:b6,righttrigger:b7'; do
+    'GO-Advance Gamepad,a:b1,b:b0,x:b2,y:b3' \
+    'back:b10,guide:b12,start:b15' \
+    'dpup:b6,dpdown:b7,dpleft:b8,dpright:b9' \
+    'leftshoulder:b4,rightshoulder:b5,lefttrigger:b11,righttrigger:b14'; do
     grep -Fq "$contract" "$PPSSPP_CONTROLLER_PATCH" ||
         fail "PPSSPP RK2020 controller mapping missing: $contract"
 done
@@ -260,7 +260,7 @@ grep -Fq 'PLUMOS_RK2020_DISPLAY_ROTATION' "$PPSSPP_DISPLAY_PATCH" ||
     fail 'PPSSPP RK2020 display presenter patch is missing'
 for contract in \
     'PLUMOS_RK2020_DISPLAY_ROTATION=ccw' \
-    'PLUMOS_RK2020_DISPLAY_LOGICAL=640x480' \
+    'PLUMOS_RK2020_DISPLAY_LOGICAL=480x320' \
     'PLUMOS_RK2020_DISPLAY_FORCE_LANDSCAPE=1'; do
     grep -Fq "$contract" "$SA_LAUNCHER" ||
         fail "PPSSPP RK2020 display launch contract missing: $contract"
