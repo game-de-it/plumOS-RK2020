@@ -317,13 +317,18 @@ unblank_display_after_sleep() {
     if [ -w "$framebuffer_blank" ]; then
         printf '0\n' >"$framebuffer_blank" 2>/dev/null || true
     fi
-    if [ -n "$software_backlight_power_saved" ] && [ -w "$backlight_power" ]; then
-        printf '%s\n' "$software_backlight_power_saved" >"$backlight_power" 2>/dev/null || true
+    if [ -w "$backlight_power" ]; then
+        # The RK2020 DRM path can leave bl_power reporting FB_BLANK_POWERDOWN
+        # while the panel is visibly active.  Restoring that stale value after
+        # mem sleep keeps the PWM backlight off even though VOP and the FE have
+        # resumed.  A wake operation is an explicit unblank, so always request
+        # FB_BLANK_UNBLANK here; brightness is restored separately below.
+        printf '0\n' >"$backlight_power" 2>/dev/null || true
     fi
     if [ -n "$software_backlight_saved" ] && [ -w "$backlight" ]; then
         printf '%s\n' "$software_backlight_saved" >"$backlight" 2>/dev/null || true
     fi
-    log "sleep=display-unblank brightness=${software_backlight_saved:-unknown} bl_power=${software_backlight_power_saved:-unknown}"
+    log "sleep=display-unblank brightness=${software_backlight_saved:-unknown} bl_power=0 saved_bl_power=${software_backlight_power_saved:-unknown}"
     software_backlight_saved=
     software_backlight_power_saved=
     sleep_display_blanked=0

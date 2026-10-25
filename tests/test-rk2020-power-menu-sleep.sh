@@ -119,7 +119,9 @@ grep -q 'sleep=wifi-resume-recovery-result result=connected attempts=2' \
 grep -q 'sleep=result-returned backend=mem' "$TEST_ROOT/logs/power.log"
 
 printf '42\n' >"$TEST_ROOT/backlight"
-printf '0\n' >"$TEST_ROOT/backlight-power"
+# RK2020 can report POWERDOWN while DRM still has a visibly active panel.
+# Resume must explicitly unblank instead of restoring this stale value.
+printf '4\n' >"$TEST_ROOT/backlight-power"
 printf '0\n' >"$TEST_ROOT/fb-blank"
 : >"$TEST_ROOT/calls"
 PLUMOS_ROOT="$TEST_ROOT/plumos" \
@@ -144,9 +146,9 @@ PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
 [ "$(cat "$TEST_ROOT/backlight-power")" = 0 ]
 [ "$(cat "$TEST_ROOT/fb-blank")" = 0 ]
 [ ! -e "$TEST_ROOT/run/software-sleep" ]
-grep -q 'sleep=display-blank brightness=42 bl_power=0' \
+grep -q 'sleep=display-blank brightness=42 bl_power=4' \
     "$TEST_ROOT/logs/power.log"
-grep -q 'sleep=display-unblank brightness=42 bl_power=0' \
+grep -q 'sleep=display-unblank brightness=42 bl_power=0 saved_bl_power=4' \
     "$TEST_ROOT/logs/power.log"
 grep -q 'sleep=software-enter reason=kernel-unavailable wakeup_sec=1' \
     "$TEST_ROOT/logs/power.log"
