@@ -84,7 +84,7 @@ diff --git a/plumos_music_player.c b/plumos_music_player.c
    }
    fprintf(stderr, "scan total tracks=%d\n", state->track_count);
    if (state->track_count > 1) {
-@@ -1854,6 +1887,12 @@
+@@ -1854,6 +1887,13 @@
    return name && strstr(name, "plumOS A30 Gamepad") != NULL;
  }
  

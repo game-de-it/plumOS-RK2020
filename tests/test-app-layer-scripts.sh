@@ -947,6 +947,9 @@ grep -q 'rc == -EPIPE || rc == -ESTRPIPE' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q '/mnt/plumos-user/Music' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
+git apply --numstat \
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch" \
+    >/dev/null
 test -x "$ROOT_DIR/scripts/rk2020-sleep-auto-select.sh"
 test -x "$ROOT_DIR/scripts/rk2020-sleep-cycle-device.sh"
 test -x "$ROOT_DIR/scripts/validate-rk2020-sleep-matrix.py"
