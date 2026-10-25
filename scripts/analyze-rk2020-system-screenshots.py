@@ -33,7 +33,7 @@ def analyze(path: Path) -> dict:
     with Image.open(path) as source:
         image = source.convert("RGB")
     width, height = image.size
-    pixels = width * height
+    pixel_count = width * height
     stat = ImageStat.Stat(image)
     extrema = image.getextrema()
     histogram = image.histogram()
@@ -50,9 +50,9 @@ def analyze(path: Path) -> dict:
     unique_sample_colors = len(set(pixels(sample)))
     channel_ranges = [maximum - minimum for minimum, maximum in extrema]
     flags = []
-    if black_pixels / pixels >= 0.995:
+    if black_pixels / pixel_count >= 0.995:
         flags.append("near_black_frame")
-    if white_pixels / pixels >= 0.995:
+    if white_pixels / pixel_count >= 0.995:
         flags.append("near_white_frame")
     if max(channel_ranges) <= 2:
         flags.append("flat_frame")
@@ -76,8 +76,8 @@ def analyze(path: Path) -> dict:
         "mean_rgb": [round(value, 3) for value in mean],
         "stddev_rgb": [round(value, 3) for value in stddev],
         "range_rgb": channel_ranges,
-        "near_black_fraction": round(black_pixels / pixels, 6),
-        "near_white_fraction": round(white_pixels / pixels, 6),
+        "near_black_fraction": round(black_pixels / pixel_count, 6),
+        "near_white_fraction": round(white_pixels / pixel_count, 6),
         "unique_sample_colors": unique_sample_colors,
         "flags": flags,
         "histogram_bins": len(histogram),
