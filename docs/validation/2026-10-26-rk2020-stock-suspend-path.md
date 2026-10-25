@@ -87,24 +87,49 @@ The user performed a stockOS suspend and wake cycle on the physical RK2020.
 The display returned after the wake action, so the visible suspend/resume path
 passed without an observed reboot or boot screen.
 
-The network side did not recover during the immediate observation window.
+The network side did not recover automatically during the immediate
+observation window.
 Starting just after the reported wake, the Mac polled `192.168.10.110` 24 times
 for about 90 seconds.  Every ICMP probe failed and SSH never became reachable.
 The Mac retained the pre-suspend ARP entry `40:ed:00:3b:42:84`, but the route
 was marked `REJECT`; this is not evidence that the dongle re-enumerated.
 
-Because SSH did not return, the post-resume boot ID, process IDs, wakeup count,
-systemd sleep journal, and `dwc2`/USB re-enumeration messages could not be
-collected.  The observed result must therefore be recorded as two separate
-gates:
+The user then switched networking off and on in EmulationStation.  Wi-Fi
+associated about six seconds later and `192.168.10.110` became reachable
+again.  The boot ID remained
+`dd8d6712-d5c5-452c-9d8e-7ea8412a6dc3`, EmulationStation remained PID 1279,
+and `oga_events.py` remained PID 378.  This confirms a resume of the same OS
+and frontend session rather than a reboot.
+
+The recovered journal shows the complete failure sequence:
+
+1. the stock pre-sleep hook removed `dwc2`, disconnected USB device `0bda:c820`,
+   and removed `wlan0`;
+2. the kernel completed `mem` suspend and resume without an Oops;
+3. the post-sleep hook loaded `dwc2` and the dongle re-enumerated successfully;
+4. the Realtek driver recreated `wlan0`, but reported
+   `rtw_halmac_txfifo_wait_empty` followed by `rtw_hal_init: fail`;
+5. the interface consequently stayed down and unassociated;
+6. the ES off/on action ran ConnMan's Wi-Fi disable/enable path, after which
+   authentication, association, WPA key negotiation, IPv4 restoration, and an
+   external ping all succeeded.
+
+The observed result must therefore be recorded as separate gates:
 
 - display suspend and visible resume: pass;
-- USB Wi-Fi association and SSH recovery: fail within the observation window.
+- same kernel and frontend session after resume: pass;
+- DWC2 and USB-device re-enumeration: pass;
+- automatic USB Wi-Fi association and SSH recovery: fail;
+- manual ES network off/on recovery: pass.
 
 This makes the stock `dwc2` reload hook relevant but not sufficient evidence
 for this particular `0bda:c820` dongle.  A plumOS implementation should use a
 bounded USB-host reset followed by an explicit Wi-Fi rebind/reassociation
-check rather than assuming that reloading `dwc2` restores networking.
+check rather than assuming that reloading `dwc2` restores networking.  The
+current plumOS resume worker already performs a bounded interface/IP check and
+calls its Wi-Fi recovery path, which restarts the local WPA/DHCP stack.  That
+existing automatic equivalent of the successful ES toggle should be tested on
+hardware before adding another forced controller reset.
 
 ## Physical validation still required
 
@@ -112,11 +137,12 @@ On stockOS, finish the unobserved gates without repeating the successful
 display-only conclusion:
 
 1. verify controls, audio, and brightness after wake;
-2. identify whether unplugging/replugging the Wi-Fi dongle restores it;
-3. when networking is available, capture the systemd sleep journal and
-   `dwc2`/USB re-enumeration messages from a subsequent cycle;
-4. compare a suspend cycle without external USB power.
+2. compare a suspend cycle without external USB power.
 
-Repeat powered and unpowered cases separately.  Only after the stock result is
-captured should the minimum plumOS live patch be selected and tested; a full
-SD-image rebuild is not needed for this iteration.
+On plumOS, verify that the existing post-resume Wi-Fi recovery worker restores
+this dongle without an ES off/on action, and capture the power, USB-host, Wi-Fi
+recovery, and network-control logs if it does not.
+
+Repeat powered and unpowered cases separately.  The powered stock result is
+now captured; the next step is a plumOS live-device test of its existing
+recovery path.  A full SD-image rebuild is not needed for this iteration.
