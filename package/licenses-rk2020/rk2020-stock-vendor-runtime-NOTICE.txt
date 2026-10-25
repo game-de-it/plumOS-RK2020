@@ -5,6 +5,11 @@ Linux 4.4.189 KERNEL, board DTBs, stock initramfs, matching modules and
 firmware, and the Mali userspace driver required for GKD RK2020 hardware
 compatibility.
 
+The captured stock RTL8821CU kernel module identifies itself as GPL through
+its module metadata. The System image includes the GNU GPL version 2 text at
+`/usr/share/licenses/rtl8821cu/LICENSE`. This license text does not relicense
+the other stock or vendor-derived artifacts.
+
 These vendor-derived files retain their original terms and are not covered by
 the plumOS MIT License. The repository records capture provenance, exact hashes,
 and the rule that the registered runtime DTB is used byte-for-byte. ROMs, game

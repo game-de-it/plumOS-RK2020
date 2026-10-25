@@ -118,6 +118,9 @@ install -m 0644 "$ROOT_DIR/NOTICE.md" \
 install -m 0644 \
     "$ROOT_DIR/package/licenses-rk2020/rk2020-stock-vendor-runtime-NOTICE.txt" \
     "$ROOTFS_DIR/usr/share/licenses/rk2020-stock-vendor-runtime-NOTICE.txt"
+install -D -m 0644 \
+    "$ROOT_DIR/package/licenses-rk2020/rtl8821cu/LICENSE" \
+    "$ROOTFS_DIR/usr/share/licenses/rtl8821cu/LICENSE"
 for package in busybox-static kmod iproute2 iw wpasupplicant dropbear-bin \
     python3.11-minimal openssl fdisk util-linux eject e2fsprogs dosfstools; do
     install -m 0644 "/usr/share/doc/$package/copyright" \

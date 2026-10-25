@@ -35,7 +35,8 @@ grep -q '^ID=plumos$' "$tmp/rootfs/etc/os-release"
 for path in \
     usr/share/licenses/plumOS-MIT.txt \
     usr/share/licenses/NOTICE.txt \
-    usr/share/licenses/rk2020-stock-vendor-runtime-NOTICE.txt; do
+    usr/share/licenses/rk2020-stock-vendor-runtime-NOTICE.txt \
+    usr/share/licenses/rtl8821cu/LICENSE; do
     test -s "$tmp/rootfs/$path" || {
         printf 'error: System license material missing: %s\n' "$path" >&2
         exit 1
@@ -163,6 +164,7 @@ modinfo -F alias "$module_path" | \
     grep -Fq 'usb:v0BDApC811'
 modinfo -F alias "$module_path" | \
     grep -Fq 'usb:v0BDApC820'
+test "$(modinfo -F license "$module_path")" = GPL
 modprobe -d "$tmp/rootfs" -S "$release" -n -v 8821cu | \
     grep -Fq "$module_path"
 grep -Fq 'usb:v0BDApC811' "$tmp/rootfs/lib/modules/$release/modules.alias"

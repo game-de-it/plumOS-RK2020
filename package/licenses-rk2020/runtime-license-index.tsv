@@ -1,6 +1,7 @@
 # runtime_id	origin	license_family	evidence	status
 stock-substrate	GKD RK2020 stock runtime	vendor/upstream terms	licenses/rk2020-stock-vendor-runtime-NOTICE.txt	documented boundary
 system-rootfs	plumOS, BusyBox, Debian packages, stock modules/firmware	MIT, GPL/LGPL/BSD, vendor	System /usr/share/licenses; System manifest; stock notice	build-gated
+rtl8821cu	Realtek stock RK2020 kernel module	GPL	System /usr/share/licenses/rtl8821cu/LICENSE; module metadata	complete license text
 frontend	plumOS, Noto CJK, DejaVu	MIT, OFL/Apache/mixed	licenses/plumOS-MIT.txt; licenses/plumos-frontend/	complete
 retroarch	libretro/RetroArch	GPL-3.0	licenses/RetroArch-COPYING	complete
 libretro-cores	pinned repositories in libretro-core-recipes.tsv	mixed	licenses/*; components/libretro-cores/manifest.json	per-core audit
