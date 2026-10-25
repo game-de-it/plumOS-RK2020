@@ -164,6 +164,10 @@ grep -q 'umount /.plumos-dispatcher-old' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'stock-handoff.log' "$ROOT_DIR/rootfs/rk2020/usr/lib/systemd/systemd"
 grep -q 'mount-source storage=stock-initramfs' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q '4.4.189' "$ROOT_DIR/scripts/install-kernel-runtime.sh"
+grep -q 'usr/lib/kernel-overlays/base/lib/modules' \
+    "$ROOT_DIR/scripts/build-system-rootfs.sh"
+grep -q 'usr/lib/kernel-overlays/base/lib/modules' \
+    "$ROOT_DIR/scripts/verify-system-rootfs.sh"
 grep -q 'kernel/extracted/lib/modules' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
 grep -q 'kernel/extracted/lib/firmware' \

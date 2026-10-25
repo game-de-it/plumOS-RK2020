@@ -149,6 +149,8 @@ case "$release" in
     4.4.189) ;;
     *) printf 'error: unexpected kernel module ABI: %s\n' "$release" >&2; exit 1 ;;
 esac
+test -d \
+    "$tmp/rootfs/usr/lib/kernel-overlays/base/lib/modules/$release"
 grep -q '"boot_substrate": "stock-rk2020"' \
     "$tmp/rootfs/usr/lib/plumos/system-manifest.json"
 test -f "$tmp/rootfs/lib/firmware/regulatory.db"

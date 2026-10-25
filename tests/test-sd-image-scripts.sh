@@ -39,4 +39,6 @@ grep -q '/usr/bin/splash-image /flash/oemsplash-1080.png' \
     "$ROOT_DIR/boot-hooks/rk2020/post-flash.sh"
 grep -q 'boot-splash result=plumos' \
     "$ROOT_DIR/boot-hooks/rk2020/post-flash.sh"
+! grep -q '/dev/console' "$ROOT_DIR/boot-hooks/rk2020/post-flash.sh"
+! grep -q '/dev/console' "$ROOT_DIR/boot-hooks/rk2020/post-sysroot.sh"
 printf 'sd_image_scripts=result-ok\n'
