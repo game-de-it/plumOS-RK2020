@@ -150,7 +150,7 @@ EOF
 
 find "$ROOTFS_DIR" -exec touch -h -d "@$SOURCE_EPOCH" {} +
 env -u SOURCE_DATE_EPOCH mksquashfs "$ROOTFS_DIR" "$PAYLOAD_DIR/system-slots/system-a.squashfs" -noappend -all-root \
-    -no-xattrs -comp xz -mkfs-time "$SOURCE_EPOCH" -all-time "$SOURCE_EPOCH" \
+    -no-xattrs -comp gzip -mkfs-time "$SOURCE_EPOCH" -all-time "$SOURCE_EPOCH" \
     >/dev/null
 
 size=$(stat -c '%s' "$PAYLOAD_DIR/system-slots/system-a.squashfs")
@@ -180,7 +180,7 @@ ln -s /init "$DISPATCHER_DIR/sbin/init"
 ln -s /init "$DISPATCHER_DIR/usr/lib/systemd/systemd"
 find "$DISPATCHER_DIR" -exec touch -h -d "@$SOURCE_EPOCH" {} +
 env -u SOURCE_DATE_EPOCH mksquashfs "$DISPATCHER_DIR" "$PAYLOAD_DIR/SYSTEM" \
-    -noappend -all-root -no-xattrs -comp xz -mkfs-time "$SOURCE_EPOCH" \
+    -noappend -all-root -no-xattrs -comp gzip -mkfs-time "$SOURCE_EPOCH" \
     -all-time "$SOURCE_EPOCH" >/dev/null
 
 dispatcher_size=$(stat -c '%s' "$PAYLOAD_DIR/SYSTEM")

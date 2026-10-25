@@ -17,6 +17,10 @@ fi
 
 tmp="$(mktemp -d /tmp/plumos-rk2020-dispatcher.XXXXXX)"
 trap 'rm -rf "$tmp"' EXIT
+unsquashfs -s "$IMAGE" | grep -qx 'Compression gzip' || {
+    printf 'error: dispatcher must use stock-kernel-compatible gzip compression\n' >&2
+    exit 1
+}
 unsquashfs -d "$tmp/rootfs" "$IMAGE" >/dev/null
 test -x "$tmp/rootfs/init"
 test -x "$tmp/rootfs/bin/busybox"

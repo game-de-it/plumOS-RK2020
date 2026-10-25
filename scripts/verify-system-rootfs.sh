@@ -22,6 +22,10 @@ fi
 
 tmp="$(mktemp -d /tmp/plumos-rk2020-rootfs.XXXXXX)"
 trap 'rm -rf "$tmp"' EXIT
+unsquashfs -s "$IMAGE" | grep -qx 'Compression gzip' || {
+    printf 'error: System slot must use stock-kernel-compatible gzip compression\n' >&2
+    exit 1
+}
 unsquashfs -d "$tmp/rootfs" "$IMAGE" >/dev/null
 
 test -x "$tmp/rootfs/sbin/init"

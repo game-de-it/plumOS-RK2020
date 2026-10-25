@@ -182,6 +182,10 @@ grep -q 'lib/firmware/rtlwifi/rtl8188eufw.bin' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
 grep -q 'stock-rk2020' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'stock-rk2020' "$ROOT_DIR/scripts/verify-system-rootfs.sh"
+grep -q -- '-comp gzip' "$ROOT_DIR/scripts/build-system-rootfs.sh"
+! grep -q -- '-comp xz' "$ROOT_DIR/scripts/build-system-rootfs.sh"
+grep -q "Compression gzip" "$ROOT_DIR/scripts/verify-system-rootfs.sh"
+grep -q "Compression gzip" "$ROOT_DIR/scripts/verify-system-dispatcher.sh"
 grep -q 'system-pending-attempted' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'system_rolled_back' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'pivot_root . .plumos-dispatcher-old' \
