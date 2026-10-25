@@ -666,6 +666,10 @@ grep -q 'PLUMOS_POWER_MENU_SELECTION' \
 ! grep -q 'plumos-hardware-keys-service.*stop' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-frontend-stop"
 grep -q 'docker/rk2020-tools/libretro-core-recipes.tsv' "$ROOT_DIR/scripts/build-libretro-cores.sh"
+grep -Fq 'git submodule deinit -f --all' \
+    "$ROOT_DIR/scripts/build-libretro-cores.sh"
+grep -Fq 'git clean -ffdx --quiet' \
+    "$ROOT_DIR/scripts/build-libretro-cores.sh"
 ! grep -q '^mupen64plus_next|' \
     "$ROOT_DIR/docker/rk2020-tools/libretro-core-recipes.tsv"
 grep -q 'quicknes|A|https://github.com/libretro/QuickNES_Core.git|058d6651' \

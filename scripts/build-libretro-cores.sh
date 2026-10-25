@@ -297,7 +297,12 @@ clone_or_update_repo() {
   (
     cd "$dst"
     git reset --hard --quiet HEAD
-    git clean -fdx --quiet
+    # A repository may add a submodule after the pinned revision used by
+    # plumOS.  Deinitialise current submodules and use the double-force clean
+    # before switching revisions so their nested Git worktrees cannot leave
+    # untracked files that block checkout of the older tree.
+    git submodule deinit -f --all >/dev/null 2>&1 || true
+    git clean -ffdx --quiet
     git fetch --tags --quiet origin
     if [ "$ref" = "HEAD" ]; then
       branch="$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF; exit}')"
