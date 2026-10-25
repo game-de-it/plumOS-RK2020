@@ -35,6 +35,16 @@ card_id() {
   return 1
 }
 
+card_id_matches() {
+  actual=$1
+  expected=$2
+  [ "$actual" = "$expected" ] && return 0
+  # The stock RK2020 kernel derives a 15-character ALSA ID from
+  # "rockchip,rk817-codec" while older images expose the shorter ID used by
+  # the original plumOS audio router contract.
+  [ "$expected" = rockchiprk817 ] && [ "$actual" = rockchiprk817co ]
+}
+
 card_has_playback() {
   card=$1
   [ -e "$DEV_SND_ROOT/pcmC${card}D0p" ] && return 0
@@ -72,7 +82,8 @@ find_internal_card() {
     card=${card_path##*/card}
     is_uint "$card" || continue
     card_has_playback "$card" || continue
-    [ "$(card_id "$card" 2>/dev/null || true)" = "$expected" ] || continue
+    actual="$(card_id "$card" 2>/dev/null || true)"
+    card_id_matches "$actual" "$expected" || continue
     printf '%s\n' "$card"
     return 0
   done

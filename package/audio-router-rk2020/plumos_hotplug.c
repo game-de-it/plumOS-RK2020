@@ -247,8 +247,18 @@ static int read_card_id(int card, char *buffer, size_t buffer_size)
 static int card_id_is(int card, const char *expected)
 {
     char id[64];
-    return read_card_id(card, id, sizeof(id)) == 0 &&
-           strcmp(id, expected) == 0;
+
+    if (read_card_id(card, id, sizeof(id)) != 0)
+        return 0;
+    if (strcmp(id, expected) == 0)
+        return 1;
+    /*
+     * Linux 4.4 on the stock RK2020 derives this 15-character ALSA card ID
+     * from "rockchip,rk817-codec".  Retain the shorter historical plumOS ID
+     * as the public override/default while accepting the stock-kernel alias.
+     */
+    return strcmp(expected, INTERNAL_CARD_ID) == 0 &&
+           strcmp(id, "rockchiprk817co") == 0;
 }
 
 static int find_internal_card(void)
