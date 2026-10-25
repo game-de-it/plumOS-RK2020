@@ -34,6 +34,9 @@ done <"$expected"
 [ -d "$capture/kernel/extracted/lib/modules/4.4.189" ]
 [ -f "$capture/kernel/extracted/lib/modules/4.4.189/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko" ]
 [ -d "$capture/kernel/extracted/lib/firmware" ]
+[ -f "$capture/runtime/libmali.so" ]
+[ "$(stat -f '%z' "$capture/runtime/libmali.so" 2>/dev/null || \
+    stat -c '%s' "$capture/runtime/libmali.so")" -eq 40867064 ]
 [ -f "$capture/runtime/stock-system.sha256" ]
 [ "$(sed -n '1p' "$capture/runtime/stock-system.sha256")" = \
     "$(sed -n '1p' "$system_expected")" ]

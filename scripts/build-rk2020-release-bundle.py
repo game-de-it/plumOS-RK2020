@@ -134,7 +134,7 @@ def write_notes(
 ## English
 
 plumOS RK2020 v{version} is a GKD RK2020-specific SD-card Linux distribution.
-It retains the stock RK2020 Linux 5.10.198 boot substrate while plumOS manages
+It retains the stock RK2020 Linux 4.4.189 boot substrate while plumOS manages
 the frontend, emulators, applications, settings, storage, networking, updates,
 power behavior, and user data.
 
@@ -210,7 +210,7 @@ third-party components retain their own terms. See `LICENSE`, `NOTICE.md`, and
 ## 日本語
 
 plumOS RK2020 v{version}は、GKD RK2020専用のSDカードLinux
-ディストリビューションです。RK2020 stock Linux 5.10.198のboot基盤を維持しながら、
+ディストリビューションです。RK2020 stock Linux 4.4.189のboot基盤を維持しながら、
 frontend、emulator、Apps、設定、storage、network、update、電源動作、user dataを
 plumOS側で管理します。
 
@@ -372,7 +372,7 @@ def main() -> int:
             "size": source_archive.stat().st_size,
             "sha256": sha256(source_archive),
         },
-        "boot_substrate": "stock-rk2020-5.10.198",
+        "boot_substrate": "stock-rk2020-4.4.189",
         "runtime_dtb_policy": "exact-stock",
         "user_filesystem": "created-on-first-boot",
     }

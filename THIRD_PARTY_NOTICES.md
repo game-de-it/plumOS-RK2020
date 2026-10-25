@@ -14,11 +14,12 @@ Japanese counterpart:
 
 ## Platform Boundary
 
-The GKD RK2020 Rockchip boot prefix, stock Linux 5.10.198 kernel, runtime DTB,
-stock initramfs, selected modules, and firmware are the hardware compatibility
-substrate. Vendor-derived material retains its original terms and is not
-covered by the plumOS MIT License. The release records exact registered hashes
-and includes `rk2020-stock-vendor-runtime-NOTICE.txt`.
+The GKD RK2020 Rockchip boot prefix, stock Linux 4.4.189 `KERNEL`, three board
+DTBs, stock initramfs, complete matching module/firmware overlay, and Mali
+userspace driver are the hardware compatibility substrate. Vendor-derived
+material retains its original terms and is not covered by the plumOS MIT
+License. The release records exact registered hashes and includes
+`rk2020-stock-vendor-runtime-NOTICE.txt`.
 
 ## Bundled Runtime Families
 

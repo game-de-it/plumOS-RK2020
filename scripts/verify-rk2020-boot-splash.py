@@ -30,8 +30,8 @@ def main() -> None:
     width, height, bit_depth, color_type, compression, filtering, interlace = (
         struct.unpack(">IIBBBBB", data[16:29])
     )
-    if (width, height) != (480, 640):
-        fail(f"geometry must be 480x640, got {width}x{height}")
+    if (width, height) != (320, 480):
+        fail(f"geometry must be 320x480, got {width}x{height}")
     if (bit_depth, color_type) != (8, 2):
         fail(
             "image must be 8-bit RGB without alpha, "

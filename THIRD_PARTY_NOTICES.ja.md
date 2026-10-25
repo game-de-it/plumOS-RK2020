@@ -12,9 +12,10 @@ English counterpart: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 ## Platform境界
 
-GKD RK2020のRockchip boot prefix、stock Linux 5.10.198 kernel、runtime DTB、stock
-initramfs、選択module・firmwareはhardware互換substrateです。vendor由来materialは元の
-条件を保持し、plumOS MIT Licenseの対象ではありません。releaseは登録済みhashと
+GKD RK2020のRockchip boot prefix、stock Linux 4.4.189 `KERNEL`、3種のboard DTB、
+stock initramfs、対応するmodule/firmware overlay一式、Mali userspace driverは
+hardware互換substrateです。vendor由来materialは元の条件を保持し、plumOS MIT Licenseの
+対象ではありません。releaseは登録済みhashと
 `rk2020-stock-vendor-runtime-NOTICE.txt`を収録します。
 
 ## 同梱runtime family

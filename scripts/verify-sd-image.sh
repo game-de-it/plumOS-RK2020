@@ -54,9 +54,20 @@ dd if="$IMAGE" of="$WORK/plumos-sys.ext4" bs=512 skip=1081344 count=4194304 stat
 fsck.vfat -n "$WORK/boot.fat" >/dev/null
 e2fsck -fn "$WORK/plumos-sys.ext4" >/dev/null
 [ "$(blkid -s LABEL -o value "$WORK/plumos-sys.ext4")" = PLUMOS_SYS ]
-for file in Image SYSTEM rk3326s-gkd-rk2020.dtb oemsplash-1080.png plumos-image.manifest \
-    post-flash.sh post-sysroot.sh; do
+for file in KERNEL SYSTEM boot.ini rk3326-odroidgo2-linux-v11.dtb \
+    rk3326-odroidgo2-linux.dtb rk3326-odroidgo3-linux.dtb \
+    oemsplash-1080.png plumos-image.manifest post-flash.sh post-sysroot.sh; do
     MTOOLS_SKIP_CHECK=1 mcopy -i "$WORK/boot.fat" "::/$file" "$WORK/$file"
+done
+mkdir -p "$WORK/extlinux"
+for config in extlinux.conf rk3326-odroidgo2-linux-v11.dtb.conf \
+    rk3326-odroidgo2-linux.dtb.conf rk3326-odroidgo3-linux.dtb.conf; do
+    MTOOLS_SKIP_CHECK=1 mcopy -i "$WORK/boot.fat" \
+        "::/extlinux/$config" "$WORK/extlinux/$config"
+    grep -q '^LABEL plumOS$' "$WORK/extlinux/$config"
+    grep -q 'boot=UUID=504C-554D' "$WORK/extlinux/$config"
+    grep -q 'disk=UUID=504c554d-5354-4154-4500-000000000002' \
+        "$WORK/extlinux/$config"
 done
 for slot in a b; do
     for suffix in squashfs sha256 manifest; do
@@ -64,12 +75,16 @@ for slot in a b; do
             "::/system-slots/system-$slot.$suffix" "$WORK/system-$slot.$suffix"
     done
 done
-cmp "$WORK/Image" "$ROOT_DIR/artifacts/vendor/rk2020-stock/boot/Image"
-cmp "$WORK/rk3326s-gkd-rk2020.dtb" \
-    "$ROOT_DIR/artifacts/vendor/rk2020-stock/boot/rk3326s-gkd-rk2020.dtb"
+STOCK_BOOT_DIR="$ROOT_DIR/artifacts/vendor/rk2020-stock/boot"
+cmp "$WORK/KERNEL" "$STOCK_BOOT_DIR/KERNEL"
+cmp "$WORK/boot.ini" "$STOCK_BOOT_DIR/boot.ini"
+for dtb in rk3326-odroidgo2-linux-v11.dtb rk3326-odroidgo2-linux.dtb \
+    rk3326-odroidgo3-linux.dtb; do
+    cmp "$WORK/$dtb" "$STOCK_BOOT_DIR/$dtb"
+done
 expected_runtime_dtb_sha=$(awk -F= '$1 == "runtime_dtb_sha256" { print $2 }' \
     "$WORK/plumos-image.manifest")
-actual_runtime_dtb_sha=$(sha256sum "$WORK/rk3326s-gkd-rk2020.dtb" | awk '{print $1}')
+actual_runtime_dtb_sha=$(sha256sum "$WORK/rk3326-odroidgo2-linux.dtb" | awk '{print $1}')
 [ "$actual_runtime_dtb_sha" = "$expected_runtime_dtb_sha" ]
 python3 "$ROOT_DIR/scripts/verify-rk2020-boot-splash.py" \
     "$WORK/oemsplash-1080.png"
@@ -79,7 +94,7 @@ grep -q '^boot_substrate=stock-rk2020$' "$WORK/plumos-image.manifest"
 grep -q '^runtime_dtb_policy=exact-stock$' \
     "$WORK/plumos-image.manifest"
 grep -q '^boot_splash=oemsplash-1080.png$' "$WORK/plumos-image.manifest"
-grep -q '^boot_splash_geometry=480x640$' "$WORK/plumos-image.manifest"
+grep -q '^boot_splash_geometry=320x480$' "$WORK/plumos-image.manifest"
 expected_splash_sha=$(awk -F= '$1 == "boot_splash_sha256" { print $2 }' \
     "$WORK/plumos-image.manifest")
 actual_splash_sha=$(sha256sum "$WORK/oemsplash-1080.png" | awk '{print $1}')
@@ -92,7 +107,7 @@ grep -q '^layout=compact-seed-v1,.*plumos-user-absent$' \
     "$WORK/plumos-image.manifest"
 grep -q '^first_boot_p2_target_mib=8192$' "$WORK/plumos-image.manifest"
 grep -q '^first_boot_p3_label=PLUMOS_USER$' "$WORK/plumos-image.manifest"
-grep -q '/usr/bin/ply-image /flash/oemsplash-1080.png' "$WORK/post-flash.sh"
+grep -q '/usr/bin/splash-image /flash/oemsplash-1080.png' "$WORK/post-flash.sh"
 grep -q 'boot-splash result=plumos' "$WORK/post-flash.sh"
 grep -q 'post-sysroot' "$WORK/post-sysroot.sh"
 cmp "$WORK/SYSTEM" "$ROOT_DIR/output/system-rootfs/rk2020/payload/SYSTEM"
@@ -109,8 +124,8 @@ mkdir -p "$WORK/app-layer"
 debugfs -R "rdump / $WORK/app-layer" "$WORK/plumos-sys.ext4" >/dev/null 2>&1
 "$ROOT_DIR/scripts/verify-app-layer.sh" "$WORK/app-layer"
 "$ROOT_DIR/tests/test-rk2020-first-boot-provision.sh" "$IMAGE"
-if strings "$WORK/Image" "$WORK/rk3326s-gkd-rk2020.dtb" \
-    "$WORK/plumos-image.manifest" | grep -Eiq '(rock[n]ix|emuel[e]c|batocer[a]|knull[i])'; then
+if strings "$WORK/plumos-image.manifest" "$WORK/post-flash.sh" \
+    "$WORK/post-sysroot.sh" | grep -Eiq '(rock[n]ix|emuel[e]c|batocer[a]|knull[i])'; then
     printf 'error: foreign distribution identity in boot payload\n' >&2
     exit 1
 fi

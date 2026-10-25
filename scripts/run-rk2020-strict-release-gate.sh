@@ -32,7 +32,7 @@ dirty="$(git status --short)"
 APP_ROOT="$ROOT_DIR/output/app-layer/rk2020/plumos"
 SYSTEM_ROOT="$ROOT_DIR/output/system-rootfs/rk2020/rootfs"
 SYSTEM_IMAGE="$ROOT_DIR/output/system-rootfs/rk2020/payload/system-slots/system-a.squashfs"
-BOOT_PREFIX="${PLUMOS_RK2020_BOOT_PREFIX:-$ROOT_DIR/artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin}"
+BOOT_PREFIX="${PLUMOS_RK2020_BOOT_PREFIX:-$ROOT_DIR/artifacts/vendor/rk2020-stock/rockchip-boot-prefix.bin}"
 if [ -z "$IMAGE" ]; then
     IMAGE="$ROOT_DIR/output/image/rk2020/plumOS-RK2020-$VERSION.img"
 fi

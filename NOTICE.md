@@ -1,9 +1,9 @@
 # plumOS RK2020 Notice
 
 plumOS RK2020 uses a checksum-registered GKD RK2020 stock boot substrate: the
-Rockchip boot prefix, Linux 5.10.198 kernel image, runtime DTB, stock initramfs,
-selected kernel modules, and firmware required to start the plumOS-owned
-`SYSTEM` and app layer.
+Rockchip boot prefix, Linux 4.4.189 `KERNEL`, board DTBs, stock initramfs,
+matching kernel modules and firmware, and the Mali userspace driver required to
+start the plumOS-owned `SYSTEM` and app layer.
 
 Those stock/vendor-derived files retain their original terms. They are not
 covered by the plumOS MIT License. Their origin, hashes, and immutable boundary

@@ -1,17 +1,17 @@
 # plumOS RK2020 boot splash
 
-`bootlogo.png` is the editable, logical 640x480 plumOS artwork shared with the
+`bootlogo.png` is the editable plumOS artwork shared with the
 other plumOS handheld ports. `oemsplash-1080.png` is the RK2020 boot-ready
-480x640 RGB PNG.
+320x480 RGB PNG.
 
 The RK2020 panel is exposed to the retained stock initramfs in portrait memory
-orientation. The boot-ready image is therefore rotated 90 degrees
-counter-clockwise so that it appears as 640x480 landscape on the physical
-screen:
+orientation. The artwork is fitted to a 480x320 landscape canvas and rotated
+90 degrees counter-clockwise for the 320x480 scanout:
 
 ```sh
-magick bootlogo.png -background black -alpha remove -alpha off \
-  -colorspace sRGB -type TrueColor -rotate -90 -strip \
+magick bootlogo.png -resize 480x320 -background black -gravity center \
+  -extent 480x320 -alpha remove -alpha off -colorspace sRGB \
+  -type TrueColor -rotate -90 -strip \
   PNG24:oemsplash-1080.png
 ```
 

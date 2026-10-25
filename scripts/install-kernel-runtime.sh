@@ -4,22 +4,26 @@ set -euo pipefail
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 ROOTFS_DIR="${1:-}"
 STOCK_KERNEL_ROOT="$ROOT_DIR/artifacts/vendor/rk2020-stock"
-MODULES_SRC="$STOCK_KERNEL_ROOT/kernel/extracted/usr/lib/kernel-overlays/base/lib/modules"
-FIRMWARE_SRC="$ROOT_DIR/artifacts/vendor/rk2020-stock/kernel/extracted/usr/lib/kernel-overlays/base/lib/firmware"
-EXTERNAL_MODULE_ROOT="$ROOT_DIR/output/kernel-modules/rk2020"
+MODULES_SRC="$STOCK_KERNEL_ROOT/kernel/extracted/lib/modules"
+FIRMWARE_SRC="$STOCK_KERNEL_ROOT/kernel/extracted/lib/firmware"
+MALI_SRC="$STOCK_KERNEL_ROOT/runtime/libmali.so"
 
 [ -d "$ROOTFS_DIR" ] || {
     printf 'usage: %s ROOTFS_DIR\n' "$0" >&2
     exit 2
 }
-[ -f "$STOCK_KERNEL_ROOT/boot/Image" ] && \
-    [ -f "$STOCK_KERNEL_ROOT/boot/rk3326s-gkd-rk2020.dtb" ] && \
+[ -f "$STOCK_KERNEL_ROOT/boot/KERNEL" ] && \
+    [ -f "$STOCK_KERNEL_ROOT/boot/rk3326-odroidgo2-linux.dtb" ] && \
     [ -d "$MODULES_SRC" ] || {
-    printf 'error: captured RK2020 stock kernel artifacts missing; run ./scripts/capture-stock-boot-artifacts.sh first\n' >&2
+    printf 'error: captured RK2020 stock kernel artifacts missing; run ./scripts/capture-rk2020-stock-over-ssh.sh first\n' >&2
     exit 2
 }
 [ -d "$FIRMWARE_SRC" ] || {
-    printf 'error: captured stock firmware missing; run ./scripts/capture-stock-boot.sh first\n' >&2
+    printf 'error: captured stock firmware missing; run ./scripts/capture-rk2020-stock-over-ssh.sh first\n' >&2
+    exit 2
+}
+[ -f "$MALI_SRC" ] || {
+    printf 'error: captured stock Mali userspace driver missing; run ./scripts/capture-rk2020-stock-over-ssh.sh first\n' >&2
     exit 2
 }
 
@@ -30,66 +34,32 @@ mapfile -t releases < <(find "$MODULES_SRC" -mindepth 1 -maxdepth 1 -type d -pri
 }
 release=${releases[0]}
 case "$release" in
-    5.10.198) ;;
+    4.4.189) ;;
     *) printf 'error: unexpected kernel module ABI: %s\n' "$release" >&2; exit 2 ;;
 esac
 
-mkdir -p "$ROOTFS_DIR/lib/modules" "$ROOTFS_DIR/lib/firmware" \
-    "$ROOTFS_DIR/usr/lib/plumos/kernel-modules" \
-    "$ROOTFS_DIR/usr/share/licenses/rtl8821cu"
+mkdir -p "$ROOTFS_DIR/lib/modules" "$ROOTFS_DIR/lib/firmware"
 cp -a "$MODULES_SRC/$release" "$ROOTFS_DIR/lib/modules/"
+cp -a "$FIRMWARE_SRC/." "$ROOTFS_DIR/lib/firmware/"
 
-(cd "$EXTERNAL_MODULE_ROOT" && sha256sum -c checksums.sha256 >/dev/null) || {
-    printf 'error: RK2020 external kernel modules missing or invalid; run ./scripts/docker-build.sh kernel-modules\n' >&2
-    exit 2
-}
-install -D -m 0644 \
-    "$EXTERNAL_MODULE_ROOT/$release/extra/8821cu.ko" \
-    "$ROOTFS_DIR/lib/modules/$release/extra/8821cu.ko"
-install -m 0644 "$EXTERNAL_MODULE_ROOT/rtl8821cu.json" \
-    "$ROOTFS_DIR/usr/lib/plumos/kernel-modules/rtl8821cu.json"
-install -m 0644 "$EXTERNAL_MODULE_ROOT/rtl8821cu.required-kernel-symbols" \
-    "$ROOTFS_DIR/usr/lib/plumos/kernel-modules/rtl8821cu.required-kernel-symbols"
-install -m 0644 "$EXTERNAL_MODULE_ROOT/licenses/rtl8821cu/LICENSE" \
-    "$ROOTFS_DIR/usr/share/licenses/rtl8821cu/LICENSE"
-
-# Minimal firmware set for the USB Wi-Fi families enabled by the RK2020 kernel.
-# These files are captured from the stock kernel overlay; no stock executable,
-# service, configuration, or userspace library is copied.
-while IFS= read -r relative; do
-    [ -n "$relative" ] || continue
-    [ -f "$FIRMWARE_SRC/$relative" ] || {
-        printf 'error: required USB Wi-Fi firmware missing: %s\n' "$relative" >&2
-        exit 2
-    }
-    install -D -m 0644 "$FIRMWARE_SRC/$relative" \
-        "$ROOTFS_DIR/lib/firmware/$relative"
-done <<'EOF'
-regulatory.db
-regulatory.db.p7s
-ath9k_htc/htc_7010-1.4.0.fw
-ath9k_htc/htc_9271-1.4.0.fw
-carl9170-1.fw
-mt7601u.bin
-mediatek/mt7610u.bin
-mediatek/mt7662u.bin
-mediatek/mt7662u_rom_patch.bin
-rt2870.bin
-rt73.bin
-rtlwifi/rtl8188eufw.bin
-rtlwifi/rtl8192cufw.bin
-rtlwifi/rtl8192cufw_A.bin
-rtlwifi/rtl8192cufw_B.bin
-EOF
+install -m 0644 "$MALI_SRC" "$ROOTFS_DIR/usr/lib/libmali.so"
+for library in \
+    libEGL.so libEGL.so.1 \
+    libGLES_CM.so.1 libGLESv1_CM.so.1 \
+    libGLESv2.so libGLESv2.so.2 \
+    libGLESv3.so libGLESv3.so.3 \
+    libgbm.so libgbm.so.1; do
+    rm -f "$ROOTFS_DIR/usr/lib/$library"
+    ln -s libmali.so "$ROOTFS_DIR/usr/lib/$library"
+done
 
 depmod -b "$ROOTFS_DIR" "$release"
 
 MANIFEST="$ROOTFS_DIR/usr/lib/plumos/kernel-runtime.sha256"
 (
     cd "$ROOTFS_DIR"
-    find "lib/modules/$release" lib/firmware usr/lib/plumos/kernel-modules \
-        usr/share/licenses/rtl8821cu -type f -print0 | \
+    find "lib/modules/$release" lib/firmware usr/lib/libmali.so -type f -print0 | \
         LC_ALL=C sort -z | xargs -0 sha256sum
 ) >"$MANIFEST"
-printf 'kernel-runtime=result-ok release=%s firmware_source=stock-kernel-overlay boot_substrate=stock\n' \
+printf 'kernel-runtime=result-ok release=%s firmware_source=stock-kernel-overlay gpu_userspace=stock-libmali boot_substrate=stock\n' \
     "$release"

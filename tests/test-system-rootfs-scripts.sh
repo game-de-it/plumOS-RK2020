@@ -17,7 +17,6 @@ grep -q 'ip addr add 127.0.0.1/8 dev lo' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 for script in \
     "$ROOT_DIR/scripts/build-system-rootfs.sh" \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh" \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh" \
     "$ROOT_DIR/scripts/install-frontend-rootfs.sh" \
     "$ROOT_DIR/scripts/docker-build.sh" \
     "$ROOT_DIR/scripts/build-frontend-component.sh" \
@@ -164,37 +163,18 @@ grep -q 'is_mounted /storage' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'umount /.plumos-dispatcher-old' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'stock-handoff.log' "$ROOT_DIR/rootfs/rk2020/usr/lib/systemd/systemd"
 grep -q 'mount-source storage=stock-initramfs' "$ROOT_DIR/rootfs/rk2020/sbin/init"
-grep -q '5.10.198' "$ROOT_DIR/scripts/install-kernel-runtime.sh"
-grep -q '^rtlwifi/rtl8188eufw.bin$' \
+grep -q '4.4.189' "$ROOT_DIR/scripts/install-kernel-runtime.sh"
+grep -q 'kernel/extracted/lib/modules' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
-grep -q 'build-rtl8821cu-rk2020.sh' \
+grep -q 'kernel/extracted/lib/firmware' \
+    "$ROOT_DIR/scripts/install-kernel-runtime.sh"
+grep -q 'runtime/libmali.so' \
+    "$ROOT_DIR/scripts/install-kernel-runtime.sh"
+! grep -q 'build-rtl8821cu-rk2020.sh' \
     "$ROOT_DIR/scripts/build-system-rootfs.sh"
-grep -q 'plumos-rk2020-kernel-cache' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q 'plumos-rk2020-kernel-cache' \
-    "$ROOT_DIR/scripts/docker-build.sh"
-! grep -q 'CACHE="\$ROOT_DIR/.cache/kernel"' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q -- '--verify-output' "$ROOT_DIR/scripts/build-system-rootfs.sh"
-grep -q 'kernel-modules) exec ./scripts/build-rtl8821cu-rk2020.sh' \
-    "$ROOT_DIR/scripts/docker-build.sh"
-grep -q '96c65c58b544241178638e810b333dcc9aa26b91' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q 'EXPECTED_STOCK_SRCVERSION=33E331B2DEB16477EAAB1D6' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q -- '--disable DEBUG_SPINLOCK' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q -- '--disable FTRACE' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q -- '--disable KALLSYMS' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q -- '--disable FUNCTION_TRACER' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q 'stock_module_struct_size' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q 'stock_module_exit_offset' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
-grep -q 'lib/modules/\$release/extra/8821cu.ko' \
+grep -q 'lib/modules/4.4.189/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko' \
+    "$ROOT_DIR/scripts/verify-rk2020-stock-artifacts.sh"
+grep -q 'cp -a.*MODULES_SRC' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
 grep -q 'modinfo -b.*8821cu' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"

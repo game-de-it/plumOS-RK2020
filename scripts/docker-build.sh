@@ -8,7 +8,7 @@ usage() {
     printf '%s\n' \
         'Usage: scripts/docker-build.sh TARGET [ARGS...]' \
         '' \
-        'Targets: image kernel-modules frontend retroarch cores core-catalog picoarch standalone audio-router pyxel-runtime nextcommander music-player network-services portmaster shared-apps app-layer audit update-package system-rootfs sd-image release-image'
+        'Targets: image frontend retroarch cores core-catalog picoarch standalone audio-router pyxel-runtime nextcommander music-player network-services portmaster shared-apps app-layer audit update-package system-rootfs sd-image release-image'
 }
 
 if [ "${1:-}" = --inside ]; then
@@ -17,7 +17,6 @@ if [ "${1:-}" = --inside ]; then
     [ -n "$target" ] || { usage >&2; exit 2; }
     shift
     case "$target" in
-        kernel-modules) exec ./scripts/build-rtl8821cu-rk2020.sh --inside "$@" ;;
         frontend) exec ./scripts/build-frontend-component.sh --inside "$@" ;;
         retroarch) exec ./scripts/build-retroarch.sh --inside "$@" ;;
         cores) exec ./scripts/build-libretro-cores.sh --inside "$@" ;;
@@ -46,7 +45,6 @@ if [ "${1:-}" = --inside ]; then
         system-rootfs) exec ./scripts/build-system-rootfs.sh --inside "$@" ;;
         sd-image) exec ./scripts/build-sd-image.sh --inside "$@" ;;
         release-image)
-            ./scripts/build-rtl8821cu-rk2020.sh --inside
             ./scripts/build-frontend-component.sh --inside
             ./scripts/build-retroarch.sh --inside
             ./scripts/build-libretro-core-catalog-rk2020.sh --filter all
@@ -77,7 +75,7 @@ if [ "$target" = image ]; then
     exec docker build --platform linux/arm64 -t "$IMAGE" "$ROOT_DIR/docker/rk2020-tools"
 fi
 docker image inspect "$IMAGE" >/dev/null 2>&1 || "$ROOT_DIR/scripts/build-tools-image.sh"
-host_boot_prefix="${PLUMOS_RK2020_BOOT_PREFIX:-$ROOT_DIR/artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin}"
+host_boot_prefix="${PLUMOS_RK2020_BOOT_PREFIX:-$ROOT_DIR/artifacts/vendor/rk2020-stock/rockchip-boot-prefix.bin}"
 host_boot_prefix="$(CDPATH= cd -- "$(dirname -- "$host_boot_prefix")" && pwd)/$(basename -- "$host_boot_prefix")"
 case "$host_boot_prefix" in
     "$ROOT_DIR"/*) container_boot_prefix="/work/${host_boot_prefix#"$ROOT_DIR"/}" ;;
@@ -87,14 +85,12 @@ docker_env=(
     -e "PLUMOS_RK2020_VERSION=${PLUMOS_RK2020_VERSION:-0.1.0-dev}"
     -e "PLUMOS_RK2020_BOOT_PREFIX=$container_boot_prefix"
 )
-kernel_cache_volume="${PLUMOS_RK2020_KERNEL_CACHE_VOLUME:-plumos-rk2020-kernel-cache}"
 if [ -n "${SOURCE_DATE_EPOCH:-}" ]; then
     docker_env+=(-e "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH")
 fi
 container="$(
     docker create --platform linux/arm64 \
     "${docker_env[@]}" \
-    -v "$kernel_cache_volume:/plumos-kernel-cache" \
     -v "$ROOT_DIR:/work" -w /work "$IMAGE" \
     ./scripts/docker-build.sh --inside "$@"
 )"

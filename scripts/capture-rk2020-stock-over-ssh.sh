@@ -71,10 +71,12 @@ remote '
 
 remote '
     cd /flash
-    tar -cf - KERNEL boot.ini rk3326-odroidgo2-linux.dtb extlinux
+    tar -cf - KERNEL boot.ini rk3326-odroidgo2-linux-v11.dtb \
+        rk3326-odroidgo2-linux.dtb rk3326-odroidgo3-linux.dtb extlinux
 ' | tar -C "$incoming/boot" -xf -
 
 remote 'cat /sys/firmware/fdt' >"$incoming/runtime/active.dtb"
+remote 'cat /usr/lib/libmali.so' >"$incoming/runtime/libmali.so"
 remote '
     tar -C /usr/lib/kernel-overlays/base -czf - lib/modules lib/firmware
 ' >"$incoming/kernel/runtime.tar.gz"

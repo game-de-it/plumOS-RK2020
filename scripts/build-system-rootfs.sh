@@ -42,9 +42,6 @@ mkdir -p "$ROOTFS_DIR" "$PAYLOAD_DIR/system-slots" "$DISPATCHER_DIR/bin" \
     "$ROOTFS_DIR/state" "$ROOTFS_DIR/roms" "$ROOTFS_DIR/root" \
     "$ROOTFS_DIR/mnt/plumos" "$ROOTFS_DIR/mnt/plumos-user"
 cp -a "$ROOT_DIR/rootfs/rk2020/." "$ROOTFS_DIR/"
-if ! "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh" --inside --verify-output; then
-    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh" --inside
-fi
 "$ROOT_DIR/scripts/install-kernel-runtime.sh" "$ROOTFS_DIR"
 "$ROOT_DIR/scripts/install-frontend-rootfs.sh" "$ROOTFS_DIR"
 chmod 0755 "$ROOTFS_DIR/sbin/init" "$ROOTFS_DIR/usr/lib/systemd/systemd" \

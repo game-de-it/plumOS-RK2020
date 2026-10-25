@@ -3,12 +3,12 @@ set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 TOOLS_IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
-PREFIX="${PLUMOS_RK2020_BOOT_PREFIX:-$ROOT_DIR/artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin}"
+PREFIX="${PLUMOS_RK2020_BOOT_PREFIX:-$ROOT_DIR/artifacts/vendor/rk2020-stock/rockchip-boot-prefix.bin}"
 
 if [ "${1:-}" != --inside ]; then
     [ -f "$PREFIX" ] || {
         printf 'error: boot prefix missing: %s\n' "$PREFIX" >&2
-        printf 'capture it read-only with: ./scripts/capture-stock-prefix-macos.sh /dev/disk4\n' >&2
+        printf 'capture it read-only with: ./scripts/capture-rk2020-stock-over-ssh.sh\n' >&2
         exit 2
     }
     case "$PREFIX" in
@@ -20,8 +20,8 @@ if [ "${1:-}" != --inside ]; then
 fi
 
 ROOT_DIR=/work
-PREFIX="${PLUMOS_RK2020_BOOT_PREFIX:-/work/artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin}"
-PREFIX_MANIFEST="$ROOT_DIR/artifacts/manifests/rk2020-stock-prefix.manifest"
+PREFIX="${PLUMOS_RK2020_BOOT_PREFIX:-/work/artifacts/vendor/rk2020-stock/rockchip-boot-prefix.bin}"
+STOCK_EXPECTED="$ROOT_DIR/configs/rk2020-stock.expected.sha256"
 STOCK_BOOT_DIR="$ROOT_DIR/artifacts/vendor/rk2020-stock/boot"
 STOCK_BOOT_MANIFEST="$ROOT_DIR/artifacts/vendor/rk2020-stock/manifest.tsv"
 BOOT_SPLASH="$ROOT_DIR/package/boot-assets-rk2020/oemsplash-1080.png"
@@ -42,18 +42,23 @@ export SOURCE_DATE_EPOCH="$SOURCE_EPOCH"
     printf 'error: Rockchip boot prefix must be exactly 16 MiB\n' >&2
     exit 2
 }
-[ -f "$PREFIX_MANIFEST" ] || {
-    printf 'error: registered boot prefix manifest is missing\n' >&2
+[ -f "$STOCK_EXPECTED" ] || {
+    printf 'error: registered stock hash list is missing\n' >&2
     exit 2
 }
-expected_prefix_sha=$(awk -F= '$1 == "capture_sha256" { print $2 }' \
-    "$PREFIX_MANIFEST")
+expected_prefix_sha=$(awk '$2 == "rockchip-boot-prefix.bin" { print $1 }' \
+    "$STOCK_EXPECTED")
 actual_prefix_sha=$(sha256sum "$PREFIX" | awk '{print $1}')
 [ -n "$expected_prefix_sha" ] && [ "$actual_prefix_sha" = "$expected_prefix_sha" ] || {
     printf 'error: boot prefix does not match registered RK2020 stock capture\n' >&2
     exit 2
 }
-for file in Image rk3326s-gkd-rk2020.dtb; do
+for file in KERNEL boot.ini rk3326-odroidgo2-linux-v11.dtb \
+    rk3326-odroidgo2-linux.dtb rk3326-odroidgo3-linux.dtb \
+    extlinux/extlinux.conf \
+    extlinux/rk3326-odroidgo2-linux-v11.dtb.conf \
+    extlinux/rk3326-odroidgo2-linux.dtb.conf \
+    extlinux/rk3326-odroidgo3-linux.dtb.conf; do
     [ -f "$STOCK_BOOT_DIR/$file" ] || {
         printf 'error: stock boot artifact missing: %s\n' "$STOCK_BOOT_DIR/$file" >&2
         exit 2
@@ -140,9 +145,20 @@ E2FSPROGS_FAKE_TIME="$SOURCE_EPOCH" mkfs.ext4 -q -F -L PLUMOS_SYS \
     -d "$WORK/plumos-sys" "$WORK/plumos-sys.ext4"
 normalize_ext4_timestamps "$WORK/plumos-sys" "$WORK/plumos-sys.ext4" "$SOURCE_EPOCH"
 
-install -m 0644 "$STOCK_BOOT_DIR/Image" "$WORK/boot/Image"
-install -m 0644 "$STOCK_BOOT_DIR/rk3326s-gkd-rk2020.dtb" \
-    "$WORK/boot/rk3326s-gkd-rk2020.dtb"
+install -m 0644 "$STOCK_BOOT_DIR/KERNEL" "$WORK/boot/KERNEL"
+for dtb in rk3326-odroidgo2-linux-v11.dtb rk3326-odroidgo2-linux.dtb \
+    rk3326-odroidgo3-linux.dtb; do
+    install -m 0644 "$STOCK_BOOT_DIR/$dtb" "$WORK/boot/$dtb"
+done
+install -m 0644 "$STOCK_BOOT_DIR/boot.ini" "$WORK/boot/boot.ini"
+cp -a "$STOCK_BOOT_DIR/extlinux" "$WORK/boot/extlinux"
+for config in "$WORK/boot/extlinux/"*.conf; do
+    sed -i \
+        -e 's/^LABEL .*/LABEL plumOS/' \
+        -e 's/boot=UUID=[^ ]*/boot=UUID=504C-554D/' \
+        -e 's/disk=UUID=[^ ]*/disk=UUID=504c554d-5354-4154-4500-000000000002/' \
+        "$config"
+done
 install -m 0644 "$BOOT_SPLASH" "$WORK/boot/oemsplash-1080.png"
 cp -a "$SYSTEM_DIR/." "$WORK/boot/"
 for hook in post-flash.sh post-sysroot.sh; do
@@ -153,8 +169,8 @@ for hook in post-flash.sh post-sysroot.sh; do
     install -m 0755 "$BOOT_HOOK_DIR/$hook" "$WORK/boot/$hook"
 done
 prefix_sha=$actual_prefix_sha
-stock_image_sha=$(sha256sum "$STOCK_BOOT_DIR/Image" | awk '{print $1}')
-stock_dtb_sha=$(sha256sum "$STOCK_BOOT_DIR/rk3326s-gkd-rk2020.dtb" | awk '{print $1}')
+stock_kernel_sha=$(sha256sum "$STOCK_BOOT_DIR/KERNEL" | awk '{print $1}')
+stock_dtb_sha=$(sha256sum "$STOCK_BOOT_DIR/rk3326-odroidgo2-linux.dtb" | awk '{print $1}')
 boot_splash_sha=$(sha256sum "$BOOT_SPLASH" | awk '{print $1}')
 cat >"$WORK/boot/plumos-image.manifest" <<EOF
 format=plumos-rk2020-image-v1
@@ -165,12 +181,12 @@ source_ref=$SOURCE_REF
 source_date_epoch=$SOURCE_EPOCH
 boot_prefix_sha256=$prefix_sha
 boot_substrate=stock-rk2020
-stock_image_sha256=$stock_image_sha
+stock_kernel_sha256=$stock_kernel_sha
 stock_dtb_sha256=$stock_dtb_sha
 runtime_dtb_policy=exact-stock
 runtime_dtb_sha256=$stock_dtb_sha
 boot_splash=oemsplash-1080.png
-boot_splash_geometry=480x640
+boot_splash_geometry=320x480
 boot_splash_sha256=$boot_splash_sha
 layout=compact-seed-v1,boot-prefix-16MiB,boot-fat-512MiB,plumos-sys-ext4-2048MiB,plumos-user-absent
 first_boot_p2_target_mib=8192
