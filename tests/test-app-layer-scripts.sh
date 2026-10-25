@@ -903,6 +903,8 @@ grep -q 'lib/libretro/libvorbisfile.so.3' \
     "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
 grep -q 'lib/libretro/libopusfile.so.0' \
     "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
+grep -q '^ZIP_VERSION="3.0-13+deb12u1"$' \
+    "$ROOT_DIR/scripts/build-portmaster-rk2020.sh"
 "$ROOT_DIR/tests/test-portmaster-pgrep.sh"
 "$ROOT_DIR/tests/test-portmaster-df.sh"
 "$ROOT_DIR/tests/test-portmaster-rk2020-runtime.sh"
