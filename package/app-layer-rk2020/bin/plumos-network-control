@@ -299,53 +299,36 @@ module_loaded() {
   grep -q "^${module}[[:space:]]" /proc/modules 2>/dev/null
 }
 
-load_module_file() {
-  ko="$1"
-  module="$(basename "$ko" .ko | tr '-' '_')"
-  if module_loaded "$module"; then
-    log "module already loaded module=${module}"
+load_module_name() {
+  module="$1"
+  normalized="$(printf '%s' "$module" | tr '-' '_')"
+  if module_loaded "$normalized"; then
+    log "module already loaded module=${normalized}"
     return 0
   fi
-  if [ ! -f "$ko" ]; then
-    log "module missing path=${ko}"
+  if run_limited 8 modprobe "$module" >> "$LOG_FILE" 2>&1; then
+    log "module loaded module=${normalized} source=modprobe"
     return 0
   fi
-  if run_limited 8 insmod "$ko" >> "$LOG_FILE" 2>&1; then
-    log "module loaded path=${ko}"
-  else
-    log "module load returned nonzero path=${ko}"
-  fi
+  log "module load returned nonzero module=${normalized} source=modprobe"
+  return 1
 }
 
 load_wifi_driver() {
   driver="$1"
 
   case "$driver" in
-    r8188eu)
-      if run_limited 8 modprobe r8188eu >> "$LOG_FILE" 2>&1; then
-        log "module loaded module=r8188eu"
-      else
-        log "module load returned nonzero module=r8188eu"
-      fi
-      ;;
-    rtl8192cu)
-      load_module_file "${MODULES_DIR}/rtlwifi.ko"
-      load_module_file "${MODULES_DIR}/rtl_usb.ko"
-      load_module_file "${MODULES_DIR}/rtl8192c-common.ko"
-      load_module_file "${MODULES_DIR}/rtl8192cu.ko"
-      ;;
-    rtl8xxxu)
-      load_module_file "${MODULES_DIR}/rtl8xxxu.ko"
-      ;;
-    8192eu|8723bu|8812au|8821cu|88x2bu)
-      load_module_file "${MODULES_DIR}/extra/${driver}.ko"
+    r8188eu|rtl8192cu|rtl8xxxu|8192eu|8723bu|8812au|8821cu|88x2bu)
+      # RK2020 retains the stock EmuELEC module tree and modules.dep layout.
+      # In particular, 8821cu lives below kernel/drivers/net/wireless rather
+      # than V90S's /lib/modules/.../extra directory.  Resolve it through
+      # modprobe so its stock path and any declared dependencies are honored.
+      load_module_name "$driver" || true
       ;;
     8188eu)
-      if [ -f "${MODULES_DIR}/extra/8188eu.ko" ]; then
-        load_module_file "${MODULES_DIR}/extra/8188eu.ko"
-      else
+      if ! load_module_name 8188eu; then
         log "driver candidate 8188eu missing; trying 8192eu overlay"
-        load_module_file "${MODULES_DIR}/extra/8192eu.ko"
+        load_module_name 8192eu || true
       fi
       ;;
     *)

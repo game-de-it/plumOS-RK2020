@@ -23,6 +23,9 @@ printf '%s\n' \
 cat >"$plumos/bin/modprobe" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$*" >>"$TEST_COMMAND_LOG"
+if [ "$*" = 8821cu ]; then
+    test -f "$TEST_MODULES_ROOT/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko"
+fi
 mkdir -p "$TEST_NET_SYSFS_ROOT/wlan0/wireless"
 EOF
 cat >"$plumos/bin/insmod" <<'EOF'
@@ -125,6 +128,7 @@ export TEST_WPA_PING_COUNT_FILE="$tmp/wpa-ping-count"
 export TEST_WPA_CLI_LOG="$tmp/wpa-cli.log"
 export TEST_WPA_STATUS_COUNT_FILE="$tmp/wpa-status-count"
 export TEST_USB_PRODUCT_FILE="$usb/1-1/idProduct"
+export TEST_MODULES_ROOT="$modules"
 
 run_control() {
     env \
@@ -200,17 +204,20 @@ rm -rf "$net/wlan0"
 rm -f "$TEST_COMMAND_LOG" "$TEST_WPA_PING_COUNT_FILE"
 printf '1a2b\n' >"$usb/1-1/idProduct"
 mkdir -p "$usb/1-1:1.0/host0/target0:0:0/0:0:0:0/block/sr0" \
-    "$tmp/dev" "$modules/extra"
-touch "$tmp/dev/sr0" "$modules/extra/8821cu.ko"
+    "$tmp/dev" "$modules/kernel/drivers/net/wireless/rtl8821cu"
+touch "$tmp/dev/sr0" \
+    "$modules/kernel/drivers/net/wireless/rtl8821cu/8821cu.ko"
 printf '%s\n' \
     'alias usb:v0BDApC811d*dc*dsc*dp*icFFiscFFipFFin* 8821cu' \
     >"$modules/modules.alias"
 mode_switch_scan="$(run_control --scan)"
 grep -Fq $'network\tsecured\t-42\tRK2020 Test' <<<"$mode_switch_scan"
 grep -Fxq 'eject -s '"$tmp/dev/sr0" "$TEST_COMMAND_LOG"
-grep -Fxq 'insmod '"$modules/extra/8821cu.ko" "$TEST_COMMAND_LOG"
+grep -Fxq 8821cu "$TEST_COMMAND_LOG"
 grep -Fxq c811 "$usb/1-1/idProduct"
 grep -Fq 'usb wifi mode-switch complete id=0bda:c811' \
+    "$plumos/logs/network-control.log"
+grep -Fq 'module loaded module=8821cu source=modprobe' \
     "$plumos/logs/network-control.log"
 grep -Fq 'PLUMOS_EJECT_BIN:-/usr/bin/eject' "$CONTROL"
 
