@@ -571,6 +571,8 @@ grep -q 'export PLUMOS_AUDIO_POLL_PROXY=0' \
     "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-port-launch"
 grep -q 'factory-defaults/alsa/alsa.conf' \
     "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output"
+grep -q 'reapply_route_enum(mixer, "Playback Path", nudge)' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk817_resume.c"
 grep -q 'pcm.plumos_hw_card' \
     "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output"
 grep -q 'PLUMOS_RK2020_INTERNAL_CARD_ID' \

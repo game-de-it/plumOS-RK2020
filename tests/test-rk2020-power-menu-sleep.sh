@@ -15,10 +15,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$TEST_ROOT/plumos/bin" "$TEST_ROOT/run" "$TEST_ROOT/logs" \
-    "$TEST_ROOT/user-logs"
+mkdir -p "$TEST_ROOT/plumos/bin" \
+    "$TEST_ROOT/plumos/factory-defaults/alsa" "$TEST_ROOT/run" \
+    "$TEST_ROOT/logs" "$TEST_ROOT/user-logs"
 export PLUMOS_POWER_USER_LOG_FILE="$TEST_ROOT/user-logs/power.log"
 printf 'network={}\n' >"$TEST_ROOT/plumos/wpa_supplicant.conf"
+printf 'defaults.ctl.card 0\n' \
+    >"$TEST_ROOT/plumos/factory-defaults/alsa/alsa.conf"
 
 cat >"$TEST_ROOT/busybox" <<'EOF'
 #!/bin/sh
@@ -100,7 +103,7 @@ PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
 [ "$(cat "$TEST_ROOT/wakealarm")" = +5 ]
 grep -q '^rk817 arm$' "$TEST_ROOT/calls"
 grep -q '^rk817 rearm$' "$TEST_ROOT/calls"
-grep -q "^rk817_alsa $TEST_ROOT/plumos/config/alsa/alsa.conf$" \
+grep -q "^rk817_alsa $TEST_ROOT/plumos/factory-defaults/alsa/alsa.conf$" \
     "$TEST_ROOT/calls"
 grep -q '^volume apply$' "$TEST_ROOT/calls"
 grep -q '^display apply$' "$TEST_ROOT/calls"

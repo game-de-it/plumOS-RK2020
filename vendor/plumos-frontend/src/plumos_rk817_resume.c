@@ -71,6 +71,32 @@ static int reapply_route_switch(snd_mixer_t *mixer, const char *name,
   return 0;
 }
 
+static int reapply_route_enum(snd_mixer_t *mixer, const char *name,
+                              int nudge) {
+  snd_mixer_elem_t *element = find_element(mixer, name);
+  unsigned int saved;
+
+  if (!element || !snd_mixer_selem_is_enumerated(element)) {
+    return -ENOENT;
+  }
+  if (snd_mixer_selem_get_enum_item(element, SND_MIXER_SCHN_FRONT_LEFT,
+                                    &saved) < 0) {
+    return -EIO;
+  }
+  /* RK817 Playback Path item 0 is OFF.  Toggle it only on rearm so the
+   * codec route is rebuilt after resume, then restore the selected route. */
+  if (nudge && saved != 0 &&
+      snd_mixer_selem_set_enum_item(element, SND_MIXER_SCHN_FRONT_LEFT, 0) <
+          0) {
+    return -EIO;
+  }
+  if (snd_mixer_selem_set_enum_item(element, SND_MIXER_SCHN_FRONT_LEFT,
+                                    saved) < 0) {
+    return -EIO;
+  }
+  return 0;
+}
+
 static int reapply_rk2020_routes(snd_mixer_t *mixer, int nudge) {
   const char *names[] = {"Speaker", "Headphone"};
   int found = 0;
@@ -84,8 +110,16 @@ static int reapply_rk2020_routes(snd_mixer_t *mixer, int nudge) {
       return result;
     }
   }
+  {
+    int result = reapply_route_enum(mixer, "Playback Path", nudge);
+    if (result == 0) {
+      found++;
+    } else if (result != -ENOENT) {
+      return result;
+    }
+  }
   if (!found) {
-    fprintf(stderr, "rk817-resume: RK2020 route switches unavailable\n");
+    fprintf(stderr, "rk817-resume: RK2020 route controls unavailable\n");
     return -ENOENT;
   }
   return 0;
@@ -128,7 +162,8 @@ int main(int argc, char **argv) {
   if (result < 0) {
     return 1;
   }
-  printf("rk817_resume=result-ok action=%s card=%s routes=Speaker,Headphone\n",
+  printf("rk817_resume=result-ok action=%s card=%s "
+         "routes=Speaker,Headphone,Playback_Path\n",
          action, card);
   return 0;
 }
