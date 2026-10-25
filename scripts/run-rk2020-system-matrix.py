@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -29,7 +30,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--only-system", action="append", default=[])
+    parser.add_argument(
+        "--profile-override", action="append", default=[], metavar="SYSTEM=PROFILE",
+        help="use a non-default launch profile for a targeted comparison",
+    )
+    parser.add_argument(
+        "--rom-override", action="append", default=[], metavar="SYSTEM=RELATIVE_PATH",
+        help="use a specific indexed or temporary ROM path for a targeted comparison",
+    )
     parser.add_argument("--frames", type=int, default=240)
+    parser.add_argument(
+        "--sample-seconds", type=float,
+        help="override the per-route observation window",
+    )
     return parser.parse_args()
 
 
@@ -93,11 +106,19 @@ def plan_command(device: Device, system_id: str, relative_path: str,
         shlex.quote(system_id), shlex.quote(relative_path), "--profile",
         shlex.quote(profile), "--no-scan",
     ])
-    result = device.run(command, check=False)
-    if result.returncode:
-        return None, (result.stderr or result.stdout).strip()
-    match = re.search(r"^command: (.+)$", result.stdout, re.MULTILINE)
-    return (match.group(1), "") if match else (None, "launch_plan_has_no_command")
+    errors = []
+    for attempt in range(1, 4):
+        result = device.run(command, check=False)
+        if result.returncode == 0:
+            match = re.search(r"^command: (.+)$", result.stdout, re.MULTILINE)
+            if match:
+                return match.group(1), ""
+            errors.append(f"attempt_{attempt}:launch_plan_has_no_command")
+        else:
+            detail = (result.stderr or result.stdout).strip() or "no_output"
+            errors.append(f"attempt_{attempt}:rc_{result.returncode}:{detail}")
+        time.sleep(0.2)
+    return None, ";".join(errors)
 
 
 SETUP = r'''
@@ -214,13 +235,15 @@ rc=$?
 leftovers=""
 for p in /proc/[0-9]*; do
     test "$(/bin/busybox awk '{print $5}' "$p/stat" 2>/dev/null)" = "$pid" || continue
+    test "$(/bin/busybox awk '{print $3}' "$p/stat" 2>/dev/null)" = Z && continue
     leftovers="$leftovers${p##*/},"
     kill -KILL "${p##*/}" 2>/dev/null || true
 done
-/bin/busybox usleep 250000
+/bin/busybox usleep 500000
 leftovers_after=""
 for p in /proc/[0-9]*; do
     test "$(/bin/busybox awk '{print $5}' "$p/stat" 2>/dev/null)" = "$pid" || continue
+    test "$(/bin/busybox awk '{print $3}' "$p/stat" 2>/dev/null)" = Z && continue
     leftovers_after="$leftovers_after${p##*/},"
 done
 shot=no
@@ -247,6 +270,21 @@ def main() -> int:
     args = parse_args()
     if args.frames < 1 or args.frames > 3600:
         raise SystemExit("--frames must be between 1 and 3600")
+    if args.sample_seconds is not None and args.sample_seconds <= 0:
+        raise SystemExit("--sample-seconds must be greater than zero")
+    def parse_overrides(items: list[str], option: str) -> dict[str, str]:
+        overrides = {}
+        for item in items:
+            if "=" not in item:
+                raise SystemExit(f"{option} must use SYSTEM=VALUE")
+            system_id, value = item.split("=", 1)
+            if not system_id or not value:
+                raise SystemExit(f"{option} must use SYSTEM=VALUE")
+            overrides[system_id] = value
+        return overrides
+
+    profile_overrides = parse_overrides(args.profile_override, "--profile-override")
+    rom_overrides = parse_overrides(args.rom_override, "--rom-override")
     password = os.environ.get(args.password_env)
     if not password:
         raise SystemExit(f"set {args.password_env}")
@@ -262,7 +300,7 @@ def main() -> int:
         sid = system["id"]
         if args.only_system and sid not in args.only_system:
             continue
-        profile = system.get("default_launch_profile", "")
+        profile = profile_overrides.get(sid, system.get("default_launch_profile", ""))
         roms = live.get(sid, {}).get("roms", [])
         record = {
             "system": sid, "profile": profile, "status": "not_run",
@@ -274,9 +312,10 @@ def main() -> int:
             record["reason"] = "external_port_is_separate_acceptance_gate"
         else:
             rom = roms[0]
-            record["content"] = rom["path"]
-            record["relative_path"] = rom["relative_path"]
-            command, error = plan_command(device, sid, rom["relative_path"], profile)
+            relative_path = rom_overrides.get(sid, rom["relative_path"])
+            record["content"] = f"{USER}/roms/{relative_path}"
+            record["relative_path"] = relative_path
+            command, error = plan_command(device, sid, relative_path, profile)
             if command:
                 shot = (
                     f"{VALIDATION}/{run_id}/screenshots/{sid}.png"
@@ -321,7 +360,9 @@ def main() -> int:
         for index, record in enumerate(planned, 1):
             safe = re.sub(r"[^A-Za-z0-9_.-]", "_", record["system"])
             wrap = f"{VALIDATION}/{run_id}/{safe}.wrapper.log"
-            samples = 60 if record["profile"].startswith("retroarch:") else 40
+            default_seconds = 15 if record["profile"].startswith("retroarch:") else 10
+            sample_seconds = args.sample_seconds or default_seconds
+            samples = math.ceil(sample_seconds / 0.25)
             remote = "/bin/sh -s -- " + " ".join(
                 shlex.quote(str(value)) for value in (
                     record["command"], record["runtime_log"], samples, wrap,
