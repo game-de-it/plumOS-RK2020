@@ -19,6 +19,8 @@ archive_content=
 archive_content_dir=
 menu_driver=rgui
 graphical_menu=0
+validation_max_frames=${PLUMOS_RETROARCH_VALIDATION_MAX_FRAMES:-}
+validation_screenshot=${PLUMOS_RETROARCH_VALIDATION_SCREENSHOT:-}
 
 unset LIBGL_DRIVERS_PATH __EGL_VENDOR_LIBRARY_FILENAMES
 unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE
@@ -59,6 +61,35 @@ case "$system_id" in
     ''|*[!A-Za-z0-9._-]*|*..*)
         printf 'plumos-retroarch-launch: invalid system id\n' >&2
         exit 2
+        ;;
+esac
+case "$validation_max_frames" in
+    '')
+        [ -z "$validation_screenshot" ] || {
+            printf 'plumos-retroarch-launch: validation screenshot requires a frame limit\n' >&2
+            exit 2
+        }
+        ;;
+    *[!0-9]*|0)
+        printf 'plumos-retroarch-launch: invalid validation frame limit\n' >&2
+        exit 2
+        ;;
+    *)
+        [ "$validation_max_frames" -le 3600 ] || {
+            printf 'plumos-retroarch-launch: validation frame limit is too large\n' >&2
+            exit 2
+        }
+        case "$validation_screenshot" in
+            "$sdcard_root"/.plumos-validation/*)
+                case "$validation_screenshot" in *..*) exit 2 ;; esac
+                $bb mkdir -p "${validation_screenshot%/*}"
+                ;;
+            '') ;;
+            *)
+                printf 'plumos-retroarch-launch: validation screenshot is outside the validation root\n' >&2
+                exit 2
+                ;;
+        esac
         ;;
 esac
 core_root=$($bb readlink -f "$root/cores")
@@ -356,8 +387,17 @@ $bb mkdir -p "$HOME" "$XDG_CACHE_HOME"
 printf 'retroarch=result-start system=%s core=%s rom=%s\n' \
     "$system_id" "${core##*/}" "${rom##*/}" >>"$root/logs/retroarch-launch.log"
 set +e
-"$root/bin/retroarch" -c "$config" --appendconfig "$append" -L "$core" "$rom" \
-    >>"$root/logs/retroarch-launch.log" 2>&1
+if [ -n "$validation_max_frames" ]; then
+    set -- "$root/bin/retroarch" "--max-frames=$validation_max_frames"
+    if [ -n "$validation_screenshot" ]; then
+        set -- "$@" --max-frames-ss "--max-frames-ss-path=$validation_screenshot"
+    fi
+    set -- "$@" -c "$config" --appendconfig "$append" -L "$core" "$rom"
+    "$@" >>"$root/logs/retroarch-launch.log" 2>&1
+else
+    "$root/bin/retroarch" -c "$config" --appendconfig "$append" -L "$core" "$rom" \
+        >>"$root/logs/retroarch-launch.log" 2>&1
+fi
 rc=$?
 set -e
 $bb rm -f "$append"
