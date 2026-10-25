@@ -7,7 +7,7 @@ volume-control contract on hardware without dedicated volume buttons.  The
 work was deployed to the live plumOS SD installation without rebuilding the
 full image or interrupting the running NES process.
 
-## Read-only stockOS evidence
+## StockOS evidence and correction
 
 The inspected EmuELEC 4.8 image has SHA-256:
 
@@ -15,10 +15,18 @@ The inspected EmuELEC 4.8 image has SHA-256:
 00f83164472c093c1272b9385a57a28113a59d14d28d11a0bf21e81445d45b58
 ```
 
-Its `oga_events.py` uses evdev code 708 (F5) as a modifier:
+The first static inspection found the generic OGA F5 branch in
+`oga_events.py` and incorrectly treated evdev code 708 as an available RK2020
+button. The RK2020 has no physical OGA F5/Plus button. The operator then
+confirmed the actual EmuELEC behavior on this unit:
 
-- F5 + Up/Down changes volume;
-- F5 + Left/Right changes brightness.
+- L2 + Up/Down changes volume;
+- L2 + Left/Right changes brightness.
+
+The live device tree and evdev scan order identify physical L2 as code 706
+(`BTN_TRIGGER_HAPPY3`, compact udev button 12) and R2 as code 707 (compact
+button 13). Codes 705/F2 and 708/F5 occupy scan-order slots but have no
+corresponding physical RK2020 button.
 
 Stock volume changes execute `amixer set Playback <percent>%`.  Stock route
 selection reads GPIO 86 and sets the RK817 `Playback Path` control to `HP`
@@ -47,8 +55,9 @@ Commit `307bdbf` adds permanent RK817 initialization.  At frontend startup it:
 4. retains the existing plumOS 0..20 software-volume scale for per-sample
    volume control.
 
-Commit `75e420a` restores the stock hotkey contract in the managed RK2020 input
-daemon: F5 + Up/Down controls volume, and F5 + Left/Right controls brightness.
+Commit `75e420a` initially reproduced the unusable generic F5 mapping. It is
+superseded by `04ec7a4`, which uses physical L2: L2 + Up/Down controls volume,
+and L2 + Left/Right controls brightness.
 
 ## Build and live deployment
 
@@ -86,8 +95,8 @@ GO-Advance gamepad with modifier code 708.
 - Audible output through the built-in speaker: **PASS** (operator confirmed).
 - Route initialization deployed to the live installation: **PASS**.
 - Active NES audio stream remained running through the route change: **PASS**.
-- F5 + Up/Down changes the displayed/audible volume: **PENDING physical input**.
-- F5 + Left/Right changes brightness: **PENDING physical input**.
+- L2 + Up/Down changes the displayed/audible volume: **PENDING physical input**.
+- L2 + Left/Right changes brightness: **PENDING physical input**.
 
 The pending hotkey checks do not require a reboot or a new SD image.  They can
 be performed while the current NES session remains active.
