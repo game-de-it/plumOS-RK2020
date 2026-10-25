@@ -11,8 +11,9 @@ The operator then reported two remaining display defects:
   causing oversized or clipped text in settings, the Wi-Fi password keyboard,
   and footer explanations.
 
-This report is evidence for the defects only. The corrected image described
-below has not yet been installed or physically accepted.
+The corrected build was subsequently installed as a bounded live update and
+booted on the same unit. Visual acceptance still requires the operator checks
+listed below.
 
 ## Boot-console correction
 
@@ -54,6 +55,12 @@ host test. Commit `bdb3c52` additionally provides a safe screenshot trigger:
 writes its own framebuffer shadow to PNG from the normal event loop. No second
 frontend or external framebuffer mmap is required.
 
+The first live screenshot exposed a separate RK2020 path assumption: deriving
+the media root from `/mnt/plumos` produced `/mnt/Screenshots`, which is not the
+writable user partition. Commit `74f9e93` uses the already configured
+`PLUMOS_SDCARD_ROOT` (`/mnt/plumos-user`) instead. The running frontend then
+saved its PNG successfully without opening a second framebuffer owner.
+
 ## Host validation
 
 The following gates passed:
@@ -77,16 +84,45 @@ Generated image:
 - SHA-256: `17dbf5ff30bb03c04445aa346a609008fa23b648a913a3edfa1664e9633ece83`;
 - source ref: `bdb3c52`.
 
-## Deployment state and physical gates
+## Live deployment evidence
 
-The corrected image is prepared but not installed. The running RK2020 answers
-on TCP port 22 at `192.168.10.110`, but password authentication rejects both
-the plumOS initial password and the earlier stockOS password. No additional
-password guesses, partial binary replacement, framebuffer access, or reboot
-was attempted.
+The RK2020 was reached at `192.168.10.110`. Before replacement, all 11,280
+entries in the installed app-layer checksum set passed. The live update was
+limited to the frontend binary, frontend component manifest and checksum,
+the manifest's license copy, and the app-layer manifest and checksum. User
+settings, ROMs, BIOS files, saves, and PortMaster content were not replaced.
 
-After access or media installation is available, one combined hardware pass
-must confirm:
+The four installed extlinux configurations were transformed in place after a
+backup: `console=tty0` was removed, while `console=ttyFIQ0` was retained and
+`loglevel=3 vt.global_cursor_default=0` was added. `/flash` was returned to a
+read-only mount. The installed app layer then passed 201/201 frontend checks
+and 11,280/11,280 global checks before restart.
+
+Post-boot evidence:
+
+- `/proc/cmdline` contains the corrected quiet-boot tokens and no
+  `console=tty0`;
+- frontend source and app-layer source identify `74f9e93`;
+- the running executable SHA-256 is
+  `6c7944f78664524c7b037a038f094c538282ccd33e97feaf9804d5de3dd134e2`;
+- one frontend process owns the display;
+- the current kernel log has no Oops, BUG, panic, internal error, or trace end;
+- `SIGUSR1` saved
+  `/mnt/plumos-user/Screenshots/plumos-fe-20261025-234120-3159-1.png`;
+- the captured TOP page is within 480x320 and all three visible labels remain
+  inside their card bounds.
+
+Recoverable backups were saved under:
+
+- `/mnt/plumos-user/Backups/rk2020-live-20261025-143402`;
+- `/mnt/plumos-user/Backups/rk2020-live-20261025-143959`.
+
+The safe reboot request did not immediately boot the OS while external power
+was present; the unit showed its charging screen until the operator pressed
+the power button. Treat reboot-under-charge as a separate, still-open power
+lifecycle defect. No further reboot was used for the screenshot-only update.
+
+The remaining physical acceptance gates are:
 
 1. no console text is drawn over the plumOS splash;
 2. TOP cards and labels remain inside their bounds;
@@ -94,6 +130,5 @@ must confirm:
 4. SSID selection, all seven password-keyboard rows, masked password, and
    connection result fit and remain operable;
 5. ROM lists keep the selected row visible at every scroll position;
-6. `SIGUSR1` saves a frontend PNG without starting another renderer;
-7. input, Wi-Fi, audio, shutdown, and the already separate subsystem gates
+6. input, Wi-Fi, audio, shutdown, and the already separate subsystem gates
    remain functional.
