@@ -38,12 +38,14 @@ EXTRA_DIR_ALIASES = {
 # The validator remains read-only and falls back to the first matching file
 # when a preferred sample is absent.
 SYSTEM_SAMPLE_NAMES = {
+    "atari800": "BountyBobStrikesBack.rom",
     "neogeocd": "Fatal Fury WAV.cue",
     "cps1": "1942a.zip",
     "cps2": "ssf2u.zip",
     "cps3": "sfiii3nr1.zip",
     "pcfx": "simplebattle.cue",
     "cavestory": "Doukutsu.exe",
+    "segacd": "Fatal Fury Special (Europe) (Demo).cue",
 }
 
 
