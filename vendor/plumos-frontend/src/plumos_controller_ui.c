@@ -10508,7 +10508,6 @@ static int capture_frontend_screenshot(struct ui_state *ui) {
   char timestamp[32];
   char render_error[256];
   int directory_fd;
-  size_t root_length;
   time_t now;
   struct tm local_now;
 
@@ -10516,15 +10515,10 @@ static int capture_frontend_screenshot(struct ui_state *ui) {
     set_status(ui, "Screenshot unavailable");
     return 0;
   }
-  copy_string(media_root, sizeof(media_root), ui->plumos_root);
-  root_length = strlen(media_root);
-  if (root_length > 7 &&
-      strcmp(media_root + root_length - 7, "/plumos") == 0) {
-    media_root[root_length - 7] = '\0';
-  }
-  if (!media_root[0]) {
-    copy_string(media_root, sizeof(media_root), "/mnt/SDCARD");
-  }
+  copy_string(media_root, sizeof(media_root),
+              ui->sdcard_root && ui->sdcard_root[0]
+                  ? ui->sdcard_root
+                  : "/mnt/SDCARD");
   if (!join_path(directory, sizeof(directory), media_root, "Screenshots") ||
       !ensure_dir_recursive(directory)) {
     set_status(ui, "Screenshot directory failed");

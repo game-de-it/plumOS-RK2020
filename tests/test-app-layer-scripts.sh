@@ -653,6 +653,8 @@ grep -q 'g_screenshot_requested = 1' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'capture_frontend_screenshot(ui)' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+grep -q 'ui->sdcard_root && ui->sdcard_root\[0\]' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -Fq 'int title_scale = compact ? 1 : 2' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 grep -Fq 'title_width > title_available' \
