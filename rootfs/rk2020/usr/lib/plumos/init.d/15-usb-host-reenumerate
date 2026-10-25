@@ -24,9 +24,16 @@ LOCK_WAIT="${PLUMOS_USB_HOST_LOCK_WAIT:-8}"
 LOCK_DIR="${PLUMOS_USB_HOST_LOCK_DIR:-/run/plumos/usb-host-control.lock}"
 TRANSITION_MARKER="${PLUMOS_USB_HOST_TRANSITION_MARKER:-/run/plumos/usb-host-probe-active}"
 BUSYBOX="${PLUMOS_USB_HOST_BUSYBOX:-/bin/busybox}"
+MODPROBE="${PLUMOS_USB_HOST_MODPROBE:-/sbin/modprobe}"
+DWC2_MODULE="${PLUMOS_USB_HOST_DWC2_MODULE:-dwc2}"
+CONTROLLER_WAIT="${PLUMOS_USB_HOST_CONTROLLER_WAIT:-3}"
 PHY_STATUS_ADDR="${PLUMOS_USB_HOST_PHY_STATUS_ADDR:-0xff2c0120}"
 PHY_BVALID_MASK="${PLUMOS_USB_HOST_PHY_BVALID_MASK:-0x200}"
 PHY_STATUS_FILE="${PLUMOS_USB_HOST_PHY_STATUS_FILE:-}"
+DWC2_GUSBCFG_ADDR="${PLUMOS_USB_HOST_DWC2_GUSBCFG_ADDR:-0xff30000c}"
+DWC2_GUSBCFG_FILE="${PLUMOS_USB_HOST_DWC2_GUSBCFG_FILE:-}"
+DWC2_FORCEHOST_MASK=0x20000000
+DWC2_FORCEDEV_MASK=0x40000000
 
 log() {
     mkdir -p "${LOG%/*}"
@@ -65,6 +72,95 @@ wait_for_downstream() {
     downstream_present
 }
 
+ensure_dwc2_controller() {
+    [ -d "$PLATFORM_DEVICE" ] || {
+        log "result=failed reason=controller-missing device=$DEVICE_ID"
+        return 1
+    }
+    if [ -L "$PLATFORM_DEVICE/driver" ]; then
+        return 0
+    fi
+    [ -x "$MODPROBE" ] || {
+        log "result=failed reason=modprobe-missing path=$MODPROBE module=$DWC2_MODULE"
+        return 1
+    }
+    if ! "$MODPROBE" "$DWC2_MODULE" >>"$LOG" 2>&1; then
+        log "result=failed reason=module-load-failed module=$DWC2_MODULE"
+        return 1
+    fi
+    log "stage=module-loaded module=$DWC2_MODULE"
+    elapsed=0
+    while [ "$elapsed" -lt "$CONTROLLER_WAIT" ]; do
+        [ -L "$PLATFORM_DEVICE/driver" ] && break
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+    [ -L "$PLATFORM_DEVICE/driver" ] || {
+        log "result=failed reason=controller-bind-timeout device=$DEVICE_ID wait=$CONTROLLER_WAIT"
+        return 1
+    }
+    log "stage=controller-bound device=$DEVICE_ID elapsed=$elapsed"
+}
+
+valid_register_value() {
+    printf '%s\n' "$1" | grep -Eq '^(0[xX][0-9a-fA-F]+|[0-9]+)$'
+}
+
+read_dwc2_gusbcfg() {
+    if [ -n "$DWC2_GUSBCFG_FILE" ]; then
+        [ -r "$DWC2_GUSBCFG_FILE" ] || return 1
+        value=$(tr -d '[:space:]' <"$DWC2_GUSBCFG_FILE" 2>/dev/null || true)
+    else
+        [ -L "$PLATFORM_DEVICE/driver" ] || return 1
+        [ -x "$BUSYBOX" ] || return 1
+        value=$("$BUSYBOX" devmem "$DWC2_GUSBCFG_ADDR" 32 2>/dev/null || true)
+    fi
+    valid_register_value "$value" || return 1
+    printf '%s\n' "$value"
+}
+
+write_dwc2_gusbcfg() {
+    value="$1"
+    formatted=$(printf '0x%08x' "$value")
+    if [ -n "$DWC2_GUSBCFG_FILE" ]; then
+        printf '%s\n' "$formatted" >"$DWC2_GUSBCFG_FILE" || return 1
+    else
+        [ -L "$PLATFORM_DEVICE/driver" ] || return 1
+        [ -x "$BUSYBOX" ] || return 1
+        "$BUSYBOX" devmem "$DWC2_GUSBCFG_ADDR" 32 "$formatted" >/dev/null 2>&1 || return 1
+    fi
+    readback=$(read_dwc2_gusbcfg) || return 1
+    [ "$((readback))" -eq "$value" ]
+}
+
+force_dwc2_host_register() {
+    raw=$(read_dwc2_gusbcfg) || {
+        log "result=warning reason=gusbcfg-read-failed address=$DWC2_GUSBCFG_ADDR"
+        return 1
+    }
+    old=$((raw))
+    new=$(((old & ~(DWC2_FORCEHOST_MASK | DWC2_FORCEDEV_MASK)) | DWC2_FORCEHOST_MASK))
+    write_dwc2_gusbcfg "$new" || {
+        log "result=warning reason=gusbcfg-host-write-failed address=$DWC2_GUSBCFG_ADDR"
+        return 1
+    }
+    log "stage=host-mode-forced source=dwc2-register old=$(printf '0x%08x' "$old") new=$(printf '0x%08x' "$new")"
+}
+
+release_dwc2_auto_register() {
+    raw=$(read_dwc2_gusbcfg) || {
+        log "result=warning reason=gusbcfg-read-failed address=$DWC2_GUSBCFG_ADDR"
+        return 1
+    }
+    old=$((raw))
+    new=$((old & ~(DWC2_FORCEHOST_MASK | DWC2_FORCEDEV_MASK)))
+    write_dwc2_gusbcfg "$new" || {
+        log "result=warning reason=gusbcfg-release-write-failed address=$DWC2_GUSBCFG_ADDR"
+        return 1
+    }
+    log "stage=otg-mode-released source=dwc2-register old=$(printf '0x%08x' "$old") new=$(printf '0x%08x' "$new")"
+}
+
 current_otg_mode() {
     [ -r "$OTG_MODE" ] || return 1
     tr -d '[:space:]' <"$OTG_MODE" 2>/dev/null
@@ -96,56 +192,54 @@ upstream_present() {
 }
 
 release_wifi_host_mode() {
-    [ -r "$OTG_MODE" ] || {
-        log "result=warning reason=otg-mode-missing path=$OTG_MODE"
-        return 1
-    }
-    mode=$(tr -d '[:space:]' <"$OTG_MODE" 2>/dev/null || true)
+    mode=$(current_otg_mode 2>/dev/null || true)
     if [ "$mode" = otg ]; then
         log 'stage=otg-mode-ready source=sysfs'
         return 0
     fi
-    [ -w "$OTG_MODE" ] || {
-        log "result=warning reason=otg-mode-read-only mode=${mode:-unknown} path=$OTG_MODE"
+    if [ "$mode" != UNKNOWN ] && [ -w "$OTG_MODE" ]; then
+        if printf 'otg\n' >"$OTG_MODE"; then
+            mode=$(current_otg_mode 2>/dev/null || true)
+            if [ "$mode" = otg ]; then
+                log 'stage=otg-mode-released source=sysfs'
+                sleep "$MODE_SETTLE"
+                return 0
+            fi
+            log "result=warning reason=otg-mode-release-verify-failed mode=${mode:-unknown}"
+        else
+            log "result=warning reason=otg-mode-release-failed mode=${mode:-unknown} path=$OTG_MODE"
+        fi
+    fi
+    release_dwc2_auto_register || {
+        log "result=warning reason=otg-mode-release-unavailable mode=${mode:-missing}"
         return 1
     }
-    if ! printf 'otg\n' >"$OTG_MODE"; then
-        log "result=warning reason=otg-mode-release-failed mode=${mode:-unknown} path=$OTG_MODE"
-        return 0
-    fi
-    mode=$(tr -d '[:space:]' <"$OTG_MODE" 2>/dev/null || true)
-    if [ "$mode" != otg ]; then
-        log "result=warning reason=otg-mode-release-verify-failed mode=${mode:-unknown}"
-        return 0
-    fi
-    log 'stage=otg-mode-released source=sysfs'
     sleep "$MODE_SETTLE"
 }
 
 force_wifi_host_mode() {
-    [ -r "$OTG_MODE" ] || {
-        log "result=warning reason=otg-mode-missing path=$OTG_MODE"
-        return 1
-    }
-    mode=$(tr -d '[:space:]' <"$OTG_MODE" 2>/dev/null || true)
+    mode=$(current_otg_mode 2>/dev/null || true)
     if [ "$mode" = host ]; then
         log 'stage=host-mode-ready source=sysfs'
         return 0
     fi
-    [ -w "$OTG_MODE" ] || {
-        log "result=warning reason=otg-mode-read-only mode=${mode:-unknown} path=$OTG_MODE"
+    if [ "$mode" != UNKNOWN ] && [ -w "$OTG_MODE" ]; then
+        if printf 'host\n' >"$OTG_MODE"; then
+            mode=$(current_otg_mode 2>/dev/null || true)
+            if [ "$mode" = host ]; then
+                log 'stage=host-mode-forced source=sysfs'
+                sleep "$MODE_SETTLE"
+                return 0
+            fi
+            log "result=warning reason=otg-mode-verify-failed mode=${mode:-unknown}"
+        else
+            log "result=warning reason=otg-mode-write-failed mode=${mode:-unknown} path=$OTG_MODE"
+        fi
+    fi
+    force_dwc2_host_register || {
+        log "result=warning reason=host-mode-force-unavailable mode=${mode:-missing}"
         return 1
     }
-    if ! printf 'host\n' >"$OTG_MODE"; then
-        log "result=warning reason=otg-mode-write-failed mode=${mode:-unknown} path=$OTG_MODE"
-        return 1
-    fi
-    mode=$(tr -d '[:space:]' <"$OTG_MODE" 2>/dev/null || true)
-    if [ "$mode" != host ]; then
-        log "result=warning reason=otg-mode-verify-failed mode=${mode:-unknown}"
-        return 1
-    fi
-    log 'stage=host-mode-forced source=sysfs'
     sleep "$MODE_SETTLE"
 }
 
@@ -171,13 +265,24 @@ worker() {
         log 'result=skipped reason=usb-upstream-online'
         return 0
     fi
-    # RK2020 keeps the stock DTB's dr_mode=otg, but this project dedicates the
-    # single connector to USB-host Wi-Fi.  A controller rebind while the PHY is
-    # still in OTG mode can miss a dongle that remained inserted across boot.
-    # Use Rockchip's stock sysfs ABI to force host before probing/rebinding;
-    # this changes neither the DTB nor the kernel and is safe to repeat.
     mkdir -p "${TRANSITION_MARKER%/*}"
     : >"$TRANSITION_MARKER"
+    # mdev does not load platform modules from modaliases on this image.  Load
+    # DWC2 explicitly, then first allow a permanently inserted dongle to follow
+    # the controller's normal OTG/ID-pin path without touching its role bits.
+    if ! ensure_dwc2_controller; then
+        release_wifi_host_mode
+        log 'result=failed reason=controller-unavailable'
+        return 1
+    fi
+    if wait_for_downstream "$PRE_RESET_WAIT"; then
+        log 'result=enumerated-after-controller-load'
+        return 0
+    fi
+    # The stock RK2020 DTB disables the USB2 PHY child, so Rockchip's 4.4 PHY
+    # driver can expose otg_mode=UNKNOWN.  Prefer its sysfs ABI when available;
+    # otherwise change only DWC2 GUSBCFG FORCEHOST/FORCEDEV and preserve every
+    # other controller bit.  A final DWC2 rebind remains the last fallback.
     if ! force_wifi_host_mode; then
         release_wifi_host_mode
         log 'result=failed reason=host-mode-unavailable owner=otg'
@@ -187,14 +292,9 @@ worker() {
     # across boot.  Give that natural enumeration priority over a DWC2 reset;
     # otherwise the reset's remove uevent can be mistaken for physical unplug.
     if wait_for_downstream "$PRE_RESET_WAIT"; then
-        log 'result=enumerated-without-reset'
+        log 'result=enumerated-after-host-force'
         return 0
     fi
-    [ -d "$PLATFORM_DEVICE" ] || {
-        release_wifi_host_mode
-        log "result=skipped reason=controller-missing device=$DEVICE_ID"
-        return 0
-    }
     [ -w "$DWC2_DRIVER/bind" ] || {
         release_wifi_host_mode
         log "result=failed reason=bind-unavailable driver=$DWC2_DRIVER"

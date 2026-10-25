@@ -82,6 +82,10 @@ grep -q 'force_wifi_host_mode' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'release_wifi_host_mode' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+grep -q 'ensure_dwc2_controller' \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+grep -q '0xff30000c' \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q "printf 'otg" \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'usb2-phy@100/otg_mode' \
