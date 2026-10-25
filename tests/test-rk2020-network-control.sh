@@ -253,6 +253,22 @@ grep -Fxq probe "$TEST_USB_HOST_CALLS"
 grep -Fq $'network\tsecured\t-42\tRK2020 Test' <<<"$probe_scan"
 
 mkdir -p "$tmp/boot/config/system" "$tmp/boot/logs"
+cat >"$tmp/boot/probe-control" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" >>"$TEST_BOOT_PROBE_CALLS"
+printf 'result=ready\nstage=missing_config\niface=wlan0\n'
+EOF
+chmod 0755 "$tmp/boot/probe-control"
+export TEST_BOOT_PROBE_CALLS="$tmp/boot/probe-calls"
+PLUMOS_WIFI_CONFIG="$tmp/boot/missing-wpa.conf" \
+PLUMOS_WIFI_LOG="$tmp/boot/logs/wifi-probe.log" \
+PLUMOS_WIFI_RECOVERY="$tmp/boot/recovery-missing" \
+PLUMOS_NETWORK_CONTROL="$tmp/boot/probe-control" \
+    "$BOOT_SERVICE" start
+grep -Fxq -- '--wifi on' "$TEST_BOOT_PROBE_CALLS"
+grep -Fq 'result=ready mode=hardware-probe config=missing' \
+    "$tmp/boot/logs/wifi-probe.log"
+
 printf 'network={}\n' >"$tmp/boot/wpa.conf"
 printf '{"wifi_enabled": false}\n' >"$tmp/boot/config/system/settings.json"
 PLUMOS_WIFI_CONFIG="$tmp/boot/wpa.conf" \

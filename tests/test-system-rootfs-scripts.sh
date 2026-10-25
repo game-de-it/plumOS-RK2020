@@ -94,6 +94,8 @@ grep -q 'plumos-wifi-recovery' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-control"
 grep -q '"$RECOVERY" sync' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/20-usb-wifi"
+grep -q 'mode=hardware-probe config=missing' \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/20-usb-wifi"
 grep -q 'plumos-wifi-recovery" sync' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'busybox uevent' \

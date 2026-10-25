@@ -13,13 +13,26 @@ log() {
 }
 
 start_wifi() {
-    [ -s "$CONFIG" ] || {
-        [ ! -x "$RECOVERY" ] || \
-            PLUMOS_ROOT=/mnt/plumos PLUMOS_SDCARD_ROOT=/mnt/plumos-user \
-                "$RECOVERY" stop >>"$LOG" 2>&1 || true
-        log 'result=disabled reason=config-missing'
+    if [ ! -s "$CONFIG" ]; then
+        # Hardware discovery must not depend on saved credentials. A fresh
+        # installation needs the RTL8811CU driver-disk transition and wlan0
+        # before the frontend can offer its first scan. Run the bounded probe
+        # synchronously so FE status cannot race an unenumerated dongle; the
+        # network controller returns ready without starting WPA when no
+        # configuration exists.
+        [ -x "$CONTROL" ] || {
+            log 'result=failed reason=network-control-missing config=missing'
+            return 0
+        }
+        if PLUMOS_ROOT=/mnt/plumos PLUMOS_SDCARD_ROOT=/mnt/plumos-user \
+            "$CONTROL" --wifi on >>"$LOG" 2>&1; then
+            log 'result=ready mode=hardware-probe config=missing'
+        else
+            rc=$?
+            log "result=failed mode=hardware-probe config=missing rc=$rc"
+        fi
         return 0
-    }
+    fi
     # Match the V90S lifecycle: one sync starts the blocking uevent monitor and
     # schedules the initial bounded recovery. This keeps association and DHCP
     # outside the boot critical path while retaining hotplug after a failed
