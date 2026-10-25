@@ -253,12 +253,17 @@ grep -q "retroarch_config=result-replaced-physical-input added=0" \
     /tmp/physical-input-replace.log
 cmp "$factory/retroarch.cfg" "$active/retroarch.cfg"
 
-# A config edited by the user keeps unrelated values. Only the five old
-# RK2020 defaults are translated when the old factory marker is present.
+# A config edited by the user keeps unrelated values. The five old RK2020
+# defaults and D-pad values persisted by the old append are translated when
+# the old factory marker is present.
 sed -i \
     -e "s/input_menu_toggle_btn = \"0\"/input_menu_toggle_btn = \"12\"/" \
     -e "s/input_player1_l2_btn = \"12\"/input_player1_l2_btn = \"11\"/" \
     -e "s/input_player1_r2_btn = \"13\"/input_player1_r2_btn = \"14\"/" \
+    -e "s/input_player1_up_btn = \"6\"/input_player1_up_btn = \"10\"/" \
+    -e "s/input_player1_down_btn = \"7\"/input_player1_down_btn = \"11\"/" \
+    -e "s/input_player1_left_btn = \"8\"/input_player1_left_btn = \"12\"/" \
+    -e "s/input_player1_right_btn = \"9\"/input_player1_right_btn = \"13\"/" \
     -e "s/input_toggle_slowmotion_btn = \"12\"/input_toggle_slowmotion_btn = \"11\"/" \
     -e "s/input_toggle_fast_forward_btn = \"13\"/input_toggle_fast_forward_btn = \"14\"/" \
     -e "s/input_screenshot_btn = \"2\"/input_screenshot_btn = \"42\"/" \
@@ -268,11 +273,15 @@ printf "%s\n" "a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
     /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/physical-input-migrate.log
-grep -q "retroarch_config=result-migrated-physical-input added=5" \
+grep -q "retroarch_config=result-migrated-physical-input added=9" \
     /tmp/physical-input-migrate.log
 grep -q '^input_menu_toggle_btn = "0"$' "$active/retroarch.cfg"
 grep -q '^input_player1_l2_btn = "12"$' "$active/retroarch.cfg"
 grep -q '^input_player1_r2_btn = "13"$' "$active/retroarch.cfg"
+grep -q '^input_player1_up_btn = "6"$' "$active/retroarch.cfg"
+grep -q '^input_player1_down_btn = "7"$' "$active/retroarch.cfg"
+grep -q '^input_player1_left_btn = "8"$' "$active/retroarch.cfg"
+grep -q '^input_player1_right_btn = "9"$' "$active/retroarch.cfg"
 grep -q '^input_toggle_slowmotion_btn = "12"$' "$active/retroarch.cfg"
 grep -q '^input_toggle_fast_forward_btn = "13"$' "$active/retroarch.cfg"
 grep -q '^input_screenshot_btn = "42"$' "$active/retroarch.cfg"

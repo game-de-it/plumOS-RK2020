@@ -56,7 +56,8 @@ Commit `04ec7a4` corrects all affected layers:
 The config merger recognizes the previous factory hash
 `a538afc5cd9b3e6aec70234d59e8c4cee03e30590e0f98ca7dcae2dad2f5fc85`.
 An untouched config is replaced atomically; a user-edited config migrates only
-the five obsolete input values and preserves unrelated settings.
+the five obsolete hotkey/trigger values plus any four Pixel2 D-pad values saved
+from the old launch append, while preserving unrelated settings.
 
 ## Host validation
 

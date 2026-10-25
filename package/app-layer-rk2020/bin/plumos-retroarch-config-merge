@@ -238,6 +238,18 @@ migrate_rk2020_physical_input_values() {
         $0 == "input_player1_r2_btn = \"14\"" {
             $0 = "input_player1_r2_btn = \"13\""; changed++
         }
+        $0 == "input_player1_up_btn = \"10\"" {
+            $0 = "input_player1_up_btn = \"6\""; changed++
+        }
+        $0 == "input_player1_down_btn = \"11\"" {
+            $0 = "input_player1_down_btn = \"7\""; changed++
+        }
+        $0 == "input_player1_left_btn = \"12\"" {
+            $0 = "input_player1_left_btn = \"8\""; changed++
+        }
+        $0 == "input_player1_right_btn = \"13\"" {
+            $0 = "input_player1_right_btn = \"9\""; changed++
+        }
         $0 == "input_toggle_slowmotion_btn = \"11\"" {
             $0 = "input_toggle_slowmotion_btn = \"12\""; changed++
         }
@@ -319,8 +331,9 @@ elif [ -r "$marker" ] &&
     main_added=$((menu_scale_changed + merge_added))
 elif [ -r "$marker" ] &&
         [ "$($bb sed -n '1p' "$marker")" = "$pre_physical_input_factory_sha256" ]; then
-    # Preserve unrelated user settings. Only values that still equal the
-    # previous RK2020 defaults are translated to the physical button map.
+    # Preserve unrelated user settings. Values that still equal the previous
+    # RK2020 defaults or the old launcher's Pixel2 D-pad append are translated
+    # to the physical button map.
     migrate_rk2020_physical_input_values
     merge_key_file "$factory" "$config" config
     main_result=migrated-physical-input
