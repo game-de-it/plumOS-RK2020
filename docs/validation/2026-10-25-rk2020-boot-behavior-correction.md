@@ -2,6 +2,12 @@
 
 Date: 2026-10-25
 
+> Superseded for the boot-warning, first-use Wi-Fi, and frontend-label fixes by
+> [the third-pass correction](2026-10-25-rk2020-third-pass-correction.md).
+> The next hardware pass proved that the compatibility sentinel documented
+> below was present in the A/B slot but not yet in the dispatcher inspected by
+> the stock initramfs.
+
 ## Hardware evidence
 
 The second plumOS hardware pass reached the framebuffer frontend and accepted
