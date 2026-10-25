@@ -162,6 +162,8 @@ for config in "$WORK/boot/extlinux/"*.conf; do
         -e 's/^LABEL .*/LABEL plumOS/' \
         -e 's/boot=UUID=[^ ]*/boot=UUID=504C-554D/' \
         -e 's/disk=UUID=[^ ]*/disk=UUID=504c554d-5354-4154-4500-000000000002/' \
+        -e 's/ console=tty0\([[:space:]]\|$\)/\1/' \
+        -e 's/ quiet / quiet loglevel=3 vt.global_cursor_default=0 /' \
         "$config"
 done
 install -m 0644 "$BOOT_SPLASH" "$WORK/boot/oemsplash-1080.png"

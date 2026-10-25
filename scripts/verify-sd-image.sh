@@ -68,6 +68,11 @@ for config in extlinux.conf rk3326-odroidgo2-linux-v11.dtb.conf \
     grep -q 'boot=UUID=504C-554D' "$WORK/extlinux/$config"
     grep -q 'disk=UUID=504c554d-5354-4154-4500-000000000002' \
         "$WORK/extlinux/$config"
+    grep -q 'console=ttyFIQ0' "$WORK/extlinux/$config"
+    ! grep -Eq '(^|[[:space:]])console=tty0([[:space:]]|$)' \
+        "$WORK/extlinux/$config"
+    grep -q 'loglevel=3' "$WORK/extlinux/$config"
+    grep -q 'vt.global_cursor_default=0' "$WORK/extlinux/$config"
 done
 for slot in a b; do
     for suffix in squashfs sha256 manifest; do

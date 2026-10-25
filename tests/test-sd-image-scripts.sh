@@ -41,4 +41,7 @@ grep -q 'boot-splash result=plumos' \
     "$ROOT_DIR/boot-hooks/rk2020/post-flash.sh"
 ! grep -q '/dev/console' "$ROOT_DIR/boot-hooks/rk2020/post-flash.sh"
 ! grep -q '/dev/console' "$ROOT_DIR/boot-hooks/rk2020/post-sysroot.sh"
+grep -q "s/ console=tty0" "$ROOT_DIR/scripts/build-sd-image.sh"
+grep -q "console=ttyFIQ0" "$ROOT_DIR/scripts/verify-sd-image.sh"
+grep -q "vt.global_cursor_default=0" "$ROOT_DIR/scripts/build-sd-image.sh"
 printf 'sd_image_scripts=result-ok\n'
