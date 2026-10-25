@@ -81,15 +81,41 @@ Do not copy the stock script verbatim.  A plumOS change must preserve its
 single-display-owner and power-overlay contracts, avoid overwriting user
 configuration, and make the USB-host transition bounded and recoverable.
 
+## Physical validation result
+
+The user performed a stockOS suspend and wake cycle on the physical RK2020.
+The display returned after the wake action, so the visible suspend/resume path
+passed without an observed reboot or boot screen.
+
+The network side did not recover during the immediate observation window.
+Starting just after the reported wake, the Mac polled `192.168.10.110` 24 times
+for about 90 seconds.  Every ICMP probe failed and SSH never became reachable.
+The Mac retained the pre-suspend ARP entry `40:ed:00:3b:42:84`, but the route
+was marked `REJECT`; this is not evidence that the dongle re-enumerated.
+
+Because SSH did not return, the post-resume boot ID, process IDs, wakeup count,
+systemd sleep journal, and `dwc2`/USB re-enumeration messages could not be
+collected.  The observed result must therefore be recorded as two separate
+gates:
+
+- display suspend and visible resume: pass;
+- USB Wi-Fi association and SSH recovery: fail within the observation window.
+
+This makes the stock `dwc2` reload hook relevant but not sufficient evidence
+for this particular `0bda:c820` dongle.  A plumOS implementation should use a
+bounded USB-host reset followed by an explicit Wi-Fi rebind/reassociation
+check rather than assuming that reloading `dwc2` restores networking.
+
 ## Physical validation still required
 
-On stockOS:
+On stockOS, finish the unobserved gates without repeating the successful
+display-only conclusion:
 
-1. short-press Power and confirm the display and backlight turn off;
-2. wait at least five seconds and short-press Power again;
-3. confirm the same EmulationStation session returns without a reboot;
-4. verify controls, audio, brightness, Wi-Fi association, and SSH after wake;
-5. capture the systemd sleep journal and `dwc2`/USB re-enumeration messages.
+1. verify controls, audio, and brightness after wake;
+2. identify whether unplugging/replugging the Wi-Fi dongle restores it;
+3. when networking is available, capture the systemd sleep journal and
+   `dwc2`/USB re-enumeration messages from a subsequent cycle;
+4. compare a suspend cycle without external USB power.
 
 Repeat powered and unpowered cases separately.  Only after the stock result is
 captured should the minimum plumOS live patch be selected and tested; a full
