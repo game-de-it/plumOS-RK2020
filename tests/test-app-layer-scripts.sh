@@ -637,6 +637,8 @@ grep -q 'wifi_connect_page && wifi_keyboard_row >= 0' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 grep -q 'password_scale = wifi_keyboard_row >= 0 ? 3 : 2' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
+grep -Fq 'entry->detail[0] ? 58 : 32' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 font_source="$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 sed -n '/static int choose_mali_font_path/,/static int choose_mali_fallback_font_path/p' \
     "$font_source" | grep -q 'ui->plumos_root,'

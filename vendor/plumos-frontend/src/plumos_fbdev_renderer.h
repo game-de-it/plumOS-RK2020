@@ -3085,7 +3085,14 @@ static void plumos_fbdev_draw_top_tile(struct plumos_fbdev_renderer *r,
   uint32_t title_color = entry->selected ? p->selection_foreground : p->foreground;
   int media_x = x + 14;
   int media_y = y + 14;
-  int title_y = y + h - 58;
+  /*
+   * Top-level system cards normally have no detail line.  Reserving the same
+   * two-line footer used by ROM cards left their logo viewport as a shallow
+   * banner, making square Favorites/Recent artwork much smaller than wide
+   * system logos on the RK2020 panel.  Give that unused row back to artwork
+   * while retaining the old spacing for any entry that actually has detail.
+   */
+  int title_y = y + h - (entry->detail[0] ? 58 : 32);
   int detail_y = y + h - 30;
   int media_w = w - 28;
   int media_h = title_y - media_y - 10;
