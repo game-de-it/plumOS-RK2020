@@ -364,6 +364,8 @@ grep -q 'emulator/lib/libpthread.so.0' \
     "$ROOT_DIR/scripts/verify-app-layer.sh"
 grep -q 'emulator/lib/libdl.so.2' \
     "$ROOT_DIR/scripts/verify-app-layer.sh"
+grep -q 'emulator/lib/librt.so.1' \
+    "$ROOT_DIR/scripts/verify-app-layer.sh"
 grep -q '^PLUMOS_INPUT_A_CODE=305$' \
     "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_CODE=304$' \

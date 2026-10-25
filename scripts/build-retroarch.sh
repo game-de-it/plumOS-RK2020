@@ -142,7 +142,10 @@ copy_runtime_tree "$PLUMOS_DIR/bin/retroarch"
 # System. A modern Mesa Panfrost userspace is not compatible with the stock
 # Linux 4.4.189 legacy Mali kernel interface.
 
-for required_library in libpthread.so.0 libdl.so.2; do
+# The stock RK2020 libmali was linked against the pre-glibc-2.34 split
+# libraries. Debian bookworm resolves those symbols from libc during the
+# build, so keep the compatibility DSOs beside RetroArch for the target.
+for required_library in libpthread.so.0 libdl.so.2 librt.so.1; do
     if [ ! -f "$PLUMOS_DIR/emulator/lib/$required_library" ]; then
         for runtime_dir in /lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu; do
             [ -f "$runtime_dir/$required_library" ] || continue
