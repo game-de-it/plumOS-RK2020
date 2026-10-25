@@ -122,6 +122,16 @@ The observed result must therefore be recorded as separate gates:
 - automatic USB Wi-Fi association and SSH recovery: fail;
 - manual ES network off/on recovery: pass.
 
+After network recovery, the remaining remotely observable state was also
+captured.  Backlight brightness and actual brightness were both 255 with
+`bl_power=0`.  `odroidgoa-headphones.service` was active, the mixer selected
+`Playback Path=SPK`, and playback volume remained 237/237.  The RK817 Power
+key, headphone event device, and GO-Advance gamepad were all still registered.
+No kernel panic, Oops, call trace, watchdog, hung-task, filesystem, MMC, or
+I/O-error entry was found after the suspend request.  This verifies restored
+kernel-visible state; audible output and control response still require direct
+physical observation.
+
 This makes the stock `dwc2` reload hook relevant but not sufficient evidence
 for this particular `0bda:c820` dongle.  A plumOS implementation should use a
 bounded USB-host reset followed by an explicit Wi-Fi rebind/reassociation
@@ -136,7 +146,7 @@ hardware before adding another forced controller reset.
 On stockOS, finish the unobserved gates without repeating the successful
 display-only conclusion:
 
-1. verify controls, audio, and brightness after wake;
+1. verify audible output and control response after wake;
 2. compare a suspend cycle without external USB power.
 
 On plumOS, verify that the existing post-resume Wi-Fi recovery worker restores
