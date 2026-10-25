@@ -221,6 +221,10 @@ assert contract["start_menu_ids"] == ids
 PY
 grep -q '"id": "pyxel_setup"' "$ROOT_DIR/package/frontend-rk2020/apps.json"
 grep -q '"id": "scraping"' "$ROOT_DIR/package/frontend-rk2020/apps.json"
+grep -q 'confirm_or_run_menu_shell_action' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+grep -q 'app_confirm_pending_until_ms = now + 5000' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'video_rotation = "3"' \
     "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 python3 - "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg" <<'PY'

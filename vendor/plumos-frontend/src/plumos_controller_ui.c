@@ -693,6 +693,8 @@ struct ui_state {
   long long settings_blink_until_ms;
   size_t power_cursor;
   char power_action[16];
+  char app_confirm_pending_id[64];
+  long long app_confirm_pending_until_ms;
   struct top_entry top_entries[UI_MAX_TOP];
   size_t top_count;
   struct rom_entry *rom_entries;
@@ -12640,6 +12642,41 @@ static int run_menu_shell_action(struct ui_state *ui, const struct menu_entry *e
   return 0;
 }
 
+static void clear_menu_shell_confirmation(struct ui_state *ui) {
+  if (!ui) {
+    return;
+  }
+  ui->app_confirm_pending_id[0] = '\0';
+  ui->app_confirm_pending_until_ms = 0;
+}
+
+static int confirm_or_run_menu_shell_action(struct ui_state *ui,
+                                            const struct menu_entry *entry) {
+  long long now;
+
+  if (!ui || !entry) {
+    return 0;
+  }
+  if (!entry->confirm) {
+    clear_menu_shell_confirmation(ui);
+    return run_menu_shell_action(ui, entry);
+  }
+
+  now = current_time_ms();
+  if (ui->app_confirm_pending_until_ms >= now &&
+      strcmp(ui->app_confirm_pending_id, entry->id) == 0) {
+    clear_menu_shell_confirmation(ui);
+    return run_menu_shell_action(ui, entry);
+  }
+
+  copy_string(ui->app_confirm_pending_id,
+              sizeof(ui->app_confirm_pending_id), entry->id);
+  ui->app_confirm_pending_until_ms = now + 5000;
+  snprintf(ui->status, sizeof(ui->status),
+           "Press A again to run %.80s", entry->display_name);
+  return 1;
+}
+
 static int bool_from_setting_value(const char *value) {
   return setting_value_is_true(value);
 }
@@ -14341,18 +14378,21 @@ static void handle_action(struct ui_state *ui, enum ui_action action) {
 
   if (ui->screen == SCREEN_START_MENU) {
     if (action == ACTION_UP) {
+      clear_menu_shell_confirmation(ui);
       if (ui->menu_cursor > 0) {
         ui->menu_cursor--;
       }
       return;
     }
     if (action == ACTION_DOWN) {
+      clear_menu_shell_confirmation(ui);
       if (ui->menu_cursor + 1 < ui->menu_count) {
         ui->menu_cursor++;
       }
       return;
     }
     if (action == ACTION_B) {
+      clear_menu_shell_confirmation(ui);
       if (strcmp(ui->menu_id, "apps") == 0) {
         if (!load_start_menu_entries(ui)) {
           set_status(ui, tr(ui, "menu.status.start_load_failed",
@@ -14421,7 +14461,7 @@ static void handle_action(struct ui_state *ui, enum ui_action action) {
       } else if (strcmp(entry->action, "menu:apps") == 0) {
         open_apps_menu(ui);
       } else if (strncmp(entry->action, "shell:", 6) == 0) {
-        run_menu_shell_action(ui, entry);
+        confirm_or_run_menu_shell_action(ui, entry);
       } else {
         char msg[256];
         snprintf(msg, sizeof(msg), "menu preview: %s action=%s", entry->display_name,
