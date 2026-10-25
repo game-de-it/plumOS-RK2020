@@ -319,10 +319,10 @@ load_wifi_driver() {
 
   case "$driver" in
     r8188eu|rtl8192cu|rtl8xxxu|8192eu|8723bu|8812au|8821cu|88x2bu)
-      # RK2020 retains the stock EmuELEC module tree and modules.dep layout.
+      # RK2020 retains the registered vendor module tree and modules.dep layout.
       # In particular, 8821cu lives below kernel/drivers/net/wireless rather
-      # than V90S's /lib/modules/.../extra directory.  Resolve it through
-      # modprobe so its stock path and any declared dependencies are honored.
+      # than a generic /lib/modules/.../extra directory. Resolve it through
+      # modprobe so its registered path and declared dependencies are honored.
       load_module_name "$driver" || true
       ;;
     8188eu)
