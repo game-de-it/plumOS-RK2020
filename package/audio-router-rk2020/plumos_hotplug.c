@@ -19,6 +19,7 @@
 #define VOLUME_MAX 20
 #define VOLUME_DEFAULT 8
 #define VOLUME_PROBE_INTERVAL 0
+#define VOLUME_GAIN_DENOMINATOR 10000
 #define SPEAKER_BOOST_STEP_MIN 0
 #define SPEAKER_BOOST_STEP_MAX 30
 #define SPEAKER_BOOST_STEP_DEFAULT 30
@@ -36,6 +37,22 @@ static const int speaker_boost_gain[] = {
 _Static_assert(sizeof(speaker_boost_gain) / sizeof(speaker_boost_gain[0]) ==
                    SPEAKER_BOOST_STEP_MAX + 1,
                "speaker boost gain table must cover every supported step");
+
+/*
+ * Perceptual 2 dB steps from -38 dB at level 1 to unity at level 20.
+ *
+ * A linear amplitude scale made level 1 equal to 5% before the RK2020's
+ * speaker boost.  With the default +15 dB boost that became roughly 28%, so
+ * leaving mute caused an abrupt jump.  This table retains the existing 0..20
+ * user-facing scale and maximum output while making the low end usable.
+ */
+static const int volume_gain[] = {
+    0,    126,  158,  200,  251,  316,  398,
+    501,  631,  794,  1000, 1259, 1585, 1995,
+    2512, 3162, 3981, 5012, 6310, 7943, 10000,
+};
+_Static_assert(sizeof(volume_gain) / sizeof(volume_gain[0]) == VOLUME_MAX + 1,
+               "volume gain table must cover every supported level");
 
 typedef struct {
     snd_pcm_ioplug_t io;
@@ -181,12 +198,12 @@ static int16_t apply_software_volume(int16_t sample, int volume,
                                      int internal_speaker, int boost_step)
 {
     int64_t scaled;
-    int64_t divisor = VOLUME_MAX;
+    int64_t divisor = VOLUME_GAIN_DENOMINATOR;
 
     volume = clamp_volume(volume);
     if (!internal_speaker && volume == VOLUME_MAX)
         return sample;
-    scaled = (int32_t)sample * volume;
+    scaled = (int32_t)sample * volume_gain[volume];
     if (internal_speaker) {
         if (boost_step < SPEAKER_BOOST_STEP_MIN ||
             boost_step > SPEAKER_BOOST_STEP_MAX)
