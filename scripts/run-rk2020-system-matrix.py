@@ -136,6 +136,12 @@ for p in /proc/[0-9]*; do
     done
 done
 sleep 1
+for p in /proc/[0-9]*; do
+    for f in "$p"/fd/*; do
+        target=$(readlink "$f" 2>/dev/null || true)
+        case "$target" in /dev/dri/card0|/dev/fb0) kill -KILL "${p##*/}" 2>/dev/null || true; break ;; esac
+    done
+done
 for mutable_dir in unzip_cache system savestates profiles input_record config backup; do
     dst="$R/standalone/drastic/$mutable_dir"
     while grep -Fq " $dst " /proc/mounts; do umount "$dst" 2>/dev/null || break; done
@@ -195,21 +201,33 @@ while test "$sample" -lt "$LIMIT"; do
     kill -0 "$pid" 2>/dev/null || break
 done
 if kill -0 "$pid" 2>/dev/null; then
-    kill -TERM "$pid" 2>/dev/null || true
+    kill -TERM "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
     n=0
     while kill -0 "$pid" 2>/dev/null && test "$n" -lt 40; do
         /bin/busybox usleep 100000
         n=$((n + 1))
     done
-    kill -0 "$pid" 2>/dev/null && kill -TERM "-$pid" 2>/dev/null || true
+    kill -0 "$pid" 2>/dev/null && kill -KILL "-$pid" 2>/dev/null || true
 fi
 wait "$pid" 2>/dev/null
 rc=$?
+leftovers=""
+for p in /proc/[0-9]*; do
+    test "$(/bin/busybox awk '{print $5}' "$p/stat" 2>/dev/null)" = "$pid" || continue
+    leftovers="$leftovers${p##*/},"
+    kill -KILL "${p##*/}" 2>/dev/null || true
+done
+/bin/busybox usleep 250000
+leftovers_after=""
+for p in /proc/[0-9]*; do
+    test "$(/bin/busybox awk '{print $5}' "$p/stat" 2>/dev/null)" = "$pid" || continue
+    leftovers_after="$leftovers_after${p##*/},"
+done
 shot=no
 test -n "$SHOT" && test -s "$SHOT" && shot=yes
-printf '__META__ alive=%s display=%s audio=%s mali=%s software_gl=%s pcm_states=%s pcm_progress=%s rc=%s screenshot=%s\n' \
+printf '__META__ alive=%s display=%s audio=%s mali=%s software_gl=%s pcm_states=%s pcm_progress=%s rc=%s screenshot=%s leftovers=%s leftovers_after=%s\n' \
     "$alive" "${display:-none}" "${audio:-none}" "${mali:-none}" "${software_gl:-none}" \
-    "$pcm_states" "$pcm_progress" "$rc" "$shot"
+    "$pcm_states" "$pcm_progress" "$rc" "$shot" "${leftovers:-none}" "${leftovers_after:-none}"
 printf '__RUNTIME_LOG__\n'
 test -f "$RLOG" && tail -c +$((before + 1)) "$RLOG" | tail -160
 printf '__WRAPPER_LOG__\n'
@@ -220,7 +238,7 @@ tail -100 "$WRAP" 2>/dev/null || true
 def parse_meta(output: str) -> dict[str, str]:
     line = next((line for line in output.splitlines() if line.startswith("__META__ ")), "")
     return dict(re.findall(
-        r"(alive|display|audio|mali|software_gl|pcm_states|pcm_progress|rc|screenshot)=([^ ]*)",
+        r"(alive|display|audio|mali|software_gl|pcm_states|pcm_progress|rc|screenshot|leftovers|leftovers_after)=([^ ]*)",
         line,
     ))
 
@@ -327,6 +345,7 @@ def main() -> int:
             mali = meta.get("mali") not in {None, "", "none"}
             mali_ok = record["renderer_expectation"] != "mali_required" or mali
             rc_ok = meta.get("rc") in {"0", "137", "143"}
+            cleanup_ok = meta.get("leftovers_after") in {None, "", "none"}
             record.update({
                 "probe": meta, "runtime_log_delta": runtime[-20000:],
                 "wrapper_log_delta": wrapper[-10000:],
@@ -343,7 +362,7 @@ def main() -> int:
                 ),
             })
             record["status"] = (
-                "started" if alive and display and not software_gl and mali_ok and rc_ok and screenshot_ok
+                "started" if alive and display and not software_gl and mali_ok and rc_ok and screenshot_ok and cleanup_ok
                 else "failed"
             )
             if record["status"] == "failed":
@@ -354,6 +373,7 @@ def main() -> int:
                 if not mali_ok: failed.append("required_mali_missing")
                 if not rc_ok: failed.append(f"route_exit_{meta.get('rc', 'unknown')}")
                 if not screenshot_ok: failed.append("screenshot_missing")
+                if not cleanup_ok: failed.append("runtime_cleanup_failed")
                 record["reason"] = ",".join(failed)
             print(
                 f"[{index:02d}/{len(planned):02d}] {record['system']} "
