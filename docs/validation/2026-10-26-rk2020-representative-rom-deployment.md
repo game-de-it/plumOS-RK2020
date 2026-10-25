@@ -101,3 +101,25 @@ The supplied set has no matching content for these 14 enabled systems:
 This deployment proves selection, complete transfer, checksum identity, and FE
 discovery. Game startup, display, controls, audio, menu/exit, saves, and each
 alternate core remain separate physical-device gates.
+
+## Post-deployment execution corrections
+
+The full device matrix found that several lexically first samples were not
+valid representatives of their default route. The source ROM collection was
+kept read-only. Copies on the user partition were replaced as follows after
+device execution and screenshot review:
+
+| System | Retired sample | Proven sample | Default route |
+| --- | --- | --- | --- |
+| Arcade | `1942a.zip` | `nemesis.zip` | `retroarch:mame2003_plus` |
+| FBNeo | `airduelm72.zip` | `bchopper.zip` | `retroarch:fbneo` |
+| CPS2 | `ssf2u.zip` | `pgear.zip` | `retroarch:fbalpha2012` |
+| Atari 5200 | `BountyBobStrikesBack.a52` | `Millipede.a52` | `retroarch:a5200` |
+| Atari 8-bit | `BountyBobStrikesBack.rom` | raw `Yoomp.dsk`, installed as `Yoomp.xfd` | `retroarch:atari800` with 800XL/64K |
+
+The raw 90 KiB Atari disk has no ATR header and is an XFD-layout image; only
+its installed filename was normalized. All retired and comparison copies were
+moved to
+`/mnt/plumos-user/Backups/rk2020-representative-roms-20261026/`, whose
+`retired-checksums.sha256` records them. Nothing was removed from the supplied
+Mac-side collection.

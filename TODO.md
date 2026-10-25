@@ -20,6 +20,10 @@
 - [ ] Confirm cold boot, reboot, shutdown, and charging-state behavior.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [ ] Run representative no-input and gameplay tests for every emulator route.
+  Automated no-input evidence now covers all 73 content-backed systems: 70
+  clean passes, two core-unload failures, and one missing proprietary PICO-8
+  runtime. Fifteen catalog systems still lack representative content; manual
+  gameplay, standalone final-scanout color, and the Amiga sample remain open.
 
 ## Release gates
 

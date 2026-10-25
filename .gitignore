@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 artifacts/vendor/
 artifacts/update-signing/
+artifacts/device-validation/
 build/
 output/
 dist/
