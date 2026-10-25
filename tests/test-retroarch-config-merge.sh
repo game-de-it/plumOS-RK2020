@@ -8,14 +8,14 @@ root=/tmp/plumos
 factory=$root/factory-defaults/retroarch
 active=$root/config/retroarch
 mkdir -p "$factory/remaps/ParaLLEl N64"
-cp /work/package/retroarch-pixel2/retroarch.cfg "$factory/retroarch.cfg"
-cp /work/package/retroarch-pixel2/retroarch-core-options.cfg \
+cp /work/package/retroarch-rk2020/retroarch.cfg "$factory/retroarch.cfg"
+cp /work/package/retroarch-rk2020/retroarch-core-options.cfg \
     "$factory/retroarch-core-options.cfg"
-cp "/work/package/retroarch-pixel2/remaps/ParaLLEl N64/ParaLLEl N64.rmp" \
+cp "/work/package/retroarch-rk2020/remaps/ParaLLEl N64/ParaLLEl N64.rmp" \
     "$factory/remaps/ParaLLEl N64/ParaLLEl N64.rmp"
 
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/install.log
 grep -q "target=core-options" /tmp/install.log
 grep -q "target=parallel-n64-remap" /tmp/install.log
@@ -30,7 +30,7 @@ printf "%s\n" "reicast_cpu_mode = \"interpreter\"" \
 printf "%s\n" "input_player1_btn_up = \"99\"" \
     > "$active/remaps/ParaLLEl N64/ParaLLEl N64.rmp"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/merge.log
 grep -q "^reicast_cpu_mode = \"interpreter\"$" \
     "$active/retroarch-core-options.cfg"
@@ -48,7 +48,7 @@ grep -q "^input_player1_btn_down = \"18\"$" \
 sed -i "s/np2kai_joymode = \"Arrows 3button\"/np2kai_joymode = \"Mouse\"/" \
     "$active/retroarch-core-options.cfg"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/np2kai-user.log
 grep -q "^np2kai_joymode = \"Mouse\"$" \
     "$active/retroarch-core-options.cfg"
@@ -57,7 +57,7 @@ test "$(grep -c "^np2kai_joymode[[:space:]]*=" \
 
 # A previous factory cfg becomes byte-different when RetroArch saves it. Use
 # its generation marker to migrate only values that still equal the old
-# Pixel2 defaults, while retaining an unrelated explicit user value.
+# RK2020 defaults, while retaining an unrelated explicit user value.
 sed -i \
     -e "s/input_toggle_fast_forward_axis = \"nul\"/input_toggle_fast_forward_axis = \"+5\"/" \
     -e "s/input_toggle_fast_forward_btn = \"7\"/input_toggle_fast_forward_btn = \"nul\"/" \
@@ -74,7 +74,7 @@ sed -i \
 printf "%s\n" "9f4aaebdab3cc3a9be24b203161e63f63f1887e4eb0b79c82618086d3cbc4b24" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/migrate.log
 grep -q "retroarch_config=result-migrated-legacy added=10" /tmp/migrate.log
 grep -q "^input_exit_emulator_btn = \"9\"$" "$active/retroarch.cfg"
@@ -85,7 +85,7 @@ grep -q "^savefiles_in_content_dir = \"true\"$" "$active/retroarch.cfg"
 grep -q "^savestates_in_content_dir = \"true\"$" "$active/retroarch.cfg"
 grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
 
-# Repair the short-lived Pixel2 factory that changed START+SELECT from direct
+# Repair the short-lived RK2020 factory that changed START+SELECT from direct
 # exit to a menu combo. A cfg saved by RetroArch is identified by its factory
 # marker, and only the two matching regression values are restored.
 sed -i \
@@ -95,14 +95,14 @@ sed -i \
 printf "%s\n" "8d9a8e71cc38e63d1c6084d6bcf99701507cb632ff2dd1f4ebf9963b82beae77" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/regression.log
 grep -q "retroarch_config=result-migrated-regression added=2" /tmp/regression.log
 grep -q "^input_exit_emulator_btn = \"9\"$" "$active/retroarch.cfg"
 grep -q "^input_menu_toggle_gamepad_combo = \"0\"$" "$active/retroarch.cfg"
 grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
 
-# Correct the Pixel2 factory generation that disabled plain-DRM OSD. Only the
+# Correct the RK2020 factory generation that disabled plain-DRM OSD. Only the
 # two matching factory values are changed; an unrelated hotkey survives.
 cp "$factory/retroarch.cfg" "$active/retroarch.cfg"
 sed -i \
@@ -113,7 +113,7 @@ sed -i \
 printf "%s\n" "2db551beda3cd62e4f87d15d77a56ae2df1905fa3bc3925dbf5aaee803a4dcc6" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/osd.log
 grep -q "retroarch_config=result-migrated-osd added=2" /tmp/osd.log
 grep -q "^video_font_enable = \"true\"$" "$active/retroarch.cfg"
@@ -139,7 +139,7 @@ test "$(sha256sum "$active/retroarch.cfg" | cut -d " " -f 1)" = \
 printf "%s\n" "231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/black-osd.log
 grep -q "retroarch_config=result-replaced-black-osd added=0" \
     /tmp/black-osd.log
@@ -161,7 +161,7 @@ sed -i \
 printf "%s\n" "231ee2585779c098d9512a64cc8b17322c3b86e07d3e84889aaac815893d7280" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/custom-black-osd.log
 grep -q "retroarch_config=result-migrated-menu-assets added=1" \
     /tmp/custom-black-osd.log
@@ -170,7 +170,7 @@ grep -q "^assets_directory = \"/mnt/plumos/retroarch/assets\"$" \
 grep -q "^video_message_color = \"0\"$" "$active/retroarch.cfg"
 grep -q "^input_save_state_btn = \"42\"$" "$active/retroarch.cfg"
 
-# The legacy menu-assets path was empty on Pixel2. Move only that exact path
+# The legacy menu-assets path was empty on RK2020. Move only that exact path
 # to the app-layer-managed assets while preserving the selected menu,
 # language and an unrelated hotkey.
 sed -i \
@@ -179,7 +179,7 @@ sed -i \
     -e "s|user_language = \"0\"|user_language = \"1\"|" \
     "$active/retroarch.cfg"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/menu-assets.log
 grep -q "retroarch_config=result-migrated-menu-assets added=1" \
     /tmp/menu-assets.log
@@ -205,7 +205,7 @@ sed -i \
 printf "%s\n" "0fe41cce8ee36e4ca0b346ad2aee17563f08afb9f402fe1a3f8ea5e46a1744ef" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/menu-scale.log
 grep -q "retroarch_config=result-migrated-menu-scale added=3" \
     /tmp/menu-scale.log
@@ -227,7 +227,7 @@ sed -i "s/aspect_ratio_index = \"22\"/aspect_ratio_index = \"0\"/" \
 printf "%s\n" "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
     > "$root/state/retroarch/factory-config.sha256"
 PLUMOS_ROOT=$root PLUMOS_BUSYBOX=/bin/busybox \
-    /work/package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
+    /work/package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     > /tmp/aspect-user.log
 grep -q "^aspect_ratio_index = \"0\"$" "$active/retroarch.cfg"
 grep -q "retroarch_config=result-unchanged added=0" /tmp/aspect-user.log

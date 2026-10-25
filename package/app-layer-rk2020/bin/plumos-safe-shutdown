@@ -1,0 +1,549 @@
+#!/bin/sh
+set -eu
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+bb=${PLUMOS_BUSYBOX:-/bin/busybox}
+root=${PLUMOS_ROOT:-/mnt/plumos}
+runtime_root=${PLUMOS_RUNTIME_ROOT:-/run/plumos}
+action=
+dry_run=0
+sleep_backend=${PLUMOS_SLEEP_BACKEND:-mem}
+wakeup_sec=${PLUMOS_SLEEP_WAKEUP_SEC:-0}
+wait_sec=${PLUMOS_POWER_WAIT_SEC:-0}
+sleep_settle_sec=${PLUMOS_SLEEP_SETTLE_SEC:-1}
+log_dir=${PLUMOS_POWER_LOG_DIR:-/state/plumos/logs}
+log_file=$log_dir/power.log
+lock_dir=${PLUMOS_POWER_LOCK_DIR:-$runtime_root/power-action.lock}
+power_state=${PLUMOS_POWER_STATE:-/sys/power/state}
+rtc_wakealarm=${PLUMOS_RTC_WAKEALARM:-/sys/class/rtc/rtc0/wakealarm}
+display_control=${PLUMOS_DISPLAY_CONTROL:-$root/bin/plumos-display-control}
+volume_control=${PLUMOS_VOLUME_CONTROL:-$root/bin/plumos-volume-control}
+rk817_resume=${PLUMOS_RK817_RESUME_HELPER:-$root/bin/plumos-rk817-resume}
+backlight=${PLUMOS_RK2020_BACKLIGHT:-/sys/class/backlight/backlight/brightness}
+backlight_power=${PLUMOS_RK2020_BACKLIGHT_POWER:-${backlight%/*}/bl_power}
+framebuffer_blank=${PLUMOS_RK2020_FB_BLANK:-/sys/class/graphics/fb0/blank}
+battery_status=${PLUMOS_BATTERY_STATUS:-/sys/class/power_supply/battery/status}
+battery_current=${PLUMOS_BATTERY_CURRENT:-/sys/class/power_supply/battery/current_now}
+usb_online=${PLUMOS_USB_ONLINE:-/sys/class/power_supply/usb/online}
+ac_online=${PLUMOS_AC_ONLINE:-/sys/class/power_supply/ac/online}
+usb_devices_root=${PLUMOS_USB_DEVICES_ROOT:-/sys/bus/usb/devices}
+otg_mode=${PLUMOS_OTG_MODE:-/sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100/otg_mode}
+phy_status_file=${PLUMOS_POWER_PHY_STATUS_FILE:-}
+phy_status_addr=${PLUMOS_POWER_PHY_STATUS_ADDR:-0xff2c0120}
+phy_bvalid_mask=${PLUMOS_POWER_PHY_BVALID_MASK:-0x200}
+usb_host_control=${PLUMOS_USB_HOST_CONTROL:-/usr/lib/plumos/init.d/15-usb-host-reenumerate}
+wifi_recovery=${PLUMOS_WIFI_RECOVERY:-$root/bin/plumos-wifi-recovery}
+wifi_config=${PLUMOS_WPA_CONFIG:-$root/config/wpa_supplicant.conf}
+sleep_usb_recovery_marker=${PLUMOS_SLEEP_USB_RECOVERY_MARKER:-$runtime_root/sleep-usb-recovery}
+sleep_wifi_guard_settle_sec=${PLUMOS_SLEEP_WIFI_GUARD_SETTLE_SEC:-2}
+sleep_wifi_recovery_window_sec=${PLUMOS_SLEEP_WIFI_RECOVERY_WINDOW_SEC:-120}
+sleep_wifi_recovery_retry_sec=${PLUMOS_SLEEP_WIFI_RECOVERY_RETRY_SEC:-3}
+wifi_interface_root=${PLUMOS_WIFI_INTERFACE_ROOT:-/sys/class/net}
+devmem_command=${PLUMOS_DEVMEM:-}
+reboot_mode_helper=${PLUMOS_REBOOT_MODE_HELPER:-$root/bin/plumos-reboot-mode}
+terminal_test=${PLUMOS_POWER_TEST_TERMINAL:-0}
+software_sleep_marker=${PLUMOS_SOFTWARE_SLEEP_MARKER:-$runtime_root/software-sleep}
+software_sleep_force=${PLUMOS_FORCE_SOFTWARE_SLEEP:-0}
+software_backlight_saved=
+software_backlight_power_saved=
+sleep_display_blanked=0
+shutdown_charger_present=0
+sleep_usb_guard_armed=0
+
+mkdir -p "$log_dir" "$runtime_root" 2>/dev/null || true
+
+log() {
+    printf '%s\n' "$*"
+    printf '%s\n' "$*" >>"$log_file" 2>/dev/null || true
+}
+
+is_uint() {
+    case "${1:-}" in ''|*[!0-9]*) return 1 ;; esac
+}
+
+is_mounted() {
+    $bb grep -qs " $1 " /proc/mounts 2>/dev/null
+}
+
+process_is_live() {
+    pid=$1
+    [ -r "/proc/$pid/stat" ] || return 1
+    state=$(sed 's/.*) //' "/proc/$pid/stat" 2>/dev/null | awk '{print $1}')
+    [ "$state" != Z ] || return 1
+    $bb kill -0 "$pid" 2>/dev/null
+}
+
+stop_pid_file() {
+    pid_file=$1
+    name=$2
+    [ -s "$pid_file" ] || return 0
+    pid=$($bb cat "$pid_file" 2>/dev/null || true)
+    case "$pid" in ''|*[!0-9]*|1|$$) return 0 ;; esac
+    if process_is_live "$pid"; then
+        log "power=stop-process name=$name pid=$pid signal=TERM"
+        $bb kill "$pid" 2>/dev/null || true
+        for _ in 1 2 3; do
+            process_is_live "$pid" || break
+            $bb sleep 1
+        done
+        if process_is_live "$pid"; then
+            log "power=stop-process name=$name pid=$pid signal=KILL"
+            $bb kill -9 "$pid" 2>/dev/null || true
+        fi
+    fi
+}
+
+display_owner_pids() {
+    found=""
+    for fd in /proc/[0-9]*/fd/*; do
+        target=$($bb readlink "$fd" 2>/dev/null || true)
+        case "$target" in
+            /dev/fb0|/dev/dri/*|/dev/mali*|/dev/disp) ;;
+            *) continue ;;
+        esac
+        pid=${fd#/proc/}
+        pid=${pid%%/*}
+        case "$pid" in ''|*[!0-9]*|1|$$) continue ;; esac
+        case " $found " in *" $pid "*) ;; *) found="$found $pid" ;; esac
+    done
+    printf '%s\n' "$found"
+}
+
+stop_display_owners() {
+    pids=$(display_owner_pids)
+    [ -n "$pids" ] || return 0
+    log "power=stop-display-owners pids=$(printf '%s' "$pids" | sed 's/^ *//') signal=TERM"
+    for pid in $pids; do $bb kill -CONT "$pid" 2>/dev/null || true; done
+    for pid in $pids; do $bb kill "$pid" 2>/dev/null || true; done
+    for _ in 1 2 3; do
+        alive=""
+        for pid in $pids; do process_is_live "$pid" && alive="$alive $pid"; done
+        [ -z "$alive" ] && return 0
+        $bb sleep 1
+    done
+    for pid in $pids; do
+        if process_is_live "$pid"; then
+            log "power=stop-display-owner pid=$pid signal=KILL"
+            $bb kill -9 "$pid" 2>/dev/null || true
+        fi
+    done
+}
+
+umount_if_mounted() {
+    target=$1
+    is_mounted "$target" || return 0
+    for _ in 1 2 3; do
+        if $bb umount "$target" 2>/dev/null; then
+            log "power=unmount-result target=$target rc=0"
+            return 0
+        fi
+        $bb sleep 1
+    done
+    log "power=unmount-result target=$target rc=1"
+    return 1
+}
+
+prepare_power_transition() {
+    log "power=prepare-start action=$action"
+    if [ -x "$root/bin/plumos-hardware-keys-service" ]; then
+        PLUMOS_ROOT="$root" PLUMOS_RUNTIME_ROOT="$runtime_root" \
+            "$root/bin/plumos-hardware-keys-service" stop >>"$log_file" 2>&1 || true
+    fi
+    stop_display_owners
+    if [ -x "$root/bin/plumos-frontend-stop" ]; then
+        PLUMOS_ROOT="$root" PLUMOS_RUNTIME_ROOT="$runtime_root" \
+            "$root/bin/plumos-frontend-stop" stop >>"$log_file" 2>&1 || true
+    else
+        stop_pid_file "$runtime_root/frontend.pid" frontend
+    fi
+    umount_if_mounted /roms || true
+    umount_if_mounted /mnt/plumos-user || true
+    $bb sync
+    log "power=prepare-end action=$action"
+}
+
+rk817_dev_off() {
+    command -v i2cget >/dev/null 2>&1 || return 1
+    command -v i2cset >/dev/null 2>&1 || return 1
+    value=$(i2cget -f -y 0 0x20 0xf4 2>/dev/null) || return 1
+    value=$((value | 0x01))
+    log "$(printf 'power=shutdown-method method=rk817-dev-off bus=0 addr=0x20 reg=0xf4 value=0x%02x' "$value")"
+    i2cset -f -y 0 0x20 0xf4 "$value"
+}
+
+read_power_value() {
+    path=$1
+    [ -r "$path" ] || return 1
+    tr -d '[:space:]' <"$path" 2>/dev/null
+}
+
+downstream_present() {
+    for device in "$usb_devices_root"/*; do
+        [ -r "$device/idVendor" ] || continue
+        case "${device##*/}" in usb*) continue ;; esac
+        return 0
+    done
+    return 1
+}
+
+charger_vbus_present() {
+    downstream_present && return 1
+    mode=$(read_power_value "$otg_mode" 2>/dev/null || true)
+    [ "$mode" = host ] && return 1
+    if [ -n "$phy_status_file" ]; then
+        phy_status=$(read_power_value "$phy_status_file" 2>/dev/null || true)
+    elif [ -n "$devmem_command" ]; then
+        phy_status=$("$devmem_command" "$phy_status_addr" 32 2>/dev/null || true)
+    else
+        phy_status=$("$bb" devmem "$phy_status_addr" 32 2>/dev/null || true)
+    fi
+    case "$phy_status" in 0x*|0X*|[0-9]*) ;; *) return 1 ;; esac
+    [ $((phy_status & phy_bvalid_mask)) -ne 0 ]
+}
+
+charger_present() {
+    status=$(read_power_value "$battery_status" 2>/dev/null || true)
+    case "$status" in
+        Charging)
+            log "power=charger-detected source=battery-status value=$status"
+            return 0
+            ;;
+    esac
+    for path in "$usb_online" "$ac_online"; do
+        online=$(read_power_value "$path" 2>/dev/null || true)
+        if [ "$online" = 1 ]; then
+            log "power=charger-detected source=power-supply path=$path value=1"
+            return 0
+        fi
+    done
+    current=$(read_power_value "$battery_current" 2>/dev/null || true)
+    case "$current" in
+        ''|0|-*|*[!0-9]*) ;;
+        *)
+            log "power=charger-detected source=battery-current value=$current"
+            return 0
+            ;;
+    esac
+    if charger_vbus_present; then
+        log "power=charger-detected source=phy-bvalid status=${status:-unknown}"
+        return 0
+    fi
+    log "power=charger-absent status=${status:-unknown} current=${current:-unknown}"
+    return 1
+}
+
+charge_mode_reboot() {
+    if [ -x "$usb_host_control" ]; then
+        "$usb_host_control" release >>"$log_file" 2>&1 || \
+            log 'power=usb-host-release-failed action=charge-mode'
+    fi
+    if [ ! -x "$reboot_mode_helper" ]; then
+        log "power=charge-mode-failed stage=restart2 reason=helper-missing path=$reboot_mode_helper"
+        return 1
+    fi
+    "$bb" sync
+    if [ "$terminal_test" = 1 ]; then
+        if "$reboot_mode_helper" charge >>"$log_file" 2>&1; then
+            log 'power=terminal-test action=charge-mode-restart2 mode=charge'
+            return 0
+        fi
+        log 'power=charge-mode-failed stage=restart2 reason=helper-error terminal-test=1'
+        return 1
+    fi
+    log 'power=charge-mode-method method=restart2 mode=charge'
+    if "$reboot_mode_helper" charge >>"$log_file" 2>&1; then
+        log 'power=charge-mode-failed stage=restart2 reason=unexpected-return rc=0'
+    else
+        rc=$?
+        log "power=charge-mode-failed stage=restart2 reason=helper-error rc=$rc"
+    fi
+    return 1
+}
+
+run_rk817_resume() {
+    resume_action=$1
+    [ -x "$rk817_resume" ] || {
+        log "sleep=rk817-resume-skipped reason=helper-missing action=$resume_action"
+        return 0
+    }
+    if ALSA_CONFIG_PATH="${ALSA_CONFIG_PATH:-$root/config/alsa/alsa.conf}" \
+        LD_LIBRARY_PATH="$root/frontend/lib:$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+        "$rk817_resume" "$resume_action" >>"$log_file" 2>&1; then
+        log "sleep=rk817-resume-ok action=$resume_action"
+    else
+        log "sleep=rk817-resume-failed action=$resume_action"
+    fi
+}
+
+set_wakealarm() {
+    [ "$wakeup_sec" -gt 0 ] || return 0
+    [ -e "$rtc_wakealarm" ] || {
+        log "sleep=wakealarm-skipped reason=missing seconds=$wakeup_sec"
+        return 0
+    }
+    printf '0\n' >"$rtc_wakealarm" 2>/dev/null || true
+    printf '+%s\n' "$wakeup_sec" >"$rtc_wakealarm" 2>/dev/null || true
+    log "sleep=wakealarm-armed seconds=$wakeup_sec"
+}
+
+blank_display_for_sleep() {
+    sleep_display_blanked=1
+    software_backlight_saved=$(cat "$backlight" 2>/dev/null || true)
+    software_backlight_power_saved=$(cat "$backlight_power" 2>/dev/null || true)
+    if [ -w "$backlight" ]; then
+        printf '0\n' >"$backlight" 2>/dev/null || true
+    fi
+    if [ -w "$backlight_power" ]; then
+        printf '4\n' >"$backlight_power" 2>/dev/null || true
+    fi
+    if [ -w "$framebuffer_blank" ]; then
+        printf '4\n' >"$framebuffer_blank" 2>/dev/null || true
+    fi
+    log "sleep=display-blank brightness=${software_backlight_saved:-unknown} bl_power=${software_backlight_power_saved:-unknown}"
+}
+
+unblank_display_after_sleep() {
+    [ "$sleep_display_blanked" -eq 1 ] || return 0
+    if [ -w "$framebuffer_blank" ]; then
+        printf '0\n' >"$framebuffer_blank" 2>/dev/null || true
+    fi
+    if [ -n "$software_backlight_power_saved" ] && [ -w "$backlight_power" ]; then
+        printf '%s\n' "$software_backlight_power_saved" >"$backlight_power" 2>/dev/null || true
+    fi
+    if [ -n "$software_backlight_saved" ] && [ -w "$backlight" ]; then
+        printf '%s\n' "$software_backlight_saved" >"$backlight" 2>/dev/null || true
+    fi
+    log "sleep=display-unblank brightness=${software_backlight_saved:-unknown} bl_power=${software_backlight_power_saved:-unknown}"
+    software_backlight_saved=
+    software_backlight_power_saved=
+    sleep_display_blanked=0
+}
+
+software_sleep_action() {
+    elapsed=0
+    printf 'sleeping\n' >"$software_sleep_marker"
+    log "sleep=software-enter reason=kernel-unavailable wakeup_sec=$wakeup_sec"
+    while [ -e "$software_sleep_marker" ]; do
+        if [ "$wakeup_sec" -gt 0 ] && [ "$elapsed" -ge "$wakeup_sec" ]; then
+            rm -f "$software_sleep_marker"
+            log "sleep=software-wake reason=timeout seconds=$elapsed"
+            break
+        fi
+        $bb sleep 1
+        elapsed=$((elapsed + 1))
+    done
+    [ ! -e "$software_sleep_marker" ] || rm -f "$software_sleep_marker"
+    log "sleep=software-returned seconds=$elapsed"
+}
+
+restore_after_sleep() {
+    run_rk817_resume arm
+    if [ -x "$volume_control" ]; then
+        PLUMOS_ROOT="$root" PLUMOS_RUNTIME_ROOT="$runtime_root" \
+            "$volume_control" apply >>"$log_file" 2>&1 || \
+            log 'sleep=volume-restore-failed'
+    fi
+    if [ -x "$display_control" ]; then
+        PLUMOS_ROOT="$root" PLUMOS_RUNTIME_ROOT="$runtime_root" \
+            "$display_control" apply >>"$log_file" 2>&1 || \
+            log 'sleep=display-restore-failed'
+    fi
+    [ "$sleep_settle_sec" -eq 0 ] || $bb sleep "$sleep_settle_sec"
+    run_rk817_resume rearm
+}
+
+arm_sleep_usb_guard() {
+    [ -s "$wifi_config" ] || return 0
+    [ -x "$usb_host_control" ] || return 0
+    mkdir -p "${sleep_usb_recovery_marker%/*}" 2>/dev/null || return 0
+    if : >"$sleep_usb_recovery_marker" 2>/dev/null; then
+        sleep_usb_guard_armed=1
+        log "sleep=usb-guard-armed marker=$sleep_usb_recovery_marker"
+    else
+        log "sleep=usb-guard-failed marker=$sleep_usb_recovery_marker"
+    fi
+}
+
+schedule_sleep_wifi_recovery() {
+    [ "$sleep_usb_guard_armed" -eq 1 ] || return 0
+    sleep_usb_guard_armed=0
+    (
+        trap 'rm -f "$sleep_usb_recovery_marker" 2>/dev/null || true' EXIT HUP INT TERM
+        started=$(date '+%s' 2>/dev/null || echo 0)
+        deadline=$((started + sleep_wifi_recovery_window_sec))
+        attempt=0
+        recovery_result=timeout
+        while :; do
+            if [ -d "$wifi_interface_root/wlan0" ] && \
+                "$bb" ip -4 addr show dev wlan0 2>/dev/null | \
+                    grep -q 'inet '; then
+                recovery_result=connected
+                break
+            fi
+            attempt=$((attempt + 1))
+            log "sleep=wifi-resume-recovery-attempt attempt=$attempt window_sec=$sleep_wifi_recovery_window_sec"
+            "$usb_host_control" probe >>"$log_file" 2>&1 || true
+            if [ -d "$wifi_interface_root/wlan0" ] && [ -x "$wifi_recovery" ]; then
+                PLUMOS_ROOT="$root" PLUMOS_RUNTIME_ROOT="$runtime_root" \
+                    "$wifi_recovery" recover >>"$log_file" 2>&1 || true
+            fi
+            if [ -d "$wifi_interface_root/wlan0" ] && \
+                "$bb" ip -4 addr show dev wlan0 2>/dev/null | \
+                    grep -q 'inet '; then
+                recovery_result=connected
+                break
+            fi
+            now=$(date '+%s' 2>/dev/null || echo "$deadline")
+            [ "$sleep_wifi_recovery_window_sec" -gt 0 ] && \
+                [ "$now" -lt "$deadline" ] || break
+            "$bb" sleep "$sleep_wifi_recovery_retry_sec"
+        done
+        log "sleep=wifi-resume-recovery-result result=$recovery_result attempts=$attempt"
+        [ "$sleep_wifi_guard_settle_sec" -eq 0 ] || \
+            "$bb" sleep "$sleep_wifi_guard_settle_sec"
+    ) </dev/null >/dev/null 2>&1 &
+    log "sleep=wifi-resume-recovery-scheduled pid=$!"
+}
+
+sleep_action() {
+    case "$sleep_backend" in
+        none)
+            log 'sleep=result-none'
+            return 0
+            ;;
+        mem|freeze)
+            grep -qw "$sleep_backend" "$power_state" 2>/dev/null || {
+                log "sleep=result-unsupported backend=$sleep_backend states=$(cat "$power_state" 2>/dev/null || true)"
+                return 1
+            }
+            ;;
+    esac
+    log "sleep=prepare backend=$sleep_backend"
+    run_rk817_resume arm
+    $bb sync
+    [ "$wait_sec" -eq 0 ] || $bb sleep "$wait_sec"
+    if [ "$dry_run" -eq 1 ]; then
+        log "sleep=result-dry-run backend=$sleep_backend"
+        return 0
+    fi
+    kernel_sleep=0
+    charger_before_sleep=0
+    if charger_present; then
+        charger_before_sleep=1
+    fi
+    set_wakealarm
+    arm_sleep_usb_guard
+    blank_display_for_sleep
+    if [ "$software_sleep_force" != 1 ]; then
+        log "sleep=enter backend=$sleep_backend"
+        if printf '%s\n' "$sleep_backend" >"$power_state"; then
+            kernel_sleep=1
+            log "sleep=resume backend=$sleep_backend"
+            if [ "$charger_before_sleep" -eq 0 ] && charger_present; then
+                log 'sleep=resume-deferred reason=charger-connected fallback=software'
+                [ "$wakeup_sec" -eq 0 ] || printf '0\n' >"$rtc_wakealarm" 2>/dev/null || true
+                software_sleep_action
+                log 'sleep=resume-deferred-complete reason=software-standby-release'
+            fi
+        else
+            log "sleep=kernel-entry-failed backend=$sleep_backend fallback=software"
+        fi
+    else
+        log "sleep=kernel-entry-skipped backend=$sleep_backend reason=forced-software"
+    fi
+    if [ "$kernel_sleep" -eq 0 ]; then
+        [ "$wakeup_sec" -eq 0 ] || printf '0\n' >"$rtc_wakealarm" 2>/dev/null || true
+        software_sleep_action
+    fi
+    unblank_display_after_sleep
+    restore_after_sleep
+    schedule_sleep_wifi_recovery
+    log "sleep=result-returned backend=$sleep_backend kernel_sleep=$kernel_sleep"
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --reboot) action=reboot ;;
+        --shutdown) action=shutdown ;;
+        --sleep) action=sleep ;;
+        --dry-run) dry_run=1 ;;
+        --no-hold-resume|--hold-resume|--no-poweroff|--poweroff) ;;
+        --power-backend) [ "$#" -ge 2 ] || exit 2; shift ;;
+        --sleep-backend) [ "$#" -ge 2 ] || exit 2; shift; sleep_backend=$1 ;;
+        --wakeup-sec) [ "$#" -ge 2 ] || exit 2; shift; wakeup_sec=$1 ;;
+        --wait-sec) [ "$#" -ge 2 ] || exit 2; shift; wait_sec=$1 ;;
+        *) printf 'plumos-safe-shutdown: unsupported argument: %s\n' "$1" >&2; exit 2 ;;
+    esac
+    shift
+done
+
+case "$action" in reboot|shutdown|sleep) ;; *)
+    printf 'plumos-safe-shutdown: reboot, shutdown, or sleep action required\n' >&2
+    exit 2
+esac
+case "$sleep_backend" in mem|freeze|none) ;; *) exit 2 ;; esac
+is_uint "$wakeup_sec" || exit 2
+is_uint "$wait_sec" || exit 2
+is_uint "$sleep_settle_sec" || exit 2
+is_uint "$sleep_wifi_guard_settle_sec" || exit 2
+is_uint "$sleep_wifi_recovery_window_sec" || exit 2
+is_uint "$sleep_wifi_recovery_retry_sec" || exit 2
+[ "$sleep_wifi_recovery_retry_sec" -gt 0 ] || exit 2
+
+if ! mkdir "$lock_dir" 2>/dev/null; then
+    log "power=result-already-running action=$action"
+    exit 0
+fi
+cleanup() {
+    rm -f "$software_sleep_marker" 2>/dev/null || true
+    if [ "$sleep_usb_guard_armed" -eq 1 ]; then
+        rm -f "$sleep_usb_recovery_marker" 2>/dev/null || true
+    fi
+    unblank_display_after_sleep
+    rmdir "$lock_dir" 2>/dev/null || true
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+log "power=result-requested device=rk2020 action=$action dry_run=$dry_run"
+case "$action" in
+    sleep)
+        sleep_action
+        ;;
+    reboot|shutdown)
+        $bb sync
+        [ "$dry_run" -eq 0 ] || exit 0
+        if [ "$action" = shutdown ] && charger_present; then
+            shutdown_charger_present=1
+        fi
+        prepare_power_transition
+        case "$action" in
+            reboot)
+                if [ -w /proc/sysrq-trigger ]; then
+                    log 'power=reboot-method method=sysrq-trigger-b'
+                    printf b >/proc/sysrq-trigger
+                fi
+                exec "$bb" reboot -f
+                ;;
+            shutdown)
+                if [ "$shutdown_charger_present" -eq 1 ]; then
+                    if charge_mode_reboot; then
+                        exit 0
+                    fi
+                    log 'power=charge-mode-fallback method=rk817-dev-off'
+                fi
+                if [ "$terminal_test" = 1 ]; then
+                    log 'power=terminal-test action=rk817-dev-off'
+                    exit 0
+                fi
+                rk817_dev_off || log 'power=shutdown-method method=rk817-dev-off rc=1'
+                $bb sleep 5
+                log 'power=shutdown-method method=busybox-poweroff-fallback'
+                exec "$bb" poweroff -f
+                ;;
+        esac
+        ;;
+esac

@@ -71,7 +71,7 @@ static int reapply_route_switch(snd_mixer_t *mixer, const char *name,
   return 0;
 }
 
-static int reapply_pixel2_routes(snd_mixer_t *mixer, int nudge) {
+static int reapply_rk2020_routes(snd_mixer_t *mixer, int nudge) {
   const char *names[] = {"Speaker", "Headphone"};
   int found = 0;
   size_t index;
@@ -85,7 +85,7 @@ static int reapply_pixel2_routes(snd_mixer_t *mixer, int nudge) {
     }
   }
   if (!found) {
-    fprintf(stderr, "rk817-resume: Pixel2 route switches unavailable\n");
+    fprintf(stderr, "rk817-resume: RK2020 route switches unavailable\n");
     return -ENOENT;
   }
   return 0;
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     }
     return 1;
   }
-  result = reapply_pixel2_routes(mixer, strcmp(action, "rearm") == 0);
+  result = reapply_rk2020_routes(mixer, strcmp(action, "rearm") == 0);
   snd_mixer_close(mixer);
   if (result < 0) {
     return 1;

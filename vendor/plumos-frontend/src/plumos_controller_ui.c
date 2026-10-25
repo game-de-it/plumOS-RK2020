@@ -28,8 +28,8 @@ extern char **environ;
 #include "plumos_fbdev_renderer.h"
 #endif
 
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
-#include "plumos_pixel2_compat_gfx_renderer.h"
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
+#include "plumos_rk2020_compat_gfx_renderer.h"
 #endif
 
 #ifndef PLUMOS_MALI_SETTING_FLASH_MARKER
@@ -289,21 +289,21 @@ struct input_event {
 #define UI_GALLERY_TRANSITION_MS 360
 #define UI_SDCARD_CLEANUP_MIN_INTERVAL_MS 60000
 #define UI_ROM_SCAN_REFRESH_MIN_INTERVAL_MS 3000
-#define UI_Pixel2_BRIGHTNESS_REAPPLY_DELAY_MS 3000
+#define UI_RK2020_BRIGHTNESS_REAPPLY_DELAY_MS 3000
 #define UI_FE_READY_FLAG_PATH "/tmp/plumos-fe-ready"
-#define Pixel2_LCD_BACKLIGHT_PATH "/sys/devices/virtual/disp/disp/attr/lcdbl"
-#define Pixel2_DISPLAY_ENHANCE_PATH "/sys/devices/virtual/disp/disp/attr/enhance"
-#define Pixel2_PWM_ENABLE_PATH "/sys/class/pwm/pwmchip0/pwm0/enable"
-#define Pixel2_PWM_DUTY_PATH "/sys/class/pwm/pwmchip0/pwm0/duty_cycle"
-#define Pixel2_MI_DISP0_PATH "/proc/mi_modules/mi_disp/mi_disp0"
-#define Pixel2_STOCK_SYSTEM_JSON_PATH "/mnt/plumos/system.json"
+#define RK2020_LCD_BACKLIGHT_PATH "/sys/devices/virtual/disp/disp/attr/lcdbl"
+#define RK2020_DISPLAY_ENHANCE_PATH "/sys/devices/virtual/disp/disp/attr/enhance"
+#define RK2020_PWM_ENABLE_PATH "/sys/class/pwm/pwmchip0/pwm0/enable"
+#define RK2020_PWM_DUTY_PATH "/sys/class/pwm/pwmchip0/pwm0/duty_cycle"
+#define RK2020_MI_DISP0_PATH "/proc/mi_modules/mi_disp/mi_disp0"
+#define RK2020_STOCK_SYSTEM_JSON_PATH "/mnt/plumos/system.json"
 #define LEGACY_SUNXI_BACKLIGHT_PATH "/sys/class/backlight/sunxi_backlight/brightness"
 #define LEGACY_SUNXI_ENHANCE_BRIGHT_PATH "/sys/class/disp/disp/attr/enhance_bright"
 #define LEGACY_SUNXI_ENHANCE_CONTRAST_PATH "/sys/class/disp/disp/attr/enhance_contrast"
 #define LEGACY_SUNXI_ENHANCE_SATURATION_PATH "/sys/class/disp/disp/attr/enhance_saturation"
 #define LEGACY_SUNXI_ENHANCE_MODE_PATH "/sys/class/disp/disp/attr/enhance_mode"
 #define LEGACY_SUNXI_COLOR_TEMPERATURE_PATH "/sys/class/disp/disp/attr/color_temperature"
-#define PIXEL2_BACKLIGHT_PATH "/sys/class/backlight/backlight/brightness"
+#define RK2020_BACKLIGHT_PATH "/sys/class/backlight/backlight/brightness"
 
 static int replace_json_key_value_atomic(const char *path, const char *key,
                                          const char *literal);
@@ -643,7 +643,7 @@ struct ui_state {
   int exit_requested;
   int renderer_mali;
   int renderer_fbdev;
-  int renderer_pixel2_compat_gfx;
+  int renderer_rk2020_compat_gfx;
   int rescue_network;
   int render_failed;
   int fe_ready_flag_written;
@@ -718,7 +718,7 @@ struct ui_state {
   size_t wifi_count;
   size_t wifi_cursor;
   enum wifi_connect_stage wifi_stage;
-  long long pixel2_compat_brightness_reapply_due_ms;
+  long long rk2020_compat_brightness_reapply_due_ms;
   int manual_time_initialized;
   long manual_time_year;
   long manual_time_month;
@@ -762,8 +762,8 @@ struct ui_state {
 #ifdef PLUMOS_ENABLE_FBDEV_RENDERER
   struct plumos_fbdev_renderer fbdev_renderer;
 #endif
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
-  struct plumos_pixel2_compat_gfx_renderer pixel2_compat_gfx_renderer;
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
+  struct plumos_rk2020_compat_gfx_renderer rk2020_compat_gfx_renderer;
 #endif
   char current_system_id[64];
   char current_system_name[128];
@@ -772,7 +772,7 @@ struct ui_state {
   char egl_path[PATH_MAX];
   char gles_path[PATH_MAX];
   char fbdev_rotation[16];
-  char pixel2_compat_gfx_rotation[16];
+  char rk2020_compat_gfx_rotation[16];
   char mali_font_path[PATH_MAX];
   char mali_fallback_font_path[PATH_MAX];
   int renderer_active;
@@ -1779,7 +1779,7 @@ static int token_list_contains(const char *list, const char *token) {
   return 0;
 }
 
-static void clear_pixel2_compat_launch_framebuffer(const struct ui_state *ui,
+static void clear_rk2020_compat_launch_framebuffer(const struct ui_state *ui,
                                          const char *system_id) {
   const char *fb_path;
   const char *skip_systems;
@@ -1797,11 +1797,11 @@ static void clear_pixel2_compat_launch_framebuffer(const struct ui_state *ui,
   int pan_errno = 0;
   char log[256];
 
-  if (!ui || !ui->renderer_pixel2_compat_gfx ||
-      !env_flag_enabled_default("PLUMOS_Pixel2_CLEAR_FB_ON_LAUNCH", 1)) {
+  if (!ui || !ui->renderer_rk2020_compat_gfx ||
+      !env_flag_enabled_default("PLUMOS_RK2020_CLEAR_FB_ON_LAUNCH", 1)) {
     return;
   }
-  skip_systems = getenv("PLUMOS_Pixel2_CLEAR_FB_ON_LAUNCH_SKIP_SYSTEMS");
+  skip_systems = getenv("PLUMOS_RK2020_CLEAR_FB_ON_LAUNCH_SKIP_SYSTEMS");
   if (!skip_systems) {
     skip_systems = "";
   }
@@ -2349,7 +2349,7 @@ static int runtime_requires_busybox_shell(void) {
   if (configured && configured[0] && access(configured, X_OK) == 0) {
     return 1;
   }
-  return device_id && strcmp(device_id, "pixel2") == 0;
+  return device_id && strcmp(device_id, "rk2020") == 0;
 }
 
 static const char *runtime_busybox_shell_path(void) {
@@ -2455,7 +2455,7 @@ static int run_runtime_shell_command(const char *cmd) {
   if (pid == 0) {
     /*
      * The renderer and input descriptors are opened with CLOEXEC. Closing the
-     * duplicated DRM descriptor explicitly in a fork child can spin on Pixel2
+     * duplicated DRM descriptor explicitly in a fork child can spin on RK2020
      * stock driver, so enter BusyBox immediately and let exec close them.
      */
     execve(shell_path, shell_argv, environ);
@@ -2621,17 +2621,17 @@ static const char *runtime_plumos_root(void) {
   return root && root[0] ? root : "/mnt/SDCARD/plumos";
 }
 
-static int runtime_device_is_pixel2(void);
+static int runtime_device_is_rk2020(void);
 
 static int runtime_volume_control_path(char *out, size_t out_size) {
   return join_path(out, out_size, runtime_plumos_root(), "bin/plumos-volume-control");
 }
 
-static int runtime_pixel2_compat_volume_backend_available(void) {
+static int runtime_rk2020_compat_volume_backend_available(void) {
   char helper[PATH_MAX];
 
   if (!join_path(helper, sizeof(helper), runtime_plumos_root(),
-                 "bin/plumos-pixel2_compat-audio-probe")) {
+                 "bin/plumos-rk2020_compat-audio-probe")) {
     return 0;
   }
   return access(helper, X_OK) == 0 && access("/config/lib/libmi_ao.so", R_OK) == 0;
@@ -2690,7 +2690,7 @@ static int runtime_volume_backend_available(void) {
 }
 
 static int runtime_lcd_backend_available(void) {
-  return access(Pixel2_LCD_BACKLIGHT_PATH, W_OK) == 0;
+  return access(RK2020_LCD_BACKLIGHT_PATH, W_OK) == 0;
 }
 
 static int run_display_control_command(const char *action, long brightness,
@@ -2707,7 +2707,7 @@ static int run_display_control_command(const char *action, long brightness,
     return 0;
   }
   if (include_brightness) {
-    long max_brightness = runtime_device_is_pixel2() ? 20 : 6;
+    long max_brightness = runtime_device_is_rk2020() ? 20 : 6;
     snprintf(brightness_buf, sizeof(brightness_buf), "%ld",
              clamp_long(brightness, 1, max_brightness));
   } else {
@@ -2735,12 +2735,12 @@ static int run_display_control_command(const char *action, long brightness,
 
 static int runtime_system_backlight_available(void) {
   return access(LEGACY_SUNXI_BACKLIGHT_PATH, W_OK) == 0 ||
-         access(PIXEL2_BACKLIGHT_PATH, W_OK) == 0 ||
+         access(RK2020_BACKLIGHT_PATH, W_OK) == 0 ||
          run_display_control_command("status", 0, 0);
 }
 
 static int runtime_enhance_backend_available(void) {
-  return access(Pixel2_DISPLAY_ENHANCE_PATH, W_OK) == 0;
+  return access(RK2020_DISPLAY_ENHANCE_PATH, W_OK) == 0;
 }
 
 static int runtime_device_uses_legacy_sunxi(void) {
@@ -2749,40 +2749,40 @@ static int runtime_device_uses_legacy_sunxi(void) {
   if (device_id && device_id[0]) {
     return 0;
   }
-  return !runtime_device_is_pixel2();
+  return !runtime_device_is_rk2020();
 }
 
-static int runtime_device_is_pixel2_compat(void) {
+static int runtime_device_is_rk2020_compat(void) {
   const char *device_id = getenv("PLUMOS_DEVICE_ID");
 
-  return device_id && strcmp(device_id, "pixel2_compat") == 0;
+  return device_id && strcmp(device_id, "rk2020_compat") == 0;
 }
 
-static int runtime_device_is_pixel2(void) {
+static int runtime_device_is_rk2020(void) {
   const char *device_id = getenv("PLUMOS_DEVICE_ID");
   char compat_path[PATH_MAX];
   char compat_vendor[64];
 
   if (device_id && device_id[0]) {
-    return strcmp(device_id, "pixel2") == 0;
+    return strcmp(device_id, "rk2020") == 0;
   }
   if (join_path(compat_path, sizeof(compat_path), runtime_plumos_root(),
                 "COMPAT_VENDOR") &&
       read_first_line_file(compat_path, compat_vendor, sizeof(compat_vendor)) &&
-      (strcmp(compat_vendor, "pixel2") == 0 ||
-       strncmp(compat_vendor, "pixel2-", 7) == 0)) {
+      (strcmp(compat_vendor, "rk2020") == 0 ||
+       strncmp(compat_vendor, "rk2020-", 7) == 0)) {
     return 1;
   }
   return access("/sys/devices/platform/hall-mh248/hallvalue", R_OK) == 0;
 }
 
-static int runtime_pixel2_compat_lcd_backend_available(void) {
-  return runtime_device_is_pixel2_compat() && access(Pixel2_PWM_ENABLE_PATH, W_OK) == 0 &&
-         access(Pixel2_PWM_DUTY_PATH, W_OK) == 0;
+static int runtime_rk2020_compat_lcd_backend_available(void) {
+  return runtime_device_is_rk2020_compat() && access(RK2020_PWM_ENABLE_PATH, W_OK) == 0 &&
+         access(RK2020_PWM_DUTY_PATH, W_OK) == 0;
 }
 
-static int runtime_pixel2_compat_enhance_backend_available(void) {
-  return runtime_device_is_pixel2_compat() && access(Pixel2_MI_DISP0_PATH, W_OK) == 0;
+static int runtime_rk2020_compat_enhance_backend_available(void) {
+  return runtime_device_is_rk2020_compat() && access(RK2020_MI_DISP0_PATH, W_OK) == 0;
 }
 
 static int runtime_legacy_sunxi_enhance_bright_available(void) {
@@ -2826,49 +2826,49 @@ static int system_number_setting_runtime_available(const char *id) {
   }
   if (strcmp(id, "system_brightness") == 0) {
     return runtime_system_backlight_available() ||
-           runtime_lcd_backend_available() || runtime_pixel2_compat_lcd_backend_available();
+           runtime_lcd_backend_available() || runtime_rk2020_compat_lcd_backend_available();
   }
   if (strcmp(id, "system_lumination") == 0) {
     return runtime_enhance_backend_available() ||
-           runtime_pixel2_compat_enhance_backend_available() ||
+           runtime_rk2020_compat_enhance_backend_available() ||
            runtime_legacy_sunxi_enhance_bright_available();
   }
   if (strcmp(id, "system_contrast") == 0) {
     return runtime_enhance_backend_available() ||
-           runtime_pixel2_compat_enhance_backend_available() ||
+           runtime_rk2020_compat_enhance_backend_available() ||
            runtime_legacy_sunxi_enhance_contrast_available();
   }
   if (strcmp(id, "system_hue") == 0) {
     return runtime_enhance_backend_available() ||
-           runtime_pixel2_compat_enhance_backend_available() ||
+           runtime_rk2020_compat_enhance_backend_available() ||
            runtime_legacy_sunxi_color_temperature_available();
   }
   if (strcmp(id, "system_saturation") == 0) {
     return runtime_enhance_backend_available() ||
-           runtime_pixel2_compat_enhance_backend_available() ||
+           runtime_rk2020_compat_enhance_backend_available() ||
            runtime_legacy_sunxi_enhance_saturation_available();
   }
   return 1;
 }
 
-static const char *runtime_pixel2_compat_stock_system_json_path(void) {
-  const char *path = getenv("PLUMOS_Pixel2_STOCK_SYSTEM_JSON");
+static const char *runtime_rk2020_compat_stock_system_json_path(void) {
+  const char *path = getenv("PLUMOS_RK2020_STOCK_SYSTEM_JSON");
 
-  return path && path[0] ? path : Pixel2_STOCK_SYSTEM_JSON_PATH;
+  return path && path[0] ? path : RK2020_STOCK_SYSTEM_JSON_PATH;
 }
 
-static int save_pixel2_compat_stock_system_config_number(const char *key, long value) {
+static int save_rk2020_compat_stock_system_config_number(const char *key, long value) {
   char literal[64];
 
-  if (!runtime_device_is_pixel2_compat()) {
+  if (!runtime_device_is_rk2020_compat()) {
     return 1;
   }
   snprintf(literal, sizeof(literal), "%ld", value);
-  return replace_json_key_value_atomic(runtime_pixel2_compat_stock_system_json_path(), key,
+  return replace_json_key_value_atomic(runtime_rk2020_compat_stock_system_json_path(), key,
                                        literal);
 }
 
-static long pixel2_compat_brightness_pwm_duty(long brightness) {
+static long rk2020_compat_brightness_pwm_duty(long brightness) {
   static const long pwm_duty_by_brightness[] = {
       3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
       13, 15, 17, 20, 30, 40, 60, 100, 130, 200,
@@ -2882,19 +2882,19 @@ static void update_device_backend_status(struct device_settings *device) {
   char volume_helper[PATH_MAX];
   int lcd_available;
   int enhance_available;
-  int pixel2_compat_lcd_available;
-  int pixel2_compat_enhance_available;
+  int rk2020_compat_lcd_available;
+  int rk2020_compat_enhance_available;
   int system_backlight_available;
 
   if (!device) {
     return;
   }
   /*
-   * The Pixel2 launcher owns and initializes the RK817 volume route.
+   * The RK2020 launcher owns and initializes the RK817 volume route.
    * Reporting that managed backend must not execute a helper through
    * system(), because the minimal runtime uses the configured BusyBox shell.
    */
-  if (runtime_device_is_pixel2()) {
+  if (runtime_device_is_rk2020()) {
     if (runtime_volume_control_path(volume_helper, sizeof(volume_helper)) &&
         access(volume_helper, X_OK) == 0) {
       copy_string(device->volume_backend, sizeof(device->volume_backend),
@@ -2904,9 +2904,9 @@ static void update_device_backend_status(struct device_settings *device) {
                   "plumOS volume helper unavailable");
     }
   } else if (runtime_volume_backend_available()) {
-    if (runtime_pixel2_compat_volume_backend_available()) {
+    if (runtime_rk2020_compat_volume_backend_available()) {
       copy_string(device->volume_backend, sizeof(device->volume_backend),
-                  "Pixel2 MI_AO volume");
+                  "RK2020 MI_AO volume");
     } else if (run_volume_control_command("status", 0, 0)) {
       copy_string(device->volume_backend, sizeof(device->volume_backend),
                   "plumOS volume helper");
@@ -2924,12 +2924,12 @@ static void update_device_backend_status(struct device_settings *device) {
 
   lcd_available = runtime_lcd_backend_available();
   enhance_available = runtime_enhance_backend_available();
-  pixel2_compat_lcd_available = runtime_pixel2_compat_lcd_backend_available();
-  pixel2_compat_enhance_available = runtime_pixel2_compat_enhance_backend_available();
+  rk2020_compat_lcd_available = runtime_rk2020_compat_lcd_backend_available();
+  rk2020_compat_enhance_available = runtime_rk2020_compat_enhance_backend_available();
   system_backlight_available = runtime_system_backlight_available();
-  if (runtime_device_is_pixel2() && system_backlight_available) {
+  if (runtime_device_is_rk2020() && system_backlight_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
-                "Pixel2 PWM backlight");
+                "RK2020 PWM backlight");
   } else if (system_backlight_available && runtime_legacy_sunxi_enhance_backend_available()) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
                 "sunxi backlight + disp enhance");
@@ -2942,21 +2942,21 @@ static void update_device_backend_status(struct device_settings *device) {
   } else if (lcd_available && enhance_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
                 "disp attr lcdbl/enhance");
-  } else if (pixel2_compat_lcd_available && pixel2_compat_enhance_available) {
+  } else if (rk2020_compat_lcd_available && rk2020_compat_enhance_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
-                "Pixel2 PWM + mi_disp csc");
+                "RK2020 PWM + mi_disp csc");
   } else if (lcd_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
                 "disp attr lcdbl only");
-  } else if (pixel2_compat_lcd_available) {
+  } else if (rk2020_compat_lcd_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
-                "Pixel2 PWM only");
+                "RK2020 PWM only");
   } else if (enhance_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
                 "disp attr enhance only");
-  } else if (pixel2_compat_enhance_available) {
+  } else if (rk2020_compat_enhance_available) {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
-                "Pixel2 mi_disp csc only");
+                "RK2020 mi_disp csc only");
   } else {
     copy_string(device->brightness_backend, sizeof(device->brightness_backend),
                 "disp attr unavailable");
@@ -3029,10 +3029,10 @@ static int apply_runtime_system_brightness(
     const struct device_settings *device) {
   long maximum;
 
-  if (!device || (!runtime_device_uses_legacy_sunxi() && !runtime_device_is_pixel2())) {
+  if (!device || (!runtime_device_uses_legacy_sunxi() && !runtime_device_is_rk2020())) {
     return 0;
   }
-  maximum = runtime_device_is_pixel2() ? 20 : 6;
+  maximum = runtime_device_is_rk2020() ? 20 : 6;
   return run_display_control_command(
       "apply", clamp_long(device->brightness, 1, maximum), 1);
 }
@@ -3048,24 +3048,24 @@ static int apply_runtime_brightness(const struct device_settings *device) {
   brightness = clamp_long(device->brightness, 1, 20);
   backlight_value = brightness_raw_value(brightness);
   snprintf(value, sizeof(value), "%ld\n", backlight_value);
-  return write_text_file(Pixel2_LCD_BACKLIGHT_PATH, value);
+  return write_text_file(RK2020_LCD_BACKLIGHT_PATH, value);
 }
 
-static int apply_runtime_pixel2_compat_brightness(const struct device_settings *device) {
+static int apply_runtime_rk2020_compat_brightness(const struct device_settings *device) {
   char value[64];
   long brightness;
   int ok;
 
-  if (!device || !runtime_pixel2_compat_lcd_backend_available()) {
+  if (!device || !runtime_rk2020_compat_lcd_backend_available()) {
     return 0;
   }
   brightness = clamp_long(device->brightness, 1, 20);
-  snprintf(value, sizeof(value), "%ld\n", pixel2_compat_brightness_pwm_duty(brightness));
-  ok = write_text_file(Pixel2_PWM_DUTY_PATH, value);
+  snprintf(value, sizeof(value), "%ld\n", rk2020_compat_brightness_pwm_duty(brightness));
+  ok = write_text_file(RK2020_PWM_DUTY_PATH, value);
   if (ok) {
-    (void)write_text_file(Pixel2_PWM_ENABLE_PATH, "1\n");
+    (void)write_text_file(RK2020_PWM_ENABLE_PATH, "1\n");
   }
-  return ok && save_pixel2_compat_stock_system_config_number("brightness", brightness);
+  return ok && save_rk2020_compat_stock_system_config_number("brightness", brightness);
 }
 
 static int apply_runtime_display_enhance(const struct device_settings *device) {
@@ -3084,10 +3084,10 @@ static int apply_runtime_display_enhance(const struct device_settings *device) {
   saturation_value = scale_setting_to_runtime(device->saturation, 20, 100);
   snprintf(value, sizeof(value), "1,%ld,%ld,%ld,%ld\n", lumination_value,
            contrast_value, hue_value, saturation_value);
-  return write_text_file(Pixel2_DISPLAY_ENHANCE_PATH, value);
+  return write_text_file(RK2020_DISPLAY_ENHANCE_PATH, value);
 }
 
-static int apply_runtime_pixel2_compat_display_enhance(const struct device_settings *device) {
+static int apply_runtime_rk2020_compat_display_enhance(const struct device_settings *device) {
   char value[128];
   long lumination;
   long contrast;
@@ -3099,7 +3099,7 @@ static int apply_runtime_pixel2_compat_display_enhance(const struct device_setti
   long saturation_value;
   int ok;
 
-  if (!device || !runtime_pixel2_compat_enhance_backend_available()) {
+  if (!device || !runtime_rk2020_compat_enhance_backend_available()) {
     return 0;
   }
 
@@ -3115,11 +3115,11 @@ static int apply_runtime_pixel2_compat_display_enhance(const struct device_setti
   snprintf(value, sizeof(value), "csc 0 3 %ld %ld %ld %ld 0 0\n",
            contrast_value, hue_value, lumination_value, saturation_value);
 
-  ok = write_text_file(Pixel2_MI_DISP0_PATH, value);
-  ok = save_pixel2_compat_stock_system_config_number("lumination", lumination) && ok;
-  ok = save_pixel2_compat_stock_system_config_number("contrast", contrast) && ok;
-  ok = save_pixel2_compat_stock_system_config_number("hue", hue) && ok;
-  ok = save_pixel2_compat_stock_system_config_number("saturation", saturation) && ok;
+  ok = write_text_file(RK2020_MI_DISP0_PATH, value);
+  ok = save_rk2020_compat_stock_system_config_number("lumination", lumination) && ok;
+  ok = save_rk2020_compat_stock_system_config_number("contrast", contrast) && ok;
+  ok = save_rk2020_compat_stock_system_config_number("hue", hue) && ok;
+  ok = save_rk2020_compat_stock_system_config_number("saturation", saturation) && ok;
   return ok;
 }
 
@@ -3264,9 +3264,9 @@ static int apply_device_runtime_settings(const struct device_settings *device,
     if (!apply_runtime_brightness(device)) {
       ok = 0;
     }
-  } else if (needs_brightness && runtime_pixel2_compat_lcd_backend_available()) {
+  } else if (needs_brightness && runtime_rk2020_compat_lcd_backend_available()) {
     attempted = 1;
-    if (!apply_runtime_pixel2_compat_brightness(device)) {
+    if (!apply_runtime_rk2020_compat_brightness(device)) {
       ok = 0;
     }
   } else if (needs_brightness && id) {
@@ -3277,9 +3277,9 @@ static int apply_device_runtime_settings(const struct device_settings *device,
     if (!apply_runtime_display_enhance(device)) {
       ok = 0;
     }
-  } else if (needs_enhance && runtime_pixel2_compat_enhance_backend_available()) {
+  } else if (needs_enhance && runtime_rk2020_compat_enhance_backend_available()) {
     attempted = 1;
-    if (!apply_runtime_pixel2_compat_display_enhance(device)) {
+    if (!apply_runtime_rk2020_compat_display_enhance(device)) {
       ok = 0;
     }
   } else if (needs_enhance && runtime_legacy_sunxi_enhance_backend_available()) {
@@ -3298,21 +3298,21 @@ static int apply_device_runtime_settings(const struct device_settings *device,
   return ok;
 }
 
-static void schedule_pixel2_compat_brightness_reapply(struct ui_state *ui) {
-  if (!ui || ui->rescue_network || ui->power_overlay || !runtime_device_is_pixel2_compat()) {
+static void schedule_rk2020_compat_brightness_reapply(struct ui_state *ui) {
+  if (!ui || ui->rescue_network || ui->power_overlay || !runtime_device_is_rk2020_compat()) {
     return;
   }
-  ui->pixel2_compat_brightness_reapply_due_ms =
-      current_time_ms() + UI_Pixel2_BRIGHTNESS_REAPPLY_DELAY_MS;
+  ui->rk2020_compat_brightness_reapply_due_ms =
+      current_time_ms() + UI_RK2020_BRIGHTNESS_REAPPLY_DELAY_MS;
 }
 
-static int run_scheduled_pixel2_compat_brightness_reapply(struct ui_state *ui,
+static int run_scheduled_rk2020_compat_brightness_reapply(struct ui_state *ui,
                                                 long long now_ms) {
-  if (!ui || ui->pixel2_compat_brightness_reapply_due_ms <= 0 ||
-      now_ms < ui->pixel2_compat_brightness_reapply_due_ms) {
+  if (!ui || ui->rk2020_compat_brightness_reapply_due_ms <= 0 ||
+      now_ms < ui->rk2020_compat_brightness_reapply_due_ms) {
     return 0;
   }
-  ui->pixel2_compat_brightness_reapply_due_ms = 0;
+  ui->rk2020_compat_brightness_reapply_due_ms = 0;
   (void)apply_device_runtime_settings(&ui->device, "system_brightness", NULL, 0);
   return 1;
 }
@@ -3551,7 +3551,7 @@ static void format_firmware_version_status(char *out, size_t out_size) {
     return;
   }
   out[0] = '\0';
-  /* Pixel2 version information is owned by plumOS release metadata. */
+  /* RK2020 version information is owned by plumOS release metadata. */
   if (read_first_line_file("/etc/plumos-release", version, sizeof(version)) &&
       version[0]) {
     copy_string(out, out_size, version);
@@ -4671,7 +4671,7 @@ static void init_device_settings(struct device_settings *device) {
   copy_string(device->language, sizeof(device->language), "en.lang");
   copy_string(device->theme, sizeof(device->theme), "default");
   copy_string(device->timezone, sizeof(device->timezone), plumos_default_timezone());
-  default_model = "GKD Pixel2";
+  default_model = "GKD RK2020";
   default_gpu = "Mali-G31 / DRM";
   device_name = getenv("PLUMOS_DEVICE_NAME");
   copy_string(device->model, sizeof(device->model),
@@ -5411,8 +5411,8 @@ static int choose_mali_font_path(struct ui_state *ui, const char *requested,
       "plumos/fonts/default.otf",
       "RetroArch/.retroarch/assets/pkg/chinese-fallback-font.ttf",
       "RetroArch/.retroarch/system/msyh.ttf",
-      "pixel2/res/wqy-microhei.ttc",
-      "pixel2/res/MicrosoftYaHeiGB.ttf",
+      "rk2020/res/wqy-microhei.ttc",
+      "rk2020/res/MicrosoftYaHeiGB.ttf",
       "App/commander/res/wqy-microhei.ttc",
       "Themes/MakoVII/wqy-microhei.ttf",
   };
@@ -5465,8 +5465,8 @@ static int choose_mali_fallback_font_path(struct ui_state *ui, const char *prima
       "plumos/fonts/cjk-fallback.ttc",
       "RetroArch/.retroarch/assets/pkg/chinese-fallback-font.ttf",
       "RetroArch/.retroarch/system/msyh.ttf",
-      "pixel2/res/wqy-microhei.ttc",
-      "pixel2/res/MicrosoftYaHeiGB.ttf",
+      "rk2020/res/wqy-microhei.ttc",
+      "rk2020/res/MicrosoftYaHeiGB.ttf",
       "App/commander/res/wqy-microhei.ttc",
       "Themes/MakoVII/wqy-microhei.ttf",
   };
@@ -6145,8 +6145,8 @@ static void add_system_settings_entries(struct ui_state *ui) {
   format_runtime_number_setting_value("system_volume", device->volume, value,
                                       sizeof(value));
   add_setting_entry(ui, "system_volume", "Volume", value);
-  /* Pixel2 has one RK817 speaker route and no jack-routing backend. */
-  if (!runtime_device_is_pixel2()) {
+  /* RK2020 has one RK817 speaker route and no jack-routing backend. */
+  if (!runtime_device_is_rk2020()) {
     add_setting_entry(ui, "system_audio_output", "Audio Output",
                       setting_choice_display_value("system_audio_output",
                                                    device->audio_output));
@@ -6155,8 +6155,8 @@ static void add_system_settings_entries(struct ui_state *ui) {
   format_runtime_number_setting_value("system_brightness", device->brightness,
                                       value, sizeof(value));
   add_setting_entry(ui, "system_brightness", "Brightness", value);
-  /* A lid setting is not a Pixel2 capability. */
-  if (!runtime_device_is_pixel2()) {
+  /* A lid setting is not a RK2020 capability. */
+  if (!runtime_device_is_rk2020()) {
     add_bool_setting_entry(ui, "system_lid_suspend", "Lid Suspend",
                            device->lid_suspend_enabled);
   }
@@ -6284,7 +6284,7 @@ static void add_system_information_entries(struct ui_state *ui) {
                     device->storage_health);
   add_setting_entry(ui, "system_memory", "Memory", device->memory_usage);
   add_setting_entry(ui, "system_firmware", "Base OS", device->firmware_version);
-  if (runtime_device_is_pixel2()) {
+  if (runtime_device_is_rk2020()) {
     if (!read_first_line_file("/sys/class/power_supply/battery/capacity",
                               battery_capacity, sizeof(battery_capacity))) {
       copy_string(battery_capacity, sizeof(battery_capacity), "N/A");
@@ -8385,7 +8385,7 @@ static void ui_vprintf(struct ui_state *ui, const char *fmt, va_list ap) {
   const char *start;
   const char *p;
 
-  if (!ui->renderer_mali && !ui->renderer_fbdev && !ui->renderer_pixel2_compat_gfx) {
+  if (!ui->renderer_mali && !ui->renderer_fbdev && !ui->renderer_rk2020_compat_gfx) {
     vprintf(fmt, ap);
     return;
   }
@@ -8414,7 +8414,7 @@ static void ui_printf(struct ui_state *ui, const char *fmt, ...) {
 }
 
 static void clear_screen(struct ui_state *ui) {
-  if (ui->renderer_mali || ui->renderer_fbdev || ui->renderer_pixel2_compat_gfx) {
+  if (ui->renderer_mali || ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx) {
     ui->render_line_count = 0;
     return;
   }
@@ -8424,16 +8424,16 @@ static void clear_screen(struct ui_state *ui) {
 }
 
 static int ui_renderer_graphic_capable(const struct ui_state *ui) {
-  return ui && (ui->renderer_mali || ui->renderer_fbdev || ui->renderer_pixel2_compat_gfx);
+  return ui && (ui->renderer_mali || ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx);
 }
 
 static int ui_renderer_fbdev_only(const struct ui_state *ui) {
-  return ui && ui->renderer_fbdev && !ui->renderer_mali && !ui->renderer_pixel2_compat_gfx;
+  return ui && ui->renderer_fbdev && !ui->renderer_mali && !ui->renderer_rk2020_compat_gfx;
 }
 
-static int ui_renderer_pixel2_compat2_tty_capable(const struct ui_state *ui) {
+static int ui_renderer_rk2020_compat2_tty_capable(const struct ui_state *ui) {
   return ui && (ui->renderer_mali || ui->renderer_fbdev ||
-                ui->renderer_pixel2_compat_gfx);
+                ui->renderer_rk2020_compat_gfx);
 }
 
 #ifdef PLUMOS_ENABLE_FBDEV_RENDERER
@@ -8557,17 +8557,17 @@ static int ui_is_rom_list_screen(const struct ui_state *ui) {
 }
 
 static size_t ui_graphic_rom_page_size(const struct ui_state *ui) {
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
-  if (ui && ui->renderer_pixel2_compat_gfx && ui->renderer_active) {
-    return plumos_pixel2_compat_gfx_renderer_graphic_rom_page_size(&ui->pixel2_compat_gfx_renderer);
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
+  if (ui && ui->renderer_rk2020_compat_gfx && ui->renderer_active) {
+    return plumos_rk2020_compat_gfx_renderer_graphic_rom_page_size(&ui->rk2020_compat_gfx_renderer);
   }
 #endif
   (void)ui;
   return UI_GRAPHIC_ROM_PAGE_SIZE;
 }
 
-static size_t ui_pixel2_compat_gfx_text_top_rom_window_size(const struct ui_state *ui) {
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
+static size_t ui_rk2020_compat_gfx_text_top_rom_window_size(const struct ui_state *ui) {
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
   int w = 640;
   int h = 480;
   int entry_scale;
@@ -8576,14 +8576,14 @@ static size_t ui_pixel2_compat_gfx_text_top_rom_window_size(const struct ui_stat
   int bottom_y;
   size_t rows;
 
-  if (!ui || !ui->renderer_pixel2_compat_gfx ||
+  if (!ui || !ui->renderer_rk2020_compat_gfx ||
       (ui->screen != SCREEN_TOP && !ui_is_rom_list_screen(ui))) {
     return 0;
   }
-  if (ui->renderer_active && ui->pixel2_compat_gfx_renderer.var.xres > 0 &&
-      ui->pixel2_compat_gfx_renderer.var.yres > 0) {
-    w = (int)ui->pixel2_compat_gfx_renderer.var.xres;
-    h = (int)ui->pixel2_compat_gfx_renderer.var.yres;
+  if (ui->renderer_active && ui->rk2020_compat_gfx_renderer.var.xres > 0 &&
+      ui->rk2020_compat_gfx_renderer.var.yres > 0) {
+    w = (int)ui->rk2020_compat_gfx_renderer.var.xres;
+    h = (int)ui->rk2020_compat_gfx_renderer.var.yres;
   }
 
   entry_scale = (w >= 640 && h >= 400) ? 2 : 1;
@@ -8594,8 +8594,8 @@ static size_t ui_pixel2_compat_gfx_text_top_rom_window_size(const struct ui_stat
   }
 
   rows = (size_t)((bottom_y - first_entry_y) / line_height) + 1;
-  if (rows > PLUMOS_PIXEL2_COMPAT_GFX_TTY_ENTRY_CAPACITY) {
-    rows = PLUMOS_PIXEL2_COMPAT_GFX_TTY_ENTRY_CAPACITY;
+  if (rows > PLUMOS_RK2020_COMPAT_GFX_TTY_ENTRY_CAPACITY) {
+    rows = PLUMOS_RK2020_COMPAT_GFX_TTY_ENTRY_CAPACITY;
   }
   return rows ? rows : 1;
 #else
@@ -8606,7 +8606,7 @@ static size_t ui_pixel2_compat_gfx_text_top_rom_window_size(const struct ui_stat
 
 static size_t ui_list_window_size(const struct ui_state *ui) {
   size_t fbdev_window;
-  size_t pixel2_compat_text_window;
+  size_t rk2020_compat_text_window;
 
   if (ui_uses_graphic_mode(ui)) {
     if (ui->screen == SCREEN_TOP) {
@@ -8620,11 +8620,11 @@ static size_t ui_list_window_size(const struct ui_state *ui) {
   if (fbdev_window > 0) {
     return fbdev_window;
   }
-  pixel2_compat_text_window = ui_pixel2_compat_gfx_text_top_rom_window_size(ui);
-  if (pixel2_compat_text_window > 0) {
-    return pixel2_compat_text_window;
+  rk2020_compat_text_window = ui_rk2020_compat_gfx_text_top_rom_window_size(ui);
+  if (rk2020_compat_text_window > 0) {
+    return rk2020_compat_text_window;
   }
-  if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+  if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
     if (strcmp(ui->mali_tty_entry_scale, "2") == 0 ||
         strcmp(ui->mali_tty_entry_scale, "2.0") == 0 ||
         strcmp(ui->mali_tty_entry_scale, "20") == 0) {
@@ -8636,7 +8636,7 @@ static size_t ui_list_window_size(const struct ui_state *ui) {
     }
     return 15;
   }
-  if (ui && (ui->renderer_fbdev || ui->renderer_pixel2_compat_gfx)) {
+  if (ui && (ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx)) {
     return 22;
   }
   return 10;
@@ -9259,7 +9259,7 @@ static void render_roms(struct ui_state *ui) {
     ui_printf(ui, "system=%s ROMs=%zu (%s) dir=%s\n", ui->current_system_id,
               ui->rom_count, ui->current_system_name,
               ui->rom_directory[0] ? ui->rom_directory : "/");
-    if (ui_renderer_pixel2_compat2_tty_capable(ui) && ui->rom_count > 0 &&
+    if (ui_renderer_rk2020_compat2_tty_capable(ui) && ui->rom_count > 0 &&
         rom_entry_alias_root_path(&ui->rom_entries[ui->rom_cursor],
                                   prompt_path, sizeof(prompt_path))) {
       ui_printf(ui, "prompt_path=%s\n", prompt_path);
@@ -9273,7 +9273,7 @@ static void render_roms(struct ui_state *ui) {
     const struct rom_entry *entry = &ui->rom_entries[i];
     const char *detail = entry->detail[0] ? entry->detail : entry->relative_path;
     char favorite_marker = current_rom_is_favorite(ui, entry) ? '*' : ' ';
-    if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+    if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
       ui_printf(ui, "%c%c %3zu  %s\n",
                 i == ui->rom_cursor ? '>' : ' ', favorite_marker, i + 1,
                 entry->title);
@@ -9321,7 +9321,7 @@ static void render_start_menu(struct ui_state *ui) {
   ui_printf(ui, "\n");
   for (i = start; i < end; i++) {
     const struct menu_entry *entry = &ui->menu_entries[i];
-    if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+    if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
       ui_printf(ui, "%c %2zu  %s\n",
                 i == ui->menu_cursor ? '>' : ' ', i + 1, entry->display_name);
     } else {
@@ -9582,7 +9582,7 @@ static void setting_help_lines(const struct ui_state *ui,
     copy_string(line2, line2_size, "Used by scan performance checks.");
   } else if (strcmp(id, "network_connect_wifi") == 0) {
     copy_string(line1, line1_size, "Scan SSIDs and connect with password.");
-    copy_string(line2, line2_size, "The Pixel2 USB port is reserved for a Wi-Fi dongle.");
+    copy_string(line2, line2_size, "The RK2020 USB port is reserved for a Wi-Fi dongle.");
   } else if (strcmp(id, "network_rescue") == 0) {
     copy_string(line1, line1_size, "Network Recovery is disabled.");
     copy_string(line2, line2_size, "Use Connect Wi-Fi or NW Service instead.");
@@ -9662,16 +9662,16 @@ static void setting_help_lines(const struct ui_state *ui,
     } else if (strcmp(id, "system_brightness") == 0) {
       copy_string(line1, line1_size, "Screen brightness setting.");
       copy_string(line2, line2_size,
-                  runtime_device_is_pixel2()
-                      ? "Uses the Pixel2 PWM backlight."
+                  runtime_device_is_rk2020()
+                      ? "Uses the RK2020 PWM backlight."
                       : "Uses the active system backlight backend.");
     } else if (strcmp(id, "system_lid_suspend") == 0) {
-      copy_string(line1, line1_size, "Pixel2 has no lid switch.");
+      copy_string(line1, line1_size, "RK2020 has no lid switch.");
       copy_string(line2, line2_size,
                   "The hall sensor wakes and restores display, audio, input, Wi-Fi, and FE.");
     } else if (strcmp(id, "system_lumination") == 0) {
       copy_string(line1, line1_size, "Display lumination setting.");
-      copy_string(line2, line2_size, "Uses the active Pixel2 display backend when available.");
+      copy_string(line2, line2_size, "Uses the active RK2020 display backend when available.");
     } else if (strcmp(id, "system_display_color") == 0) {
       copy_string(line1, line1_size, "Open display color tuning.");
       copy_string(line2, line2_size, "Contrast, color temperature, and saturation are changed inside.");
@@ -9713,7 +9713,7 @@ static void setting_help_lines(const struct ui_state *ui,
       copy_string(line2, line2_size, "Applies to the display backend and saves to plumOS.");
     } else if (strcmp(id, "system_hue") == 0) {
       copy_string(line1, line1_size, "Display color temperature setting.");
-      copy_string(line2, line2_size, "Uses the active Pixel2 display backend when available.");
+      copy_string(line2, line2_size, "Uses the active RK2020 display backend when available.");
     } else if (strcmp(id, "system_saturation") == 0) {
       copy_string(line1, line1_size, "Display saturation setting.");
       copy_string(line2, line2_size, "Applies to the display backend and saves to plumOS.");
@@ -9721,7 +9721,7 @@ static void setting_help_lines(const struct ui_state *ui,
       copy_string(line1, line1_size, "Frontend language setting.");
       copy_string(line2, line2_size, "Saves language to plumOS config.");
     } else if (strcmp(id, "system_update") == 0) {
-      copy_string(line1, line1_size, "plumOS Pixel2 update support is under development.");
+      copy_string(line1, line1_size, "plumOS RK2020 update support is under development.");
       copy_string(line2, line2_size, "The current development image is replaced from a PC.");
     } else if (strcmp(id, "system_model") == 0 ||
                strcmp(id, "system_plumos_version") == 0 ||
@@ -9742,7 +9742,7 @@ static void setting_help_lines(const struct ui_state *ui,
       } else if (strcmp(id, "system_display_backend") == 0 ||
                  strcmp(id, "system_audio_backend") == 0) {
         copy_string(line2, line2_size,
-                    "Live runtime backend selected for Pixel2.");
+                    "Live runtime backend selected for RK2020.");
       } else if (strcmp(id, "system_firmware") == 0) {
         copy_string(line2, line2_size,
                     "Read from vendor firmware or plumOS or rootfs release metadata.");
@@ -9810,7 +9810,7 @@ static void render_brightness_test_settings(struct ui_state *ui) {
   ui_printf(ui, "brightness_current=%ld\n", current);
   ui_printf(ui, "\n");
 
-  if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+  if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
     for (i = 0; i < BRIGHTNESS_TEST_COUNT; i++) {
       long value = BRIGHTNESS_TEST_VALUES[i];
       ui_printf(ui, "brightness_tile=%ld selected=%d current=%d\n",
@@ -9873,7 +9873,7 @@ static void render_settings(struct ui_state *ui) {
   ui_printf(ui, "\n");
   for (i = start; i < end; i++) {
     const struct setting_entry *entry = &ui->setting_entries[i];
-    if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+    if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
       char row[256];
       format_setting_row_mali(ui, entry, i, row, sizeof(row));
       ui_printf(ui, "%c %3zu  %s\n",
@@ -9891,7 +9891,7 @@ static void render_settings(struct ui_state *ui) {
       }
     }
   }
-  if (ui_renderer_pixel2_compat2_tty_capable(ui) && ui->setting_count > 0) {
+  if (ui_renderer_rk2020_compat2_tty_capable(ui) && ui->setting_count > 0) {
     const struct setting_entry *entry = &ui->setting_entries[ui->settings_cursor];
     setting_help_lines(ui, entry, help1, sizeof(help1), help2, sizeof(help2));
     ui_printf(ui, "footer1=%s\n", help1);
@@ -9958,7 +9958,7 @@ static void render_core_select(struct ui_state *ui) {
   ui_printf(ui, "plumOS controller UI - Core Settings\n");
   ui_printf(ui, "settings_screen=1\n");
   ui_printf(ui, "core_settings_screen=1\n");
-  if (!ui_renderer_pixel2_compat2_tty_capable(ui)) {
+  if (!ui_renderer_rk2020_compat2_tty_capable(ui)) {
     ui_printf(ui, "target=%s",
               ui->core_target_system_id[0] ? ui->core_target_system_id : "-");
     if (ui->core_target_relative_path[0]) {
@@ -10003,7 +10003,7 @@ static void render_core_select(struct ui_state *ui) {
     footer2 = ui->core_target_relative_path[0] ? "ROM will inherit TOP core."
                                                : "TOP will use plumOS default.";
   }
-  if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+  if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
     ui_printf(ui, "footer1=%s\n", footer1);
     ui_printf(ui, "footer2=%s\n", footer2);
   }
@@ -10271,7 +10271,7 @@ static void render_wifi_connect(struct ui_state *ui) {
     ui_printf(ui, "target=%s\n", ssid);
     ui_printf(ui, "entries=%d cursor=%zu\n", UI_WIFI_KEYBOARD_ROWS,
               ui->wifi_key_row + 1);
-    if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+    if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
       ui_printf(ui, "wifi_keyboard_cursor=%zu,%zu\n", ui->wifi_key_row,
                 ui->wifi_key_col);
       ui_printf(ui, "wifi_password=%s\n",
@@ -10282,7 +10282,7 @@ static void render_wifi_connect(struct ui_state *ui) {
       char row[128];
       wifi_format_keyboard_row(ui, i, row, sizeof(row));
       ui_printf(ui, "%c %3zu  %s\n",
-                !ui_renderer_pixel2_compat2_tty_capable(ui) && i == ui->wifi_key_row ? '>' : ' ',
+                !ui_renderer_rk2020_compat2_tty_capable(ui) && i == ui->wifi_key_row ? '>' : ' ',
                 i + 1, row);
     }
     snprintf(footer1, sizeof(footer1), "Password: %s (%zu chars)",
@@ -10417,15 +10417,15 @@ static void render_ui(struct ui_state *ui) {
       ui->render_failed = 1;
     }
 #endif
-  } else if (ui->renderer_pixel2_compat_gfx) {
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
+  } else if (ui->renderer_rk2020_compat_gfx) {
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
     if (!ui->renderer_active) {
       ui->render_failed = 1;
       return;
     }
-    if (!plumos_pixel2_compat_gfx_render_lines(&ui->pixel2_compat_gfx_renderer, ui->render_lines,
+    if (!plumos_rk2020_compat_gfx_render_lines(&ui->rk2020_compat_gfx_renderer, ui->render_lines,
                                      ui->render_line_count)) {
-      copy_string(ui->status, sizeof(ui->status), "Pixel2 GFX renderer draw failed");
+      copy_string(ui->status, sizeof(ui->status), "RK2020 GFX renderer draw failed");
       ui->render_failed = 1;
     }
 #else
@@ -10457,7 +10457,7 @@ static void mark_frontend_ready_if_needed(struct ui_state *ui) {
   char content[128];
 
   if (!ui || ui->fe_ready_flag_written ||
-      (!ui->renderer_mali && !ui->renderer_fbdev && !ui->renderer_pixel2_compat_gfx) ||
+      (!ui->renderer_mali && !ui->renderer_fbdev && !ui->renderer_rk2020_compat_gfx) ||
       !ui->renderer_active || ui->render_failed || ui->rescue_network ||
       ui->power_overlay) {
     return;
@@ -10559,13 +10559,13 @@ static void reset_marquee(struct ui_state *ui) {
     plumos_fbdev_renderer_reset_marquee(&ui->fbdev_renderer);
   }
 #endif
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
-  if (ui && ui->renderer_pixel2_compat_gfx && ui->renderer_active) {
-    plumos_pixel2_compat_gfx_renderer_reset_marquee(&ui->pixel2_compat_gfx_renderer);
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
+  if (ui && ui->renderer_rk2020_compat_gfx && ui->renderer_active) {
+    plumos_rk2020_compat_gfx_renderer_reset_marquee(&ui->rk2020_compat_gfx_renderer);
   }
 #endif
 #if !defined(PLUMOS_ENABLE_MALI_RENDERER) && !defined(PLUMOS_ENABLE_FBDEV_RENDERER) && \
-    !defined(PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER)
+    !defined(PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER)
   (void)ui;
 #endif
 }
@@ -10573,50 +10573,50 @@ static void reset_marquee(struct ui_state *ui) {
 static void settle_input_after_child(struct ui_state *ui);
 
 static int init_ui_renderer(struct ui_state *ui) {
-  if (!ui->renderer_mali && !ui->renderer_fbdev && !ui->renderer_pixel2_compat_gfx) {
+  if (!ui->renderer_mali && !ui->renderer_fbdev && !ui->renderer_rk2020_compat_gfx) {
     return 1;
   }
-  if (ui->renderer_pixel2_compat_gfx) {
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
+  if (ui->renderer_rk2020_compat_gfx) {
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
     char render_error[256];
     if (ui->renderer_active) {
       return 1;
     }
     render_error[0] = '\0';
-    if (!plumos_pixel2_compat_gfx_renderer_init(&ui->pixel2_compat_gfx_renderer,
+    if (!plumos_rk2020_compat_gfx_renderer_init(&ui->rk2020_compat_gfx_renderer,
                                       ui->fb_path[0] ? ui->fb_path : "/dev/fb0",
                                       render_error, sizeof(render_error))) {
-      snprintf(ui->status, sizeof(ui->status), "Pixel2 GFX renderer init failed: %.200s",
+      snprintf(ui->status, sizeof(ui->status), "RK2020 GFX renderer init failed: %.200s",
                render_error[0] ? render_error : "-");
       return 0;
     }
-    plumos_pixel2_compat_gfx_renderer_set_rotation(&ui->pixel2_compat_gfx_renderer,
-                                         ui->pixel2_compat_gfx_rotation);
-    plumos_pixel2_compat_gfx_renderer_reset_marquee(&ui->pixel2_compat_gfx_renderer);
-    copy_string(ui->status, sizeof(ui->status), "Pixel2 GFX renderer ready");
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_FREETYPE
+    plumos_rk2020_compat_gfx_renderer_set_rotation(&ui->rk2020_compat_gfx_renderer,
+                                         ui->rk2020_compat_gfx_rotation);
+    plumos_rk2020_compat_gfx_renderer_reset_marquee(&ui->rk2020_compat_gfx_renderer);
+    copy_string(ui->status, sizeof(ui->status), "RK2020 GFX renderer ready");
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_FREETYPE
     if (ui->mali_font_path[0]) {
       render_error[0] = '\0';
-      if (plumos_pixel2_compat_gfx_renderer_load_font(&ui->pixel2_compat_gfx_renderer,
+      if (plumos_rk2020_compat_gfx_renderer_load_font(&ui->rk2020_compat_gfx_renderer,
                                             ui->mali_font_path,
                                             render_error,
                                             sizeof(render_error))) {
         snprintf(ui->status, sizeof(ui->status),
-                 "Pixel2 GFX renderer ready font=%.160s", ui->mali_font_path);
+                 "RK2020 GFX renderer ready font=%.160s", ui->mali_font_path);
         if (ui->mali_fallback_font_path[0]) {
           render_error[0] = '\0';
-          if (!plumos_pixel2_compat_gfx_renderer_load_fallback_font(
-                  &ui->pixel2_compat_gfx_renderer, ui->mali_fallback_font_path,
+          if (!plumos_rk2020_compat_gfx_renderer_load_fallback_font(
+                  &ui->rk2020_compat_gfx_renderer, ui->mali_fallback_font_path,
                   render_error, sizeof(render_error))) {
             snprintf(ui->status, sizeof(ui->status),
-                     "Pixel2 GFX fallback font failed: %.160s",
+                     "RK2020 GFX fallback font failed: %.160s",
                      render_error[0] ? render_error
                                      : ui->mali_fallback_font_path);
           }
         }
       } else {
         snprintf(ui->status, sizeof(ui->status),
-                 "Pixel2 GFX font failed: %.180s",
+                 "RK2020 GFX font failed: %.180s",
                  render_error[0] ? render_error : ui->mali_font_path);
       }
     }
@@ -10624,7 +10624,7 @@ static int init_ui_renderer(struct ui_state *ui) {
     ui->renderer_active = 1;
     return 1;
 #else
-    set_status(ui, "Pixel2 GFX renderer unavailable in this build");
+    set_status(ui, "RK2020 GFX renderer unavailable in this build");
     return 0;
 #endif
   }
@@ -10738,23 +10738,23 @@ static void shutdown_ui_renderer(struct ui_state *ui) {
     ui->renderer_active = 0;
   }
 #endif
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
-  if (ui->renderer_pixel2_compat_gfx && ui->renderer_active) {
-    plumos_pixel2_compat_gfx_renderer_shutdown(&ui->pixel2_compat_gfx_renderer);
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
+  if (ui->renderer_rk2020_compat_gfx && ui->renderer_active) {
+    plumos_rk2020_compat_gfx_renderer_shutdown(&ui->rk2020_compat_gfx_renderer);
     ui->renderer_active = 0;
   }
 #endif
 #if !defined(PLUMOS_ENABLE_MALI_RENDERER) && !defined(PLUMOS_ENABLE_FBDEV_RENDERER) && \
-    !defined(PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER)
+    !defined(PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER)
   (void)ui;
 #endif
 }
 
 static void shutdown_ui_renderer_for_launch(struct ui_state *ui) {
-#ifdef PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER
-  if (ui && ui->renderer_pixel2_compat_gfx && ui->renderer_active) {
-    ui->pixel2_compat_gfx_renderer.original_yoffset =
-        ui->pixel2_compat_gfx_renderer.front_yoffset;
+#ifdef PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER
+  if (ui && ui->renderer_rk2020_compat_gfx && ui->renderer_active) {
+    ui->rk2020_compat_gfx_renderer.original_yoffset =
+        ui->rk2020_compat_gfx_renderer.front_yoffset;
   }
 #endif
   shutdown_ui_renderer(ui);
@@ -11827,7 +11827,7 @@ static int run_power_action(struct ui_state *ui, const char *action, int powerof
   }
   if (!sleep_backend || !sleep_backend[0]) {
     const char *device_id = getenv("PLUMOS_DEVICE_ID");
-    sleep_backend = (device_id && strcmp(device_id, "pixel2_compat") == 0) ? "bootfast" : "mem";
+    sleep_backend = (device_id && strcmp(device_id, "rk2020_compat") == 0) ? "bootfast" : "mem";
   }
   if (!sleep_wakeup_sec) {
     sleep_wakeup_sec = "";
@@ -12129,13 +12129,13 @@ static int launch_rom_entry(struct ui_state *ui, const struct rom_entry *entry) 
            entry->relative_path);
   render_ui(ui);
   shutdown_ui_renderer_for_launch(ui);
-  clear_pixel2_compat_launch_framebuffer(ui, system_id);
+  clear_rk2020_compat_launch_framebuffer(ui, system_id);
   rc = run_foreground_shell_command(cmd);
-  if ((ui->renderer_mali || ui->renderer_fbdev || ui->renderer_pixel2_compat_gfx) &&
+  if ((ui->renderer_mali || ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx) &&
       !init_ui_renderer(ui)) {
     ui->renderer_mali = 0;
     ui->renderer_fbdev = 0;
-    ui->renderer_pixel2_compat_gfx = 0;
+    ui->renderer_rk2020_compat_gfx = 0;
   }
   settle_input_after_child(ui);
   load_device_settings(ui);
@@ -12582,11 +12582,11 @@ static int run_menu_shell_action(struct ui_state *ui, const struct menu_entry *e
   render_ui(ui);
   shutdown_ui_renderer(ui);
   rc = run_foreground_shell_command(cmd);
-  if ((ui->renderer_mali || ui->renderer_fbdev || ui->renderer_pixel2_compat_gfx) &&
+  if ((ui->renderer_mali || ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx) &&
       !init_ui_renderer(ui)) {
     ui->renderer_mali = 0;
     ui->renderer_fbdev = 0;
-    ui->renderer_pixel2_compat_gfx = 0;
+    ui->renderer_rk2020_compat_gfx = 0;
   }
   settle_input_after_child(ui);
   if (entry->show_results) {
@@ -13375,22 +13375,22 @@ static int change_system_volume(struct ui_state *ui, int direction) {
 
 static int save_brightness_test_value(struct ui_state *ui, long value) {
   char raw[64];
-  long pixel2_compat_duty;
+  long rk2020_compat_duty;
 
   if (!ui) {
     return 0;
   }
   value = clamp_long(value, 1, 255);
-  if (runtime_pixel2_compat_lcd_backend_available()) {
-    pixel2_compat_duty = value;
-    snprintf(raw, sizeof(raw), "%ld\n", pixel2_compat_duty);
-    if (!write_text_file(Pixel2_PWM_DUTY_PATH, raw)) {
+  if (runtime_rk2020_compat_lcd_backend_available()) {
+    rk2020_compat_duty = value;
+    snprintf(raw, sizeof(raw), "%ld\n", rk2020_compat_duty);
+    if (!write_text_file(RK2020_PWM_DUTY_PATH, raw)) {
       set_status(ui, "brightness test PWM write failed");
       return 0;
     }
-    (void)write_text_file(Pixel2_PWM_ENABLE_PATH, "1\n");
+    (void)write_text_file(RK2020_PWM_ENABLE_PATH, "1\n");
     snprintf(ui->status, sizeof(ui->status),
-             "test Pixel2 pwm duty=%ld; not saved", pixel2_compat_duty);
+             "test RK2020 pwm duty=%ld; not saved", rk2020_compat_duty);
     return 1;
   }
   if (!runtime_lcd_backend_available()) {
@@ -13398,7 +13398,7 @@ static int save_brightness_test_value(struct ui_state *ui, long value) {
     return 0;
   }
   snprintf(raw, sizeof(raw), "%ld\n", value);
-  if (!write_text_file(Pixel2_LCD_BACKLIGHT_PATH, raw)) {
+  if (!write_text_file(RK2020_LCD_BACKLIGHT_PATH, raw)) {
     set_status(ui, "brightness test write failed");
     return 0;
   }
@@ -15377,7 +15377,7 @@ static int ui_needs_periodic_refresh(const struct ui_state *ui) {
   if (ui_uses_graphic_mode(ui) && ui->screen == SCREEN_TOP) {
     return 0;
   }
-  return ui_renderer_pixel2_compat2_tty_capable(ui);
+  return ui_renderer_rk2020_compat2_tty_capable(ui);
 }
 
 static int ui_periodic_refresh_interval_ms(const struct ui_state *ui) {
@@ -15415,7 +15415,7 @@ static int ui_periodic_refresh_interval_ms(const struct ui_state *ui) {
   if (ui_uses_graphic_mode(ui) && ui_is_rom_list_screen(ui)) {
     return UI_GRAPHIC_SCROLL_REFRESH_MS;
   }
-  if (ui_renderer_pixel2_compat2_tty_capable(ui)) {
+  if (ui_renderer_rk2020_compat2_tty_capable(ui)) {
     return 100;
   }
   if (ui->rom_scan_refresh_pid > 0) {
@@ -15523,7 +15523,7 @@ static int run_event_loop(struct ui_state *ui, const char *event_path) {
       break;
     }
     now_ms = current_time_ms();
-    (void)run_scheduled_pixel2_compat_brightness_reapply(ui, now_ms);
+    (void)run_scheduled_rk2020_compat_brightness_reapply(ui, now_ms);
     if (poll_rom_scan_refresh(ui)) {
       render_ui(ui);
       if (ui_needs_periodic_refresh(ui)) {
@@ -15544,8 +15544,8 @@ static int run_event_loop(struct ui_state *ui, const char *event_path) {
         }
       }
     }
-    if (ui->pixel2_compat_brightness_reapply_due_ms > 0) {
-      long long reapply_due_ms = ui->pixel2_compat_brightness_reapply_due_ms - now_ms;
+    if (ui->rk2020_compat_brightness_reapply_due_ms > 0) {
+      long long reapply_due_ms = ui->rk2020_compat_brightness_reapply_due_ms - now_ms;
       if (reapply_due_ms <= 0) {
         poll_timeout = 0;
       } else if (reapply_due_ms < poll_timeout) {
@@ -15721,8 +15721,8 @@ static int run_event_loop(struct ui_state *ui, const char *event_path) {
 static void usage(const char *argv0) {
   printf("Usage:\n");
   printf("  %s [--all] [--refresh] [--once] [--timeout SEC] [--event PATH]\n", argv0);
-  printf("     [--renderer text|mali|fbdev|pixel2-compat-gfx] [--fb PATH]\n");
-  printf("     [--fbdev-rotation none|cw|ccw|180] [--pixel2-compat-gfx-rotation none|180]\n");
+  printf("     [--renderer text|mali|fbdev|rk2020-compat-gfx] [--fb PATH]\n");
+  printf("     [--fbdev-rotation none|cw|ccw|180] [--rk2020-compat-gfx-rotation none|180]\n");
   printf("     [--egl-lib PATH] [--gles-lib PATH]\n");
   printf("     [--rotation auto|none|cw|ccw] [--font PATH]\n");
   printf("     [--tty-entry-scale 1|1.5|2]\n");
@@ -15737,10 +15737,10 @@ static void usage(const char *argv0) {
   printf("  PLUMOS_ROOT         Default: $PLUMOS_SDCARD_ROOT/plumos\n");
   printf("  PLUMOS_INPUT_EVENT  Default: auto-detect soc:gpio_keys\n");
   printf("  PLUMOS_POWER_INPUT_EVENT  Default: auto-detect soc:gpio_keys\n");
-  printf("  PLUMOS_RENDERER     text, mali, fbdev, or pixel2-compat-gfx. Default: text\n");
+  printf("  PLUMOS_RENDERER     text, mali, fbdev, or rk2020-compat-gfx. Default: text\n");
   printf("  PLUMOS_FB           Default for Mali renderer: /dev/fb0\n");
   printf("  PLUMOS_FBDEV_ROTATION  none, cw, ccw or 180. Default: none\n");
-  printf("  PLUMOS_PIXEL2_COMPAT_GFX_ROTATION  none or 180. Default: PLUMOS_FBDEV_ROTATION\n");
+  printf("  PLUMOS_RK2020_COMPAT_GFX_ROTATION  none or 180. Default: PLUMOS_FBDEV_ROTATION\n");
   printf("  PLUMOS_EGL_LIB      Default for Mali renderer: /usr/lib/libEGL.so\n");
   printf("  PLUMOS_GLES_LIB     Default for Mali renderer: /usr/lib/libGLESv2.so\n");
   printf("  PLUMOS_MALI_ROTATION auto, none, cw, or ccw. Default: auto\n");
@@ -15750,7 +15750,7 @@ static void usage(const char *argv0) {
   printf("  PLUMOS_CONTROLLER_RESCUE network opens a disabled compatibility screen\n");
   printf("  PLUMOS_SYSTEM_SETTINGS_JSON  Default: $PLUMOS_ROOT/config/system/settings.json\n");
   printf("  PLUMOS_WPA_STATUS   Default: /run/plumos/network-control/wpa_status.txt\n");
-  printf("  PLUMOS_Pixel2_WPA_STATUS   Legacy status-path override\n");
+  printf("  PLUMOS_RK2020_WPA_STATUS   Legacy status-path override\n");
   printf("  PLUMOS_CONTROLLER_CPU_DEFAULT  Ondemand/all-core FE default; set 0 to skip\n");
   printf("  PLUMOS_CPU_BASELINE_GOVERNOR  interactive, performance, ondemand, schedutil, or conservative\n");
 }
@@ -15824,7 +15824,7 @@ int main(int argc, char **argv) {
   const char *wpa_status_env;
   const char *fb_path;
   const char *fbdev_rotation_env;
-  const char *pixel2_compat_gfx_rotation_env;
+  const char *rk2020_compat_gfx_rotation_env;
   const char *egl_path;
   const char *gles_path;
   const char *rotation_env;
@@ -15870,10 +15870,10 @@ int main(int argc, char **argv) {
     ui.renderer_fbdev = 1;
     ui.no_clear = 1;
   } else if (renderer_env &&
-             (strcmp(renderer_env, "pixel2-compat-gfx") == 0 ||
-              strcmp(renderer_env, "pixel2_compat_gfx") == 0 ||
-              strcmp(renderer_env, "pixel2_compat") == 0)) {
-    ui.renderer_pixel2_compat_gfx = 1;
+             (strcmp(renderer_env, "rk2020-compat-gfx") == 0 ||
+              strcmp(renderer_env, "rk2020_compat_gfx") == 0 ||
+              strcmp(renderer_env, "rk2020_compat") == 0)) {
+    ui.renderer_rk2020_compat_gfx = 1;
     ui.no_clear = 1;
   }
   discover_input_event(event_path, sizeof(event_path));
@@ -15892,7 +15892,7 @@ int main(int argc, char **argv) {
   }
   wpa_status_env = getenv("PLUMOS_WPA_STATUS");
   if (!wpa_status_env || !wpa_status_env[0]) {
-    wpa_status_env = getenv("PLUMOS_Pixel2_WPA_STATUS");
+    wpa_status_env = getenv("PLUMOS_RK2020_WPA_STATUS");
   }
   if (!copy_string(ui.wpa_status_path, sizeof(ui.wpa_status_path),
                    wpa_status_env && wpa_status_env[0] ? wpa_status_env
@@ -15902,7 +15902,7 @@ int main(int argc, char **argv) {
   }
   fb_path = getenv("PLUMOS_FB");
   fbdev_rotation_env = getenv("PLUMOS_FBDEV_ROTATION");
-  pixel2_compat_gfx_rotation_env = getenv("PLUMOS_PIXEL2_COMPAT_GFX_ROTATION");
+  rk2020_compat_gfx_rotation_env = getenv("PLUMOS_RK2020_COMPAT_GFX_ROTATION");
   egl_path = getenv("PLUMOS_EGL_LIB");
   gles_path = getenv("PLUMOS_GLES_LIB");
   rotation_env = getenv("PLUMOS_MALI_ROTATION");
@@ -15916,9 +15916,9 @@ int main(int argc, char **argv) {
                   : "1");
   copy_string(ui.fbdev_rotation, sizeof(ui.fbdev_rotation),
               fbdev_rotation_env && fbdev_rotation_env[0] ? fbdev_rotation_env : "none");
-  copy_string(ui.pixel2_compat_gfx_rotation, sizeof(ui.pixel2_compat_gfx_rotation),
-              pixel2_compat_gfx_rotation_env && pixel2_compat_gfx_rotation_env[0]
-                  ? pixel2_compat_gfx_rotation_env
+  copy_string(ui.rk2020_compat_gfx_rotation, sizeof(ui.rk2020_compat_gfx_rotation),
+              rk2020_compat_gfx_rotation_env && rk2020_compat_gfx_rotation_env[0]
+                  ? rk2020_compat_gfx_rotation_env
                   : ui.fbdev_rotation);
   if (getenv("PLUMOS_CONTROLLER_RESCUE") &&
       strcmp(getenv("PLUMOS_CONTROLLER_RESCUE"), "network") == 0) {
@@ -15938,31 +15938,31 @@ int main(int argc, char **argv) {
     } else if (strcmp(argv[i], "--mali") == 0) {
       ui.renderer_mali = 1;
       ui.renderer_fbdev = 0;
-      ui.renderer_pixel2_compat_gfx = 0;
+      ui.renderer_rk2020_compat_gfx = 0;
       ui.no_clear = 1;
     } else if (strcmp(argv[i], "--renderer") == 0 && i + 1 < argc) {
       const char *renderer = argv[++i];
       if (strcmp(renderer, "mali") == 0) {
         ui.renderer_mali = 1;
         ui.renderer_fbdev = 0;
-        ui.renderer_pixel2_compat_gfx = 0;
+        ui.renderer_rk2020_compat_gfx = 0;
         ui.no_clear = 1;
       } else if (strcmp(renderer, "fbdev") == 0) {
         ui.renderer_mali = 0;
         ui.renderer_fbdev = 1;
-        ui.renderer_pixel2_compat_gfx = 0;
+        ui.renderer_rk2020_compat_gfx = 0;
         ui.no_clear = 1;
-      } else if (strcmp(renderer, "pixel2-compat-gfx") == 0 ||
-                 strcmp(renderer, "pixel2_compat_gfx") == 0 ||
-                 strcmp(renderer, "pixel2_compat") == 0) {
+      } else if (strcmp(renderer, "rk2020-compat-gfx") == 0 ||
+                 strcmp(renderer, "rk2020_compat_gfx") == 0 ||
+                 strcmp(renderer, "rk2020_compat") == 0) {
         ui.renderer_mali = 0;
         ui.renderer_fbdev = 0;
-        ui.renderer_pixel2_compat_gfx = 1;
+        ui.renderer_rk2020_compat_gfx = 1;
         ui.no_clear = 1;
       } else if (strcmp(renderer, "text") == 0) {
         ui.renderer_mali = 0;
         ui.renderer_fbdev = 0;
-        ui.renderer_pixel2_compat_gfx = 0;
+        ui.renderer_rk2020_compat_gfx = 0;
       } else {
         fprintf(stderr, "error: unknown renderer: %s\n", renderer);
         return 2;
@@ -15975,7 +15975,7 @@ int main(int argc, char **argv) {
       copy_string(power_event_path, sizeof(power_event_path), argv[++i]);
     } else if (strcmp(argv[i], "--power-overlay") == 0) {
       ui.power_overlay = 1;
-      if (!ui.renderer_fbdev && !ui.renderer_pixel2_compat_gfx) {
+      if (!ui.renderer_fbdev && !ui.renderer_rk2020_compat_gfx) {
         ui.renderer_mali = 1;
       }
       ui.no_clear = 1;
@@ -15991,14 +15991,14 @@ int main(int argc, char **argv) {
         return 2;
       }
       copy_string(ui.fbdev_rotation, sizeof(ui.fbdev_rotation), rotation);
-    } else if (strcmp(argv[i], "--pixel2-compat-gfx-rotation") == 0 && i + 1 < argc) {
+    } else if (strcmp(argv[i], "--rk2020-compat-gfx-rotation") == 0 && i + 1 < argc) {
       const char *rotation = argv[++i];
       if (strcmp(rotation, "none") != 0 && strcmp(rotation, "180") != 0 &&
           strcmp(rotation, "rotate180") != 0 && strcmp(rotation, "inverted") != 0) {
-        fprintf(stderr, "error: unknown Pixel2 GFX rotation: %s\n", rotation);
+        fprintf(stderr, "error: unknown RK2020 GFX rotation: %s\n", rotation);
         return 2;
       }
-      copy_string(ui.pixel2_compat_gfx_rotation, sizeof(ui.pixel2_compat_gfx_rotation), rotation);
+      copy_string(ui.rk2020_compat_gfx_rotation, sizeof(ui.rk2020_compat_gfx_rotation), rotation);
     } else if (strcmp(argv[i], "--egl-lib") == 0 && i + 1 < argc) {
       egl_path = argv[++i];
     } else if (strcmp(argv[i], "--gles-lib") == 0 && i + 1 < argc) {
@@ -16086,7 +16086,7 @@ int main(int argc, char **argv) {
     ui.mali_fallback_font_path[0] = '\0';
   } else {
     apply_frontend_cpu_default();
-    if (load_device_settings(&ui) && !runtime_device_is_pixel2()) {
+    if (load_device_settings(&ui) && !runtime_device_is_rk2020()) {
       apply_device_runtime_settings(&ui.device, NULL, NULL, 0);
     }
     load_translations(&ui);
@@ -16124,7 +16124,7 @@ int main(int argc, char **argv) {
   }
 
 #if !defined(PLUMOS_ENABLE_MALI_RENDERER) && !defined(PLUMOS_ENABLE_FBDEV_RENDERER) && \
-    !defined(PLUMOS_ENABLE_PIXEL2_COMPAT_GFX_RENDERER)
+    !defined(PLUMOS_ENABLE_RK2020_COMPAT_GFX_RENDERER)
   (void)fb_path;
   (void)egl_path;
   (void)gles_path;
@@ -16136,7 +16136,7 @@ int main(int argc, char **argv) {
   copy_string(ui.gles_path, sizeof(ui.gles_path),
               gles_path && gles_path[0] ? gles_path : "/usr/lib/libGLESv2.so");
 
-  if (ui.renderer_mali || ui.renderer_fbdev || ui.renderer_pixel2_compat_gfx) {
+  if (ui.renderer_mali || ui.renderer_fbdev || ui.renderer_rk2020_compat_gfx) {
     if (!init_ui_renderer(&ui)) {
       fprintf(stderr, "error: %s\n", ui.status[0] ? ui.status : "renderer init failed");
       return 1;
@@ -16149,21 +16149,21 @@ int main(int argc, char **argv) {
       copy_string(ui.status, sizeof(ui.status), "Network Recovery is disabled");
     }
     if (!ui.rescue_network && !ui.power_overlay &&
-        !runtime_device_is_pixel2()) {
+        !runtime_device_is_rk2020()) {
       apply_device_runtime_settings(&ui.device, "system_brightness", NULL, 0);
-      schedule_pixel2_compat_brightness_reapply(&ui);
+      schedule_rk2020_compat_brightness_reapply(&ui);
     }
   }
 
   if (script) {
     exit_code = run_script(&ui, script) ? 0 : 1;
-    if ((ui.renderer_mali || ui.renderer_fbdev || ui.renderer_pixel2_compat_gfx) &&
+    if ((ui.renderer_mali || ui.renderer_fbdev || ui.renderer_rk2020_compat_gfx) &&
         ui.timeout_sec > 0) {
       sleep((unsigned int)ui.timeout_sec);
     }
   } else if (ui.once) {
     render_ui(&ui);
-    if ((ui.renderer_mali || ui.renderer_fbdev || ui.renderer_pixel2_compat_gfx) &&
+    if ((ui.renderer_mali || ui.renderer_fbdev || ui.renderer_rk2020_compat_gfx) &&
         ui.timeout_sec > 0) {
       sleep((unsigned int)ui.timeout_sec);
     }
@@ -16171,7 +16171,7 @@ int main(int argc, char **argv) {
   } else {
     exit_code = run_event_loop(&ui, event_path);
   }
-  if (ui.renderer_mali || ui.renderer_fbdev || ui.renderer_pixel2_compat_gfx) {
+  if (ui.renderer_mali || ui.renderer_fbdev || ui.renderer_rk2020_compat_gfx) {
     shutdown_ui_renderer(&ui);
   }
   ui_free_rom_entries(&ui);

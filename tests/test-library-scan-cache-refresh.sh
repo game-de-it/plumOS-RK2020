@@ -16,7 +16,7 @@ mkdir -p \
     "$TEST_ROOT/card/Roms/PCFX/disc" \
     "$TEST_ROOT/plumos/config/frontend" \
     "$TEST_ROOT/plumos/state/frontend/systems"
-cp "$ROOT_DIR/package/frontend-pixel2/systems.json" \
+cp "$ROOT_DIR/package/frontend-rk2020/systems.json" \
     "$TEST_ROOT/plumos/config/frontend/systems.json"
 printf 'test-rom\n' >"$TEST_ROOT/card/Roms/nes/cache-refresh.nes"
 printf 'metadata-only\n' >"$TEST_ROOT/card/Roms/VMU/ANIMTEST.VMI"
@@ -42,7 +42,7 @@ PLUMOS_SYSTEMS_JSON="$TEST_ROOT/plumos/config/frontend/systems.json" \
     "$TEST_ROOT/plumos-library-scan" --defer-thumbnails >"$TEST_ROOT/scan.log"
 
 enabled_count="$(jq '[.systems[] | select(.enabled == true)] | length' \
-    "$ROOT_DIR/package/frontend-pixel2/systems.json")"
+    "$ROOT_DIR/package/frontend-rk2020/systems.json")"
 grep -q "^wrote_system_caches=$enabled_count$" "$TEST_ROOT/scan.log"
 jq -e '(.systems | length) == 1 and .systems[0].id == "nes" and
        .systems[0].rom_count == 1 and

@@ -7,29 +7,29 @@ for script in \
     scripts/build-frontend-component.sh \
     scripts/build-retroarch.sh \
     scripts/build-libretro-cores.sh \
-    scripts/build-standalone-pixel2.sh \
+    scripts/build-standalone-rk2020.sh \
     scripts/build-app-layer.sh \
     scripts/verify-app-layer.sh \
-    package/app-layer-pixel2/bin/plumos-retroarch-config-merge \
-    package/app-layer-pixel2/bin/plumos-np2kai-config-repair \
-    package/app-layer-pixel2/bin/plumos-retroarch-launch \
-    package/app-layer-pixel2/bin/plumos-retroarch-menu-launch \
-    package/app-layer-pixel2/bin/plumos-ensure-udev-input-db \
-    package/app-layer-pixel2/bin/plumos-safe-shutdown \
-    package/app-layer-pixel2/bin/plumos-power-menu-overlay \
-    package/app-layer-pixel2/bin/plumos-run-with-input-map \
-    package/app-layer-pixel2/bin/plumos-hardware-keys-service \
-    package/app-layer-pixel2/bin/plumos-display-control \
-    package/app-layer-pixel2/bin/plumos-volume-control \
-    package/app-layer-pixel2/bin/plumos-network-control \
-    package/app-layer-pixel2/bin/plumos-udhcpc-script \
-    package/app-layer-pixel2/bin/plumos-wifi-recovery \
-    package/app-layer-pixel2/bin/plumos-wifi-uevent \
-    package/app-layer-pixel2/bin/plumos-network-services \
-    package/app-layer-pixel2/bin/plumos-time-sync \
-    package/app-layer-pixel2/bin/plumos-storage-health \
-    package/app-layer-pixel2/bin/plumos-factory-reset \
-    package/app-layer-pixel2/bin/plumos-thumbnail-scraper; do
+    package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
+    package/app-layer-rk2020/bin/plumos-np2kai-config-repair \
+    package/app-layer-rk2020/bin/plumos-retroarch-launch \
+    package/app-layer-rk2020/bin/plumos-retroarch-menu-launch \
+    package/app-layer-rk2020/bin/plumos-ensure-udev-input-db \
+    package/app-layer-rk2020/bin/plumos-safe-shutdown \
+    package/app-layer-rk2020/bin/plumos-power-menu-overlay \
+    package/app-layer-rk2020/bin/plumos-run-with-input-map \
+    package/app-layer-rk2020/bin/plumos-hardware-keys-service \
+    package/app-layer-rk2020/bin/plumos-display-control \
+    package/app-layer-rk2020/bin/plumos-volume-control \
+    package/app-layer-rk2020/bin/plumos-network-control \
+    package/app-layer-rk2020/bin/plumos-udhcpc-script \
+    package/app-layer-rk2020/bin/plumos-wifi-recovery \
+    package/app-layer-rk2020/bin/plumos-wifi-uevent \
+    package/app-layer-rk2020/bin/plumos-network-services \
+    package/app-layer-rk2020/bin/plumos-time-sync \
+    package/app-layer-rk2020/bin/plumos-storage-health \
+    package/app-layer-rk2020/bin/plumos-factory-reset \
+    package/app-layer-rk2020/bin/plumos-thumbnail-scraper; do
     bash -n "$ROOT_DIR/$script"
 done
 test -x "$ROOT_DIR/tests/test-retroarch-config-merge.sh"
@@ -37,81 +37,81 @@ test -x "$ROOT_DIR/tests/test-np2kai-config-repair.sh"
 test -x "$ROOT_DIR/tests/test-mame2003-xtreme-config-repair.sh"
 "$ROOT_DIR/tests/test-np2kai-config-repair.sh"
 "$ROOT_DIR/tests/test-mame2003-xtreme-config-repair.sh"
-test -x "$ROOT_DIR/tests/test-pixel2-retroarch-game-menu-selection.sh"
-"$ROOT_DIR/tests/test-pixel2-retroarch-game-menu-selection.sh"
-test -x "$ROOT_DIR/tests/test-pixel2-power-menu-sleep.sh"
-test -x "$ROOT_DIR/tests/test-pixel2-volume-control.sh"
-"$ROOT_DIR/tests/test-pixel2-volume-control.sh"
-test -x "$ROOT_DIR/tests/test-pixel2-network-control.sh"
-"$ROOT_DIR/tests/test-pixel2-network-control.sh"
-test -x "$ROOT_DIR/tests/test-pixel2-wifi-recovery.sh"
-"$ROOT_DIR/tests/test-pixel2-wifi-recovery.sh"
-sh -n "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
-sh -n "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-stop"
-sh -n "$ROOT_DIR/package/standalone-pixel2/plumos/standalone/pico8/bin/wget"
-sh -n "$ROOT_DIR/package/picoarch-pixel2/plumos/bin/plumos-picoarch-launch"
-sh -n "$ROOT_DIR/package/picoarch-pixel2/plumos/bin/plumos-picoarch-stop"
+test -x "$ROOT_DIR/tests/test-rk2020-retroarch-game-menu-selection.sh"
+"$ROOT_DIR/tests/test-rk2020-retroarch-game-menu-selection.sh"
+test -x "$ROOT_DIR/tests/test-rk2020-power-menu-sleep.sh"
+test -x "$ROOT_DIR/tests/test-rk2020-volume-control.sh"
+"$ROOT_DIR/tests/test-rk2020-volume-control.sh"
+test -x "$ROOT_DIR/tests/test-rk2020-network-control.sh"
+"$ROOT_DIR/tests/test-rk2020-network-control.sh"
+test -x "$ROOT_DIR/tests/test-rk2020-wifi-recovery.sh"
+"$ROOT_DIR/tests/test-rk2020-wifi-recovery.sh"
+sh -n "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
+sh -n "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-stop"
+sh -n "$ROOT_DIR/package/standalone-rk2020/plumos/standalone/pico8/bin/wget"
+sh -n "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
+sh -n "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-stop"
 grep -q 'root/lib/libretro:\$root/emulator/lib:\$root/frontend/lib:\$root/lib' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'f"_etc/{name}"' \
     "$ROOT_DIR/scripts/validate-romset-routes.py"
 grep -q '"lynx": \["ATARI/Lynx"\]' \
     "$ROOT_DIR/scripts/validate-romset-routes.py"
 grep -q 'SONAME_MAP=' \
-    "$ROOT_DIR/package/picoarch-pixel2/plumos/bin/plumos-picoarch-launch"
+    "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
 grep -q 'RUNTIME_LIB_DIR/libSDL2-2.0.so.0' \
-    "$ROOT_DIR/package/picoarch-pixel2/plumos/bin/plumos-picoarch-launch"
-grep -q 'libSDL2-2\.0\.so\.0' "$ROOT_DIR/scripts/build-picoarch-pixel2.sh"
-grep -q 'picoarch-pixel2-host-input-poll\.patch' \
-    "$ROOT_DIR/scripts/build-picoarch-pixel2.sh"
+    "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
+grep -q 'libSDL2-2\.0\.so\.0' "$ROOT_DIR/scripts/build-picoarch-rk2020.sh"
+grep -q 'picoarch-rk2020-host-input-poll\.patch' \
+    "$ROOT_DIR/scripts/build-picoarch-rk2020.sh"
 grep -q 'physical=%ux%u logical=%ux%u ccw' \
-    "$ROOT_DIR/docker/pixel2-tools/picoarch/picoarch_pixel2_fbdev.h"
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
 grep -q 'FBIOBLANK, FB_BLANK_UNBLANK' \
-    "$ROOT_DIR/docker/pixel2-tools/picoarch/picoarch_pixel2_fbdev.h"
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
 grep -q 'FBIOPAN_DISPLAY' \
-    "$ROOT_DIR/docker/pixel2-tools/picoarch/picoarch_pixel2_fbdev.h"
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
 grep -q 'sigaction(SIGCONT' \
-    "$ROOT_DIR/docker/pixel2-tools/picoarch/picoarch_pixel2_fbdev.h"
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
 grep -q 'getenv("PLUMOS_PICOARCH_RGB565_BYTESWAP")' \
-    "$ROOT_DIR/docker/pixel2-tools/picoarch/picoarch-pixel2-pixel-format.patch"
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch-rk2020-pixel-format.patch"
 grep -q '(pixel << 8) | (pixel >> 8)' \
-    "$ROOT_DIR/docker/pixel2-tools/picoarch/picoarch-pixel2-pixel-format.patch"
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch-rk2020-pixel-format.patch"
 grep -q 'gambatte|gambatte_libretro.so) rgb565_byteswap_default=1' \
-    "$ROOT_DIR/package/picoarch-pixel2/plumos/bin/plumos-picoarch-launch"
+    "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
 grep -q 'rgb565_byteswap=%s' \
-    "$ROOT_DIR/package/picoarch-pixel2/plumos/bin/plumos-picoarch-launch"
-PYTHONPYCACHEPREFIX="${TMPDIR:-/tmp}/plumos-pixel2-test-pycache" \
+    "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
+PYTHONPYCACHEPREFIX="${TMPDIR:-/tmp}/plumos-rk2020-test-pycache" \
     python3 -m py_compile \
-        "$ROOT_DIR/scripts/generate-pixel2-system-logos.py" \
-        "$ROOT_DIR/scripts/prepare-pixel2-bios.py" \
+        "$ROOT_DIR/scripts/generate-rk2020-system-logos.py" \
+        "$ROOT_DIR/scripts/prepare-rk2020-bios.py" \
         "$ROOT_DIR/scripts/validate-romset-routes.py"
-grep -q 'retroarch:quicknes' "$ROOT_DIR/package/frontend-pixel2/systems.json"
-grep -q 'retroarch:gambatte' "$ROOT_DIR/package/frontend-pixel2/systems.json"
-grep -q 'retroarch:mgba_modern' "$ROOT_DIR/package/frontend-pixel2/systems.json"
-grep -q 'retroarch:pcsx_rearmed' "$ROOT_DIR/package/frontend-pixel2/systems.json"
-grep -q 'picoarch:quicknes' "$ROOT_DIR/package/frontend-pixel2/systems.json"
+grep -q 'retroarch:quicknes' "$ROOT_DIR/package/frontend-rk2020/systems.json"
+grep -q 'retroarch:gambatte' "$ROOT_DIR/package/frontend-rk2020/systems.json"
+grep -q 'retroarch:mgba_modern' "$ROOT_DIR/package/frontend-rk2020/systems.json"
+grep -q 'retroarch:pcsx_rearmed' "$ROOT_DIR/package/frontend-rk2020/systems.json"
+grep -q 'picoarch:quicknes' "$ROOT_DIR/package/frontend-rk2020/systems.json"
 jq -e '.systems[] | select(.id == "pc98") |
        .launch_profiles == ["retroarch:np2kai", "retroarch:nekop2",
                             "picoarch:np2kai", "picoarch:nekop2"]' \
-    "$ROOT_DIR/package/frontend-pixel2/systems.json" >/dev/null
+    "$ROOT_DIR/package/frontend-rk2020/systems.json" >/dev/null
 grep -q 'NP2kai joymode default markers missing' \
     "$ROOT_DIR/scripts/build-libretro-cores.sh"
 grep -q 'np2kai' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nekop2-np2kai-bios-fallback.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nekop2-np2kai-bios-fallback.patch"
 jq -e '.systems[] | select(.id == "gameandwatch") |
        .extensions == ["mgw", "zip"]' \
-    "$ROOT_DIR/package/frontend-pixel2/systems.json" >/dev/null
+    "$ROOT_DIR/package/frontend-rk2020/systems.json" >/dev/null
 jq -e '.systems[] | select(.id == "pcfx") |
        .extensions == ["cue", "ccd", "toc", "chd"]' \
-    "$ROOT_DIR/package/frontend-pixel2/systems.json" >/dev/null
+    "$ROOT_DIR/package/frontend-rk2020/systems.json" >/dev/null
 grep -q 'retroarch_archive=result-extracted system=gameandwatch format=mgw' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'mgba_modern_libretro.so' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'state_root="$state_root/mgba-modern"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'savestates_in_content_dir = "false"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'strcmp(core_id, "lutro") == 0 && directory_exists(plan->rom_path)' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_text_ui.c"
 grep -q 'first_file_with_extension(plan->rom_path, "svm"' \
@@ -130,13 +130,13 @@ assert theme["id"] == "default"
 assert theme["layout_preset"] == "grid_preview"
 assert theme["graphic_mode"]["top_layout"] == "tile_grid"
 assert theme["graphic_mode"]["transition_axis"] == "vertical"
-systems = json.loads((root / "package/frontend-pixel2/systems.json").read_text())["systems"]
+systems = json.loads((root / "package/frontend-rk2020/systems.json").read_text())["systems"]
 saturn = next(item for item in systems if item["id"] == "saturn")
 assert saturn["enabled"] is False
 assert saturn["launch_profiles"] == []
 assert saturn["default_launch_profile"] == ""
 assert saturn["scraper"]["reason"] == "unsupported_performance_rk3326"
-recipes = (root / "docker/pixel2-tools/libretro-core-recipes.tsv").read_text().splitlines()
+recipes = (root / "docker/rk2020-tools/libretro-core-recipes.tsv").read_text().splitlines()
 ids = {line.split("|", 1)[0] for line in recipes if line and not line.startswith("#")}
 assert "beetle_saturn" not in ids
 assert "yabasanshiro" not in ids
@@ -157,23 +157,23 @@ pico8 = next(item for item in systems if item["id"] == "pico8")
 assert pico8["launch_profiles"][0] == "standalone:pico8"
 assert pico8["default_launch_profile"] == "standalone:pico8"
 assert "pico8" in {entry["name"] for entry in pico8["directory_aliases"]}
-standalone_build = (root / "scripts/build-standalone-pixel2.sh").read_text()
-standalone_launch = (root / "package/standalone-pixel2/plumos/bin/plumos-standalone-launch").read_text()
+standalone_build = (root / "scripts/build-standalone-rk2020.sh").read_text()
+standalone_launch = (root / "package/standalone-rk2020/plumos/bin/plumos-standalone-launch").read_text()
 standalone_mupen_sram_patch = (
     root / "patches/mupen64plus/mupen64plus-core-2.6.0-sram-save-range.patch"
 ).read_text()
 standalone_mupen_input_patch = (
-    root / "patches/mupen64plus/mupen64plus-input-sdl-2.6.0-pixel2-dpad-mode.patch"
+    root / "patches/mupen64plus/mupen64plus-input-sdl-2.6.0-rk2020-dpad-mode.patch"
 ).read_text()
 assert '"id": "mupen64plus"' in standalone_build
 assert "mupen64plus)" in standalone_launch
 assert "MUPEN64PLUS_SRAM_PATCH" in standalone_build
 assert "save_start = cart_addr & ~(size_t)3" in standalone_mupen_sram_patch
 assert "save_end - save_start" in standalone_mupen_sram_patch
-assert "pixel2_dpad_mode" in standalone_mupen_input_patch
-assert "pixel2_dpad_mode_requested" in standalone_mupen_input_patch
+assert "rk2020_dpad_mode" in standalone_mupen_input_patch
+assert "rk2020_dpad_mode_requested" in standalone_mupen_input_patch
 assert 'mupen64plus-dpad-mode.%ld' in standalone_mupen_input_patch
-assert "access(pixel2_dpad_mode_path, F_OK)" in standalone_mupen_input_patch
+assert "access(rk2020_dpad_mode_path, F_OK)" in standalone_mupen_input_patch
 assert "controller[Control].joystick, 14" not in standalone_mupen_input_patch
 assert 'MUPEN64PLUS_INPUT_PATCH' in standalone_build
 assert "DPad R =\n" in standalone_build
@@ -191,13 +191,13 @@ grep -q 'strcmp(core_id, "easyrpg") == 0 && directory_exists(plan->rom_path)' \
 grep -q '"RPG_RT.ldb"' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_text_ui.c"
 grep -q 'internal:system-settings' \
-    "$ROOT_DIR/package/frontend-pixel2/menus.json"
+    "$ROOT_DIR/package/frontend-rk2020/menus.json"
 grep -q 'internal:network-settings' \
-    "$ROOT_DIR/package/frontend-pixel2/menus.json"
+    "$ROOT_DIR/package/frontend-rk2020/menus.json"
 grep -q 'menu:apps' \
-    "$ROOT_DIR/package/frontend-pixel2/menus.json"
-python3 - "$ROOT_DIR/package/frontend-pixel2/menus.json" \
-    "$ROOT_DIR/package/frontend-pixel2/feature-contract.json" <<'PY'
+    "$ROOT_DIR/package/frontend-rk2020/menus.json"
+python3 - "$ROOT_DIR/package/frontend-rk2020/menus.json" \
+    "$ROOT_DIR/package/frontend-rk2020/feature-contract.json" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -216,11 +216,11 @@ assert "reboot" not in ids and "shutdown" not in ids
 assert "system:reboot" not in actions and "system:shutdown" not in actions
 assert contract["start_menu_ids"] == ids
 PY
-grep -q '"id": "pyxel_setup"' "$ROOT_DIR/package/frontend-pixel2/apps.json"
-grep -q '"id": "scraping"' "$ROOT_DIR/package/frontend-pixel2/apps.json"
+grep -q '"id": "pyxel_setup"' "$ROOT_DIR/package/frontend-rk2020/apps.json"
+grep -q '"id": "scraping"' "$ROOT_DIR/package/frontend-rk2020/apps.json"
 grep -q 'video_rotation = "3"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg"
-python3 - "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg" <<'PY'
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
+python3 - "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg" <<'PY'
 from pathlib import Path
 import hashlib
 import sys
@@ -290,336 +290,336 @@ for forbidden in ("mali_fbdev", "~/", "/root/", "V90S", "v90s", "Miyoo", "miyoo"
     assert forbidden not in text, forbidden
 PY
 grep -q 'video_force_aspect = "true"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 grep -q 'aspect_ratio_index = "22"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 grep -q 'input_joypad_driver = "udev"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 grep -q 'input_player1_analog_dpad_mode = "0"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
 grep -q 'input_player1_down_btn = "11"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg"
-grep -q 'legacy_pixel2_sha256=b97c897b' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg"
+grep -q 'legacy_rk2020_sha256=b97c897b' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'legacy_incomplete_full_sha256=9f4aaebd' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
-grep -q 'regressed_pixel2_sha256=8d9a8e71' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
+grep -q 'regressed_rk2020_sha256=8d9a8e71' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'osd_disabled_factory_sha256=2db551be' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'black_osd_factory_sha256=231ee258' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=migrated-legacy' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=migrated-regression' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=migrated-osd' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=replaced-black-osd' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=replaced-legacy' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'retroarch_aux=result-%s target=core-options' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q 'retroarch_aux=result-%s target=parallel-n64-remap' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-config-merge"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-config-merge"
 grep -q '^reicast_cpu_mode = "dynamic_recompiler"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch-core-options.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg"
 grep -q '^parallel-n64-gfxplugin = "gliden64"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch-core-options.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg"
 grep -q '^input_player1_btn_up = "19"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/remaps/ParaLLEl N64/ParaLLEl N64.rmp"
+    "$ROOT_DIR/package/retroarch-rk2020/remaps/ParaLLEl N64/ParaLLEl N64.rmp"
 grep -q 'retroarch-core-options.cfg' "$ROOT_DIR/scripts/build-retroarch.sh"
 grep -q 'remaps/ParaLLEl N64/ParaLLEl N64.rmp' "$ROOT_DIR/scripts/build-retroarch.sh"
 if grep -q 'config_save_on_exit = "false"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch" \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-menu-launch"; then
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-menu-launch"; then
     exit 1
 fi
 grep -q '^input_a_btn = "1"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_b_btn = "0"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_start_btn = "9"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_down_axis = "+1"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_down_btn = "11"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q '^input_l_y_plus_axis = "+1"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
-grep -q '^input_device = "pixel2_joypad"$' \
-    "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
+grep -q '^input_device = "rk2020_joypad"$' \
+    "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg"
 grep -q 'SOURCE_COMMIT=69a4f0ea' "$ROOT_DIR/scripts/build-retroarch.sh"
 grep -q 'drm_set_rotation' \
-    "$ROOT_DIR/patches/retroarch/014-pixel2-drm-software-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/014-rk2020-drm-software-rotation.patch"
 grep -q 'logical_width' \
-    "$ROOT_DIR/patches/retroarch/014-pixel2-drm-software-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/014-rk2020-drm-software-rotation.patch"
 grep -q 'required_library in libpthread.so.0' \
     "$ROOT_DIR/scripts/build-retroarch.sh"
 grep -q 'emulator/lib/libpthread.so.0' \
     "$ROOT_DIR/scripts/verify-app-layer.sh"
 grep -q '^PLUMOS_INPUT_A_CODE=305$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_CODE=304$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_FUNCTION_CODE=704$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_A_UDEV_BTN=1$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_B_UDEV_BTN=0$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_DOWN_UDEV_AXIS=+1$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_DOWN_UDEV_BTN=11$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_ANALOG_DPAD_MODE=none$' \
-    "$ROOT_DIR/package/app-layer-pixel2/config/system/input-map.env"
+    "$ROOT_DIR/package/app-layer-rk2020/config/system/input-map.env"
 grep -q 'input-map.env' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'flycast_xtreme_libretro.so|' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'video_driver=gl' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'video_rotation=1' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'aspect_ratio_index=24' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'dreamcast)' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'PLUMOS_GL_MENU_ROTATION=content' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'parallel_n64_libretro.so)' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'km_duckswanstation_xtreme_amped_libretro.so|' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'n64|psx)' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'rotate_menu ? &gl->mvp : &gl->mvp_no_rot' \
-    "$ROOT_DIR/patches/retroarch/017-pixel2-gl-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/017-rk2020-gl-menu-rotation.patch"
 grep -q 'wonderswan|wonderswancolor)' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'video_allow_rotate=false' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'PLUMOS_DRM_PANEL_ROTATION=3' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'video_rotation=0' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'aspect_ratio_index=22' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q '^aspect_ratio_index=$' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -F -q '[ -z "$aspect_ratio_index" ] ||' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 if grep -q "printf 'video_aspect_ratio" \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"; then
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"; then
     exit 1
 fi
 grep -q 'video_allow_rotate = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'aspect_ratio_index = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'PLUMOS_DRM_PANEL_ROTATION' \
-    "$ROOT_DIR/patches/retroarch/015-pixel2-drm-panel-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/015-rk2020-drm-panel-rotation.patch"
 grep -q 'Fixed panel rotation remains' \
-    "$ROOT_DIR/patches/retroarch/015-pixel2-drm-panel-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/015-rk2020-drm-panel-rotation.patch"
 grep -q 'core_requested_rotation = 0' \
-    "$ROOT_DIR/patches/retroarch/015-pixel2-drm-panel-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/015-rk2020-drm-panel-rotation.patch"
 grep -q 'video_driver_set_aspect_ratio();' \
-    "$ROOT_DIR/patches/retroarch/015-pixel2-drm-panel-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/015-rk2020-drm-panel-rotation.patch"
 grep -q 'video_aspect_ratio_idx == ASPECT_RATIO_CORE' \
-    "$ROOT_DIR/patches/retroarch/022-pixel2-drm-core-aspect-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/022-rk2020-drm-core-aspect-rotation.patch"
 grep -q 'retroarch_get_core_requested_rotation' \
-    "$ROOT_DIR/patches/retroarch/022-pixel2-drm-core-aspect-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/022-rk2020-drm-core-aspect-rotation.patch"
 grep -q 'new_aspect = 1.0f / new_aspect' \
-    "$ROOT_DIR/patches/retroarch/022-pixel2-drm-core-aspect-rotation.patch"
-grep -q 'Core aspect corrected for Pixel2 rotation' \
-    "$ROOT_DIR/patches/retroarch/022-pixel2-drm-core-aspect-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/022-rk2020-drm-core-aspect-rotation.patch"
+grep -q 'Core aspect corrected for RK2020 rotation' \
+    "$ROOT_DIR/patches/retroarch/022-rk2020-drm-core-aspect-rotation.patch"
 grep -q 'surface->aspect, keep_aspect' \
-    "$ROOT_DIR/patches/retroarch/023-pixel2-drm-surface-aspect.patch"
+    "$ROOT_DIR/patches/retroarch/023-rk2020-drm-surface-aspect.patch"
 grep -q 'video_viewport_get_scaled_aspect2' \
-    "$ROOT_DIR/patches/retroarch/023-pixel2-drm-surface-aspect.patch"
+    "$ROOT_DIR/patches/retroarch/023-rk2020-drm-surface-aspect.patch"
 grep -q 'Surfaces invalidated for runtime aspect change' \
-    "$ROOT_DIR/patches/retroarch/026-pixel2-drm-dynamic-aspect-recreate.patch"
+    "$ROOT_DIR/patches/retroarch/026-rk2020-drm-dynamic-aspect-recreate.patch"
 grep -q 'drm_surface_free(_drmvars, &_drmvars->main_surface)' \
-    "$ROOT_DIR/patches/retroarch/026-pixel2-drm-dynamic-aspect-recreate.patch"
+    "$ROOT_DIR/patches/retroarch/026-rk2020-drm-dynamic-aspect-recreate.patch"
 grep -q 'drm_surface_free(_drmvars, &_drmvars->menu_surface)' \
-    "$ROOT_DIR/patches/retroarch/026-pixel2-drm-dynamic-aspect-recreate.patch"
+    "$ROOT_DIR/patches/retroarch/026-rk2020-drm-dynamic-aspect-recreate.patch"
 grep -q '_drmvars->core_width  = 0' \
-    "$ROOT_DIR/patches/retroarch/026-pixel2-drm-dynamic-aspect-recreate.patch"
+    "$ROOT_DIR/patches/retroarch/026-rk2020-drm-dynamic-aspect-recreate.patch"
 if grep -q '_drmvars->menu_active = false' \
-    "$ROOT_DIR/patches/retroarch/026-pixel2-drm-dynamic-aspect-recreate.patch"; then
+    "$ROOT_DIR/patches/retroarch/026-rk2020-drm-dynamic-aspect-recreate.patch"; then
     exit 1
 fi
 grep -q '^-static void drm_surface_set_aspect' \
-    "$ROOT_DIR/patches/retroarch/026-pixel2-drm-dynamic-aspect-recreate.patch"
+    "$ROOT_DIR/patches/retroarch/026-rk2020-drm-dynamic-aspect-recreate.patch"
 grep -q 'unsigned panel_rotation;' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -F -q '(_drmvars->panel_rotation + 4 - core_rotation) & 3' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -q 'layer == 2' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -q '^+            2,$' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -F -q 'surface->rotation ^ _drmvars->rotation' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -q 'surface->aspect = 1.0f / aspect' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -q 'struct drm_surface \*osd_surface = surface;' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -q 'osd_view.rotation = _drmvars->panel_rotation' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -q 'drm_render_osd_msg(_drmvars, osd_surface' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
-grep -q 'Core aspect converted to Pixel2 panel coordinates' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
+grep -q 'Core aspect converted to RK2020 panel coordinates' \
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -F -q 'unsigned content_rotation = (panel_rotation + 4 - core_rotation) & 3;' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 grep -F -q '(_drmvars->rotation & 1) && new_aspect > 0.0f' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"
 if grep -q '^+.*aspect_ratio_idx == ASPECT_RATIO_CORE && (effective_rotation & 1)' \
-    "$ROOT_DIR/patches/retroarch/027-pixel2-drm-core-menu-rotation.patch"; then
-    printf 'Pixel2 Core Provided aspect conversion must cover rotated arcade cores\n' >&2
+    "$ROOT_DIR/patches/retroarch/027-rk2020-drm-core-menu-rotation.patch"; then
+    printf 'RK2020 Core Provided aspect conversion must cover rotated arcade cores\n' >&2
     exit 1
 fi
 grep -q 'mame2003-xtreme-amped-turboboost = "disabled"' \
-    "$ROOT_DIR/package/retroarch-pixel2/retroarch-core-options.cfg"
+    "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg"
 grep -q 'plumos-mame2003-xtreme-config-repair' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -F -q 'if (!surface || surface->layer != 2)' \
-    "$ROOT_DIR/patches/retroarch/028-pixel2-drm-nonblocking-page-flip.patch"
+    "$ROOT_DIR/patches/retroarch/028-rk2020-drm-nonblocking-page-flip.patch"
 grep -F -q 'commit_flags |= DRM_MODE_ATOMIC_NONBLOCK' \
-    "$ROOT_DIR/patches/retroarch/028-pixel2-drm-nonblocking-page-flip.patch"
+    "$ROOT_DIR/patches/retroarch/028-rk2020-drm-nonblocking-page-flip.patch"
 grep -F -q 'struct drm_page *scanout_page = surface->current_page' \
-    "$ROOT_DIR/patches/retroarch/029-pixel2-drm-surface-page-ownership.patch"
+    "$ROOT_DIR/patches/retroarch/029-rk2020-drm-surface-page-ownership.patch"
 grep -F -q 'surface->flip_page = (surface->flip_page + 1) % surface->numpages' \
-    "$ROOT_DIR/patches/retroarch/029-pixel2-drm-surface-page-ownership.patch"
+    "$ROOT_DIR/patches/retroarch/029-rk2020-drm-surface-page-ownership.patch"
 grep -q '^+            3,$' \
-    "$ROOT_DIR/patches/retroarch/029-pixel2-drm-surface-page-ownership.patch"
+    "$ROOT_DIR/patches/retroarch/029-rk2020-drm-surface-page-ownership.patch"
 grep -F -q 'surface->aspect   = 4.0f / 3.0f' \
-    "$ROOT_DIR/patches/retroarch/030-pixel2-drm-fixed-menu-geometry.patch"
+    "$ROOT_DIR/patches/retroarch/030-rk2020-drm-fixed-menu-geometry.patch"
 grep -F -q '_drmvars->menu_surface->frame_width != (int)width' \
-    "$ROOT_DIR/patches/retroarch/030-pixel2-drm-fixed-menu-geometry.patch"
+    "$ROOT_DIR/patches/retroarch/030-rk2020-drm-fixed-menu-geometry.patch"
 grep -F -q '_drmvars->menu_surface->frame_height != (int)height' \
-    "$ROOT_DIR/patches/retroarch/030-pixel2-drm-fixed-menu-geometry.patch"
+    "$ROOT_DIR/patches/retroarch/030-rk2020-drm-fixed-menu-geometry.patch"
 grep -F -q '_drmvars->menu_surface->total_pitch != (int)(width * 4)' \
-    "$ROOT_DIR/patches/retroarch/030-pixel2-drm-fixed-menu-geometry.patch"
+    "$ROOT_DIR/patches/retroarch/030-rk2020-drm-fixed-menu-geometry.patch"
 grep -F -q 'drm_surface_free(_drmvars, &_drmvars->menu_surface)' \
-    "$ROOT_DIR/patches/retroarch/030-pixel2-drm-fixed-menu-geometry.patch"
+    "$ROOT_DIR/patches/retroarch/030-rk2020-drm-fixed-menu-geometry.patch"
 grep -F -q 'if (vid->menu_active && !vid->menu_surface)' \
-    "$ROOT_DIR/patches/retroarch/031-pixel2-drm-menu-first-viewport.patch"
+    "$ROOT_DIR/patches/retroarch/031-rk2020-drm-menu-first-viewport.patch"
 grep -F -q 'menu_view.aspect   = 4.0f / 3.0f' \
-    "$ROOT_DIR/patches/retroarch/031-pixel2-drm-menu-first-viewport.patch"
+    "$ROOT_DIR/patches/retroarch/031-rk2020-drm-menu-first-viewport.patch"
 grep -F -q 'drm_surface_update_viewport(&menu_view)' \
-    "$ROOT_DIR/patches/retroarch/031-pixel2-drm-menu-first-viewport.patch"
+    "$ROOT_DIR/patches/retroarch/031-rk2020-drm-menu-first-viewport.patch"
 grep -F -q 'unsigned content_rotation = gl->rotation' \
-    "$ROOT_DIR/patches/retroarch/032-pixel2-gl-menu-fixed-display-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/032-rk2020-gl-menu-fixed-display-rotation.patch"
 grep -F -q 'if (fixed_menu_rotation && gl->rotation != 90)' \
-    "$ROOT_DIR/patches/retroarch/032-pixel2-gl-menu-fixed-display-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/032-rk2020-gl-menu-fixed-display-rotation.patch"
 grep -F -q 'gl->rotation = content_rotation' \
-    "$ROOT_DIR/patches/retroarch/032-pixel2-gl-menu-fixed-display-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/032-rk2020-gl-menu-fixed-display-rotation.patch"
 grep -F -q 'unsigned menu_width = gl->video_width > gl->video_height' \
-    "$ROOT_DIR/patches/retroarch/033-pixel2-gl-menu-fixed-logical-size.patch"
+    "$ROOT_DIR/patches/retroarch/033-rk2020-gl-menu-fixed-logical-size.patch"
 grep -F -q 'rotated_menu_video_info.width        = menu_width' \
-    "$ROOT_DIR/patches/retroarch/033-pixel2-gl-menu-fixed-logical-size.patch"
+    "$ROOT_DIR/patches/retroarch/033-rk2020-gl-menu-fixed-logical-size.patch"
 grep -F -q 'rotated_menu_video_info.height       = menu_height' \
-    "$ROOT_DIR/patches/retroarch/033-pixel2-gl-menu-fixed-logical-size.patch"
+    "$ROOT_DIR/patches/retroarch/033-rk2020-gl-menu-fixed-logical-size.patch"
 grep -F -q 'unsigned logical_width =' \
-    "$ROOT_DIR/patches/retroarch/034-pixel2-gl-menu-fixed-render-size.patch"
+    "$ROOT_DIR/patches/retroarch/034-rk2020-gl-menu-fixed-render-size.patch"
 grep -F -q 'menu_render_width  = logical_width' \
-    "$ROOT_DIR/patches/retroarch/034-pixel2-gl-menu-fixed-render-size.patch"
+    "$ROOT_DIR/patches/retroarch/034-rk2020-gl-menu-fixed-render-size.patch"
 grep -F -q 'menu_render_height = logical_height' \
-    "$ROOT_DIR/patches/retroarch/034-pixel2-gl-menu-fixed-render-size.patch"
+    "$ROOT_DIR/patches/retroarch/034-rk2020-gl-menu-fixed-render-size.patch"
 grep -F -q 'return gl->vp.width;' \
-    "$ROOT_DIR/patches/retroarch/035-pixel2-gl-menu-font-logical-viewport.patch"
+    "$ROOT_DIR/patches/retroarch/035-rk2020-gl-menu-font-logical-viewport.patch"
 grep -F -q 'return gl->vp.height;' \
-    "$ROOT_DIR/patches/retroarch/035-pixel2-gl-menu-font-logical-viewport.patch"
+    "$ROOT_DIR/patches/retroarch/035-rk2020-gl-menu-font-logical-viewport.patch"
 grep -F -q 'clips text at logical' \
-    "$ROOT_DIR/patches/retroarch/035-pixel2-gl-menu-font-logical-viewport.patch"
+    "$ROOT_DIR/patches/retroarch/035-rk2020-gl-menu-font-logical-viewport.patch"
 grep -F -q 'glViewport(0, 0, gl->video_width, gl->video_height)' \
-    "$ROOT_DIR/patches/retroarch/036-pixel2-gl-menu-font-physical-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/036-rk2020-gl-menu-font-physical-rotation.patch"
 grep -F -q 'physical x = 1 - logical y' \
-    "$ROOT_DIR/patches/retroarch/036-pixel2-gl-menu-font-physical-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/036-rk2020-gl-menu-font-physical-rotation.patch"
 grep -F -q 'font_vertex[(2 * vertex) + 1] = logical_x' \
-    "$ROOT_DIR/patches/retroarch/036-pixel2-gl-menu-font-physical-rotation.patch"
+    "$ROOT_DIR/patches/retroarch/036-rk2020-gl-menu-font-physical-rotation.patch"
 grep -q 'ID_INPUT_JOYSTICK=1' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-ensure-udev-input-db"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-ensure-udev-input-db"
 grep -q 'plumos-ensure-udev-input-db' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'plumos-audio-output' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'ALSA_PLUGIN_DIR' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'PLUMOS_AUDIO_FAST_FORWARD_DROP=1' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'PLUMOS_AUDIO_FAST_FORWARD_STATE' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'audio_device = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'pcm.plumos_output' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos/bin/plumos-audio-output"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output"
 grep -A2 'pcm.!default' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos/bin/plumos-audio-output" |
+    "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output" |
     grep -q 'type plumos_hotplug'
 ! grep -A3 'pcm.!default' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos/bin/plumos-audio-output" |
+    "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output" |
     grep -q 'slave.pcm'
 grep -q 'export PLUMOS_AUDIO_POLL_PROXY=0' \
-    "$ROOT_DIR/package/portmaster-pixel2/plumos/bin/plumos-portmaster-port-launch"
+    "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-port-launch"
 grep -q 'factory-defaults/alsa/alsa.conf' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos/bin/plumos-audio-output"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output"
 grep -q 'pcm.plumos_hw_card' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos/bin/plumos-audio-output"
-grep -q 'PLUMOS_PIXEL2_INTERNAL_CARD_ID' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos/bin/plumos-audio-output"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output"
+grep -q 'PLUMOS_RK2020_INTERNAL_CARD_ID' \
+    "$ROOT_DIR/package/audio-router-rk2020/plumos/bin/plumos-audio-output"
 grep -q 'plumos_%s_card%d' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos_hotplug.c"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos_hotplug.c"
 grep -q 'snd_pcm_avail_update' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos_hotplug.c"
-grep -q 'plumOS Pixel2 hotplug audio' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos_hotplug.c"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos_hotplug.c"
+grep -q 'plumOS RK2020 hotplug audio' \
+    "$ROOT_DIR/package/audio-router-rk2020/plumos_hotplug.c"
 grep -q 'PLUMOS_RETROARCH_CPU_GOVERNOR:-}' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'unsupported CPU governor' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'scaling_available_governors' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'audio_latency = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'video_threaded = "true"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'video_refresh_rate = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'core_options_path = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'vrr_runloop_enable = "%s"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q '#define VOLUME_PROBE_INTERVAL 0' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos_hotplug.c"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos_hotplug.c"
 grep -q 'pcm->volume_level < VOLUME_MAX' \
-    "$ROOT_DIR/package/audio-router-pixel2/plumos_hotplug.c"
+    "$ROOT_DIR/package/audio-router-rk2020/plumos_hotplug.c"
 grep -q 'input-map.env' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-run-with-input-map"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-run-with-input-map"
 grep -q 'east-confirm' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'plumos-hardware-keys-service' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
-grep -q 'plumos_pixel2_hardware_keys.c' \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
+grep -q 'plumos_rk2020_hardware_keys.c' \
     "$ROOT_DIR/scripts/build-frontend-component.sh"
-grep -q 'pixel2_joypad' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+grep -q 'rk2020_joypad' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'gpio-keys' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'rk805 pwrkey' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'plumos-power-menu-overlay' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'POWER_MENU_DEBOUNCE_MS' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'KEY_VOLUMEUP' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'BTN_SELECT' \
-    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_pixel2_hardware_keys.c"
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'strcmp(ab_layout, "east-confirm")' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'case BTN_TRIGGER_HAPPY1:' \
@@ -644,135 +644,135 @@ sed -n '/static int choose_mali_fallback_font_path/,/static void add_setting_ent
 sed -n '/static int choose_mali_fallback_font_path/,/static void add_setting_entry/p' \
     "$font_source" | grep -q '"fonts/cjk-fallback.ttc"'
 grep -q 'sysrq-trigger' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'rk817-dev-off' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'i2cset -f -y 0 0x20 0xf4' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'plumos-reboot-mode' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'LINUX_REBOOT_CMD_RESTART2' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_reboot_mode.c"
 grep -q 'printf.*sleep_backend.*power_state' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 ! grep -qi 'adbd\|functionfs' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'run_rk817_resume rearm' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'pause_display_owners' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-power-menu-overlay"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-power-menu-overlay"
 grep -q 'PLUMOS_POWER_MENU_SELECTION' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-power-menu-overlay"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-power-menu-overlay"
 ! grep -q 'plumos-hardware-keys-service.*stop' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-frontend-stop"
-grep -q 'docker/pixel2-tools/libretro-core-recipes.tsv' "$ROOT_DIR/scripts/build-libretro-cores.sh"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-frontend-stop"
+grep -q 'docker/rk2020-tools/libretro-core-recipes.tsv' "$ROOT_DIR/scripts/build-libretro-cores.sh"
 ! grep -q '^mupen64plus_next|' \
-    "$ROOT_DIR/docker/pixel2-tools/libretro-core-recipes.tsv"
+    "$ROOT_DIR/docker/rk2020-tools/libretro-core-recipes.tsv"
 grep -q 'quicknes|A|https://github.com/libretro/QuickNES_Core.git|058d6651' \
-    "$ROOT_DIR/docker/pixel2-tools/libretro-core-recipes.tsv"
+    "$ROOT_DIR/docker/rk2020-tools/libretro-core-recipes.tsv"
 grep -q 'pcsx_rearmed|A|https://github.com/libretro/pcsx_rearmed.git|d26eaee5' \
-    "$ROOT_DIR/docker/pixel2-tools/libretro-core-recipes.tsv"
+    "$ROOT_DIR/docker/rk2020-tools/libretro-core-recipes.tsv"
 grep -q 'PCSX_REF=.*9f8b6f248e073f03c530efda7c4cc60a7e2ecafc' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'PCSX_SDL12_REF=.*fc2ec0c128197f1f5050e48359bc41e618f3abfb' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
-grep -q 'renderer.*builtin-neon-threaded-pixel2-fbdev-ccw' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -q 'renderer.*builtin-neon-threaded-rk2020-fbdev-ccw' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'SDL_VIDEODRIVER=dummy' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PLUMOS_PCSX_REQUIRE_ALSA=1' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'emulator/lib/libpthread.so.0' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PCSX-ReARMed SDL2 pthread compatibility runtime missing' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'mkdir -p /dev/shm' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'bin/runner' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'pico8_machine.*b700' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q '_pico8_64' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PLUMOS_PICO8_SDL_ROTATION=270' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'SDL_RENDER_DRIVER=opengles2' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PLUMOS_PICO8_PIXEL_PERFECT:-0' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'binary_policy.*external-proprietary' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'MUPEN64PLUS_UI_REF=.*1a68327fddda71f1acbad8a63ef04288b1887d19' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'MUPEN64PLUS_CORE_REF=.*b0d68c20f49b8f833afa21450e0e8874c87c13c4' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'MUPEN64PLUS_VIDEO_REF=.*fcf00779f08a9503ef30d26422f6b0350684820d' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
-grep -q 'pixel2_joypad' \
-    "$ROOT_DIR/scripts/build-standalone-pixel2.sh"
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -q 'rk2020_joypad' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'BTN_TRIGGER_HAPPY1' \
-    "$ROOT_DIR/package/standalone-pixel2/src/plumos-mupen64plus-hotkey.c"
+    "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'FUNCTION_EXIT_HOLD_MS 1500L' \
-    "$ROOT_DIR/package/standalone-pixel2/src/plumos-mupen64plus-hotkey.c"
+    "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'FUNCTION_RELEASE_SETTLE_MS 200L' \
-    "$ROOT_DIR/package/standalone-pixel2/src/plumos-mupen64plus-hotkey.c"
+    "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'publish_dpad_mode' \
-    "$ROOT_DIR/package/standalone-pixel2/src/plumos-mupen64plus-hotkey.c"
+    "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'mupen64plus-dpad-mode.%ld' \
-    "$ROOT_DIR/package/standalone-pixel2/src/plumos-mupen64plus-hotkey.c"
+    "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'Function held; stopping' \
-    "$ROOT_DIR/package/standalone-pixel2/src/plumos-mupen64plus-hotkey.c"
+    "$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 grep -q 'PLUMOS_MUPEN64PLUS_LOGICAL_SIZE=640x480' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/bin/plumos-standalone-launch"
-grep -q 'PLUMOS_PIXEL2_PYTHON_EXTRA_LIBRARY_PATH' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
+grep -q 'PLUMOS_RK2020_PYTHON_EXTRA_LIBRARY_PATH' \
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'PLUMOS_PYXEL_GL_ROTATION.*270' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'PLUMOS_PYXEL_FIT=0' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'PLUMOS_PYXEL_HIDE_CURSOR.*1' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'plumos-pyxel-gl-rotate.so' \
-    "$ROOT_DIR/scripts/build-pyxel-runtime-pixel2.sh"
+    "$ROOT_DIR/scripts/build-pyxel-runtime-rk2020.sh"
 grep -q 'PLUMOS_PYXEL_LOGICAL_SIZE.*640x480' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
-grep -q 'plumos_pyxel_pixel2_shim' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
+grep -q 'plumos_pyxel_rk2020_shim' \
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'SDL_GAMECONTROLLERCONFIG' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'a:b1,b:b0,x:b2,y:b3' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'PLUMOS_PYXEL_TEMP_ROOT.*CACHE_ROOT/tmp' \
-    "$ROOT_DIR/package/pyxel-pixel2/plumos/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT_DIR/package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch"
 grep -q 'PLUMOS_GL_LOGICAL_SIZE_ENV' \
-    "$ROOT_DIR/package/portmaster-pixel2/src/plumos_portmaster_gl_rotate.c"
+    "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 grep -q 'PLUMOS_GL_ROTATION_ENV' \
-    "$ROOT_DIR/package/portmaster-pixel2/src/plumos_portmaster_gl_rotate.c"
+    "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 grep -q 'LOAD_NEXT(sdl_gl_get_proc_address, "SDL_GL_GetProcAddress")' \
-    "$ROOT_DIR/package/portmaster-pixel2/src/plumos_portmaster_gl_rotate.c"
+    "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 grep -q '^Gpu3 = builtin_gpu$' \
-    "$ROOT_DIR/package/standalone-pixel2/plumos/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
+    "$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
 grep -q 'logical=640x480 ccw' \
-    "$ROOT_DIR/package/standalone-pixel2/src/pcsx-pixel2-fbdev.h"
+    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
 if grep -ERiq 'V9[0]S|M[F]|Miy[o]o|ROCKNIX' \
     "$ROOT_DIR/patches/pcsx_rearmed" \
-    "$ROOT_DIR/package/standalone-pixel2/src/pcsx-pixel2-fbdev.h"; then
-    printf 'error: foreign identity in Pixel2 PCSX-ReARMed implementation\n' >&2
+    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"; then
+    printf 'error: foreign identity in RK2020 PCSX-ReARMed implementation\n' >&2
     exit 1
 fi
 grep -q 'component: "libretro-cores"' "$ROOT_DIR/scripts/build-libretro-cores.sh"
 grep -q 'updater-incompatible app-layer symlink' "$ROOT_DIR/scripts/verify-app-layer.sh"
 ! grep -q 'ln -s ../network/bin/busybox' \
-    "$ROOT_DIR/scripts/build-network-services-pixel2.sh"
+    "$ROOT_DIR/scripts/build-network-services-rk2020.sh"
 grep -q '^complete=true$' "$ROOT_DIR/scripts/build-app-layer.sh"
 grep -q 'PLUMOS_STORAGE_ROOT:-/mnt/plumos-user' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-storage-health"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-storage-health"
 grep -q '"$FSCK" -n "$device"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-storage-health"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-storage-health"
 grep -q 'PLUMOS_RTC_DEVICE:-/dev/rtc0' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-time-sync"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-time-sync"
 grep -q 'hwclock -u -f "$RTC_DEVICE" -w' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-time-sync"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-time-sync"
 grep -q 'factory-defaults/ra/config/retroarch' \
     "$ROOT_DIR/scripts/build-app-layer.sh"
 grep -q 'factory-defaults/pico/config/standalone' \
@@ -783,36 +783,36 @@ for service in ssh ftp sftp samba; do
     grep -q "network_${service}_enabled" \
         "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
     grep -Eq "(^|[[:space:]|])${service}([[:space:]|)]|$)" \
-        "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services"
+        "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services"
 done
 ! grep -qi 'adb\|functionfs\|network_usb_mode' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 ! grep -qi 'adb\|functionfs\|usb_mode' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services"
-grep -q 'generate-pixel2-system-logos.py' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services"
+grep -q 'generate-rk2020-system-logos.py' \
     "$ROOT_DIR/scripts/build-frontend-component.sh"
 grep -Fq 'apps/*/bin/*.bin|ssh/libexec/*.bin' \
     "$ROOT_DIR/scripts/verify-app-layer.sh"
 ! grep -q 'head -n 1' "$ROOT_DIR/scripts/verify-app-layer.sh"
 grep -q 'xargs -0 grep -I' "$ROOT_DIR/scripts/verify-app-layer.sh"
 jq -e '.systems[] | select(.id == "ports" and .enabled == true and .default_launch_profile == "external:port")' \
-    "$ROOT_DIR/package/frontend-pixel2/systems.json" >/dev/null
+    "$ROOT_DIR/package/frontend-rk2020/systems.json" >/dev/null
 grep -q 'install_scraper_runtime' "$ROOT_DIR/scripts/build-frontend-component.sh"
 grep -q 'PLUMOS_SDCARD_ROOT:-/mnt/plumos-user' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-thumbnail-scraper"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-thumbnail-scraper"
 grep -q 'PLUMOS_BUSYBOX:-/bin/busybox' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-thumbnail-scraper"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-thumbnail-scraper"
 grep -q 'scraper-sources.tsv' "$ROOT_DIR/scripts/build-frontend-component.sh"
 grep -q -- '--retry-all-errors' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-thumbnail-scraper"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-thumbnail-scraper"
 grep -q 'acquire_index_lock' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-thumbnail-scraper"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-thumbnail-scraper"
 grep -q 'preflight_lookup_indexes "$fetch_system_id"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-thumbnail-scraper"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-thumbnail-scraper"
 "$ROOT_DIR/tests/test-thumbnail-scraper-concurrency.sh"
 "$ROOT_DIR/tests/test-library-scan-cache-refresh.sh"
 
-feature_tmp="$(mktemp -d "${TMPDIR:-/tmp}/plumos-pixel2-feature-test.XXXXXX")"
+feature_tmp="$(mktemp -d "${TMPDIR:-/tmp}/plumos-rk2020-feature-test.XXXXXX")"
 trap 'rm -rf "$feature_tmp"' EXIT
 mkdir -p "$feature_tmp/card/roms/nes" "$feature_tmp/plumos"
 python3 - "$ROOT_DIR" "$feature_tmp" <<'PY'
@@ -822,7 +822,7 @@ from pathlib import Path
 
 repo = Path(sys.argv[1])
 temp = Path(sys.argv[2]) / "portmaster-stage"
-module_path = repo / "package/portmaster-pixel2/plumos/apps/portmaster/adapter/plumos_portmaster_update.py"
+module_path = repo / "package/portmaster-rk2020/plumos/apps/portmaster/adapter/plumos_portmaster_update.py"
 spec = importlib.util.spec_from_file_location("plumos_portmaster_update", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
@@ -842,93 +842,93 @@ network_env=(
     PLUMOS_RUNTIME_ROOT="$feature_tmp/network/run"
 )
 env "${network_env[@]}" \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services" \
     status ssh >"$feature_tmp/network/ssh-default.status" || true
 grep -q '^enabled=1$' "$feature_tmp/network/ssh-default.status"
 ! grep -q 'waiting for authorized_keys' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services"
 grep -q 'INITIAL_PASSWORD="${PLUMOS_SSH_INITIAL_PASSWORD:-plumos}"' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-ssh-password"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-ssh-password"
 grep -q 'auth=password,pubkey' \
-    "$ROOT_DIR/package/app-layer-pixel2/ssh/start-ssh.sh"
+    "$ROOT_DIR/package/app-layer-rk2020/ssh/start-ssh.sh"
 grep -q 'ip link set lo up' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services"
 grep -q 'ip addr add 127.0.0.1/8 dev lo' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services"
 grep -q "awk '{ print \$3 }'" \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-services"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-services"
 grep -q 'PLUMOS_ROOT/emulator/lib' \
-    "$ROOT_DIR/scripts/build-nextcommander-pixel2.sh"
+    "$ROOT_DIR/scripts/build-nextcommander-rk2020.sh"
 grep -q 'CXXFLAGS += -DCMDR_KEY_OPEN=1' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'CXXFLAGS += -DCMDR_KEY_PARENT=0' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'CXXFLAGS += -DCMDR_KEY_SELECT=8' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'CXXFLAGS += -DCMDR_KEY_TRANSFER=9' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'CXXFLAGS += -DCMDR_KEY_MENU=14' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
-grep -q 'Pixel2 virtual D-pad is SDL joystick buttons 10-13' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
+grep -q 'RK2020 virtual D-pad is SDL joystick buttons 10-13' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q '"/bin/busybox", AsConstCStr(args)' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'i == inputs.size() - 1' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/nextcommander-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q '^path_default_right=/roms$' \
-    "$ROOT_DIR/scripts/build-nextcommander-pixel2.sh"
+    "$ROOT_DIR/scripts/build-nextcommander-rk2020.sh"
 grep -q 'lib/libretro/libvorbisfile.so.3' \
-    "$ROOT_DIR/package/portmaster-pixel2/plumos/bin/plumos-portmaster-runtime"
+    "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
 grep -q 'lib/libretro/libopusfile.so.0' \
-    "$ROOT_DIR/package/portmaster-pixel2/plumos/bin/plumos-portmaster-runtime"
+    "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
 "$ROOT_DIR/tests/test-portmaster-pgrep.sh"
 "$ROOT_DIR/tests/test-portmaster-df.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-runtime.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-moonlight-gui.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-audit.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-exec-guard.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-rockbox.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-session-cleanup.sh"
-"$ROOT_DIR/tests/test-portmaster-pixel2-gptokey-exit.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-runtime.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-moonlight-gui.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-audit.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-exec-guard.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-rockbox.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-session-cleanup.sh"
+"$ROOT_DIR/tests/test-portmaster-rk2020-gptokey-exit.sh"
 grep -q 'retroarch" --menu -v' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-menu-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-menu-launch"
 grep -q 'plumos-ensure-udev-input-db' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-retroarch-menu-launch"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-menu-launch"
 grep -q '/proc/\$pid/stat' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-frontend-stop"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-frontend-stop"
 grep -q '40-frontend' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-frontend-launch"
-test -x "$ROOT_DIR/tests/test-pixel2-frontend-clean-environment.sh"
-"$ROOT_DIR/tests/test-pixel2-frontend-clean-environment.sh"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-frontend-launch"
+test -x "$ROOT_DIR/tests/test-rk2020-frontend-clean-environment.sh"
+"$ROOT_DIR/tests/test-rk2020-frontend-clean-environment.sh"
 grep -q 'process_is_live' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-hardware-keys-service"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-hardware-keys-service"
 grep -q 'plumos-frontend-stop" stop' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-safe-shutdown"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'if (is_start_menu_return_screen(ui->screen))' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'screen == SCREEN_TOP || screen == SCREEN_ROMS' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
-"$ROOT_DIR/tests/test-pixel2-power-menu-sleep.sh"
+"$ROOT_DIR/tests/test-rk2020-power-menu-sleep.sh"
 grep -q 'renderer->var.xres = renderer->physical_yres' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'case BTN_EAST:' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'case BTN_SOUTH:' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'case BTN_TRIGGER_HAPPY1:' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'B/FUNCTION Exit' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'SND_PCM_NONBLOCK' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'rc == -EPIPE || rc == -ESTRPIPE' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q '/mnt/plumos-user/Music' \
-    "$ROOT_DIR/docker/pixel2-tools/patches/music-player-pixel2.patch"
-test -x "$ROOT_DIR/scripts/pixel2-sleep-auto-select.sh"
-test -x "$ROOT_DIR/scripts/pixel2-sleep-cycle-device.sh"
-test -x "$ROOT_DIR/scripts/validate-pixel2-sleep-matrix.py"
-python3 -m py_compile "$ROOT_DIR/scripts/validate-pixel2-sleep-matrix.py"
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
+test -x "$ROOT_DIR/scripts/rk2020-sleep-auto-select.sh"
+test -x "$ROOT_DIR/scripts/rk2020-sleep-cycle-device.sh"
+test -x "$ROOT_DIR/scripts/validate-rk2020-sleep-matrix.py"
+python3 -m py_compile "$ROOT_DIR/scripts/validate-rk2020-sleep-matrix.py"
 grep -q 'logical_width = (r->rotation == 1 || r->rotation == 3)' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 grep -q '? (int)r->physical_yres' \
@@ -937,7 +937,7 @@ touch "$feature_tmp/card/roms/nes/.DS_Store"
 PLUMOS_ROOT="$feature_tmp/plumos" \
 PLUMOS_SDCARD_ROOT="$feature_tmp/card" \
 PLUMOS_RUNTIME_ROOT="$feature_tmp/run" \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-sdcard-cleanup" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-sdcard-cleanup" \
     --force --dry-run >"$feature_tmp/cleanup-dry-run.log"
 grep -q 'result=ok files=1 dirs=0 failed=0 dry_run=1' \
     "$feature_tmp/cleanup-dry-run.log"
@@ -945,26 +945,26 @@ test -f "$feature_tmp/card/roms/nes/.DS_Store"
 PLUMOS_ROOT="$feature_tmp/plumos" \
 PLUMOS_SDCARD_ROOT="$feature_tmp/card" \
 PLUMOS_RUNTIME_ROOT="$feature_tmp/run" \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-sdcard-cleanup" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-sdcard-cleanup" \
     --force >"$feature_tmp/cleanup.log"
 test ! -e "$feature_tmp/card/roms/nes/.DS_Store"
-"$ROOT_DIR/scripts/generate-pixel2-system-logos.py" "$feature_tmp/logos"
+"$ROOT_DIR/scripts/generate-rk2020-system-logos.py" "$feature_tmp/logos"
 for logo in arduboy megaduck puzzlescript superbroswar; do
     file "$feature_tmp/logos/$logo.png" | grep -q 'PNG image data, 190 x 156'
 done
 if grep -R -E -i '(rocknix|emuelec|batocera|knulli|stockos)' \
-    "$ROOT_DIR/package/frontend-pixel2" \
-    "$ROOT_DIR/package/retroarch-pixel2" \
-    "$ROOT_DIR/package/app-layer-pixel2" >/dev/null; then
-    printf 'error: foreign distribution identity in Pixel2 app sources\n' >&2
+    "$ROOT_DIR/package/frontend-rk2020" \
+    "$ROOT_DIR/package/retroarch-rk2020" \
+    "$ROOT_DIR/package/app-layer-rk2020" >/dev/null; then
+    printf 'error: foreign distribution identity in RK2020 app sources\n' >&2
     exit 1
 fi
 foreign_models='M[F]|V9[0]S|M[M]F|A3[0]|Miy[o]o'
 if grep -R -I -E -i "(^|[^[:alnum:]_])($foreign_models)([^[:alnum:]_]|$)" \
-    "$ROOT_DIR/package/frontend-pixel2" \
-    "$ROOT_DIR/package/app-layer-pixel2" \
+    "$ROOT_DIR/package/frontend-rk2020" \
+    "$ROOT_DIR/package/app-layer-rk2020" \
     "$ROOT_DIR/vendor/plumos-frontend"; then
-    printf 'error: foreign device identity in Pixel2 frontend sources\n' >&2
+    printf 'error: foreign device identity in RK2020 frontend sources\n' >&2
     exit 1
 fi
 printf 'app_layer_scripts=result-ok\n'

@@ -8,10 +8,10 @@ for path in \
     licenses/plumOS-MIT.txt licenses/NOTICE.txt \
     licenses/THIRD_PARTY_NOTICES.md licenses/THIRD_PARTY_NOTICES.ja.md \
     licenses/RUNTIME_LICENSE_INDEX.tsv \
-    licenses/pixel2-stock-vendor-runtime-NOTICE.txt \
+    licenses/rk2020-stock-vendor-runtime-NOTICE.txt \
     licenses/drastic-upstream-NOTICE.txt \
     licenses/nextcommander-upstream-NOTICE.txt \
-    bin/plumos-frontend-pixel2 bin/plumos-library-scan bin/plumos-text-ui \
+    bin/plumos-frontend-rk2020 bin/plumos-library-scan bin/plumos-text-ui \
     bin/plumos-retroarch-config-merge bin/plumos-np2kai-config-repair \
     bin/plumos-retroarch-launch \
     bin/plumos-ensure-udev-input-db \
@@ -20,7 +20,7 @@ for path in \
     bin/retroarch cores/quicknes_libretro.so \
     picoarch/bin/picoarch picoarch/lib/libSDL-1.2.so.0 \
     picoarch/lib/libSDL2-2.0.so.0 \
-    config/standalone/picoarch.env config/standalone/pixel2.env \
+    config/standalone/picoarch.env config/standalone/rk2020.env \
     bin/plumos-safe-shutdown bin/plumos-reboot-mode bin/plumos-run-with-input-map \
     bin/plumos-frontend-launch bin/plumos-frontend-stop \
     bin/plumos-hardware-keys bin/plumos-hardware-keys-service \
@@ -33,14 +33,14 @@ for path in \
     bin/plumos-retroarch-menu-launch bin/plumos-portmaster-launch \
     bin/plumos-portmaster-update \
     bin/plumos-audio-output lib/alsa-lib/libasound_module_pcm_plumos_hotplug.so \
-    bin/plumos-python-pixel2 bin/plumos-pyxel-pixel2-launch bin/plumos-pyxel-setup \
+    bin/plumos-python-rk2020 bin/plumos-pyxel-rk2020-launch bin/plumos-pyxel-setup \
     apps/python/bin/python3.11 apps/pyxel/site/pyxel/__init__.py \
     emulator/lib/libpthread.so.0 \
     factory-defaults/alsa/alsa.conf \
     config/frontend/systems.json config/frontend/feature-contract.json factory-defaults/retroarch/retroarch.cfg \
     factory-defaults/retroarch/retroarch-core-options.cfg \
     "factory-defaults/retroarch/remaps/ParaLLEl N64/ParaLLEl N64.rmp" \
-    factory-defaults/retroarch/autoconfig/udev/pixel2_joypad.cfg \
+    factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg \
     config/system/input-map.env config/system/input-map.json \
     components/frontend/manifest.json components/retroarch/manifest.json \
     components/picoarch/manifest.json components/standalone/manifest.json \
@@ -99,13 +99,13 @@ for path in root.rglob("*"):
 if invalid:
     raise SystemExit("updater-incompatible app-layer symlink: " + ", ".join(invalid))
 PY
-grep -q '"device": "pixel2"' "$ROOT/manifest.json"
+grep -q '"device": "rk2020"' "$ROOT/manifest.json"
 grep -q '"complete": true' "$ROOT/manifest.json"
 grep -q '"retroarch:quicknes"' "$ROOT/config/frontend/systems.json"
 jq -e '.systems[] | select(.id == "ports" and .enabled == true and .default_launch_profile == "external:port")' \
     "$ROOT/config/frontend/systems.json" >/dev/null
-grep -q '^input_device = "pixel2_joypad"$' \
-    "$ROOT/factory-defaults/retroarch/autoconfig/udev/pixel2_joypad.cfg"
+grep -q '^input_device = "rk2020_joypad"$' \
+    "$ROOT/factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg"
 grep -q '^input_joypad_driver = "udev"$' \
     "$ROOT/factory-defaults/retroarch/retroarch.cfg"
 grep -q '^audio_device = "plumos_output"$' \
@@ -173,7 +173,7 @@ grep -q '^menu_show_online_updater = "false"$' \
 grep -q 'main_result=replaced-legacy' "$ROOT/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=migrated-legacy' "$ROOT/bin/plumos-retroarch-config-merge"
 grep -q 'main_result=migrated-regression' "$ROOT/bin/plumos-retroarch-config-merge"
-grep -q '"device": "pixel2"' "$ROOT/config/frontend/menus.json"
+grep -q '"device": "rk2020"' "$ROOT/config/frontend/menus.json"
 grep -q 'ID_INPUT_JOYSTICK=1' "$ROOT/bin/plumos-ensure-udev-input-db"
 grep -q 'plumos-audio-output' "$ROOT/bin/plumos-retroarch-launch"
 grep -q 'LIBGL_DRIVERS_PATH' "$ROOT/bin/plumos-retroarch-launch"
@@ -193,11 +193,11 @@ grep -q 'parallel_n64_libretro.so)' "$ROOT/bin/plumos-retroarch-launch"
 grep -q 'km_duckswanstation_xtreme_amped_libretro.so|' "$ROOT/bin/plumos-retroarch-launch"
 grep -q 'n64|psx)' "$ROOT/bin/plumos-retroarch-launch"
 grep -a -q 'PLUMOS_GL_MENU_ROTATION' "$ROOT/bin/retroarch"
-grep -a -q 'Core aspect converted to Pixel2 panel coordinates' "$ROOT/bin/retroarch"
+grep -a -q 'Core aspect converted to RK2020 panel coordinates' "$ROOT/bin/retroarch"
 while IFS= read -r gles_binary; do
     gles_basename="${gles_binary##*/}"
     grep -F -q "$gles_basename" "$ROOT/bin/plumos-retroarch-launch" || {
-        printf 'error: hardware-gles core lacks Pixel2 launcher policy: %s\n' \
+        printf 'error: hardware-gles core lacks RK2020 launcher policy: %s\n' \
             "$gles_basename" >&2
         exit 1
     }
@@ -219,43 +219,43 @@ grep -q '"component": "audio-router"' "$ROOT/components/audio-router/manifest.js
 grep -q '"component": "picoarch"' "$ROOT/components/picoarch/manifest.json"
 grep -q '"component": "standalone"' "$ROOT/components/standalone/manifest.json"
 grep -q '"component": "pyxel"' "$ROOT/components/pyxel/manifest.json"
-grep -q '"device": "pixel2"' "$ROOT/components/picoarch/manifest.json"
-grep -q '"device": "pixel2"' "$ROOT/components/standalone/manifest.json"
-grep -q '"device": "pixel2"' "$ROOT/components/pyxel/manifest.json"
+grep -q '"device": "rk2020"' "$ROOT/components/picoarch/manifest.json"
+grep -q '"device": "rk2020"' "$ROOT/components/standalone/manifest.json"
+grep -q '"device": "rk2020"' "$ROOT/components/pyxel/manifest.json"
 grep -Fq 'SDL_VIDEO_EGL_DRIVER="${SDL_VIDEO_EGL_DRIVER:-$PYXEL_ROOT/lib/libEGL.so.1}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq '"$DRI_DIR/rockchip_dri.so"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'unset LIBGL_ALWAYS_SOFTWARE MESA_LOADER_DRIVER_OVERRIDE' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'AUDIODEV="${AUDIODEV:-plumos_pyxel}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'SDL_GAMECONTROLLERCONFIG' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'a:b1,b:b0,x:b2,y:b3' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'PYTHONUNBUFFERED="${PYTHONUNBUFFERED:-1}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'TEMP_ROOT="${PLUMOS_PYXEL_TEMP_ROOT:-$CACHE_ROOT/tmp}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'export TMPDIR="$TEMP_ROOT"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'PLUMOS_PYXEL_FIT=0' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'PLUMOS_PYXEL_HIDE_CURSOR="${PLUMOS_PYXEL_HIDE_CURSOR:-1}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'PLUMOS_PYXEL_GL_ROTATION="${PLUMOS_PYXEL_GL_ROTATION:-270}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 grep -Fq 'PLUMOS_PYXEL_LOGICAL_SIZE="${PLUMOS_PYXEL_LOGICAL_SIZE:-640x480}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
-grep -Fq -- '-m plumos_pyxel_pixel2_shim' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
-test -s "$ROOT/share/pyxel/plumos_pyxel_pixel2_shim.py"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
+grep -Fq -- '-m plumos_pyxel_rk2020_shim' \
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
+test -s "$ROOT/share/pyxel/plumos_pyxel_rk2020_shim.py"
 grep -Fq 'plumos-pyxel-gl-rotate.so' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"
 if grep -Fq 'MESA_LOADER_DRIVER_OVERRIDE="${MESA_LOADER_DRIVER_OVERRIDE:-panfrost}"' \
-    "$ROOT/bin/plumos-pyxel-pixel2-launch"; then
-    echo "Pixel2 Pyxel must not force the Panfrost Mesa loader name" >&2
+    "$ROOT/bin/plumos-pyxel-rk2020-launch"; then
+    echo "RK2020 Pyxel must not force the Panfrost Mesa loader name" >&2
     exit 1
 fi
 grep -q '"id": "pyxel"' "$ROOT/config/frontend/systems.json"
@@ -275,7 +275,7 @@ if jq -e '.emulators[] | select(.id == "pcsx_rearmed" and .status == "built")' \
         "$ROOT/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
     grep -q '^thread_rendering = 1$' \
         "$ROOT/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
-    grep -q '"renderer": "builtin-neon-threaded-pixel2-fbdev-ccw"' \
+    grep -q '"renderer": "builtin-neon-threaded-rk2020-fbdev-ccw"' \
         "$ROOT/standalone/pcsx_rearmed/build-manifest.json"
 fi
 if jq -e '.emulators[] | select(.id == "mupen64plus" and .status == "built")' \
@@ -296,9 +296,9 @@ if jq -e '.emulators[] | select(.id == "mupen64plus" and .status == "built")' \
             exit 1
         }
     done
-    grep -Fq '[pixel2_joypad]' \
+    grep -Fq '[rk2020_joypad]' \
         "$ROOT/standalone/mupen64plus/share/mupen64plus/InputAutoCfg.ini"
-    grep -q 'rice-gles2-pixel2-final-present-ccw' \
+    grep -q 'rice-gles2-rk2020-final-present-ccw' \
         "$ROOT/standalone/mupen64plus/build-manifest.json"
 fi
 python3 - "$ROOT/config/frontend/systems.json" <<'PY'
@@ -312,10 +312,10 @@ if not pyxel:
     raise SystemExit("pyxel system missing")
 if pyxel.get("enabled") is False:
     raise SystemExit("pyxel system disabled")
-if pyxel.get("default_launch_profile") != "pyxel:pixel2":
-    raise SystemExit("pyxel default launch profile is not pyxel:pixel2")
-if "pyxel:pixel2" not in pyxel.get("launch_profiles", []):
-    raise SystemExit("pyxel:pixel2 launch profile missing")
+if pyxel.get("default_launch_profile") != "pyxel:rk2020":
+    raise SystemExit("pyxel default launch profile is not pyxel:rk2020")
+if "pyxel:rk2020" not in pyxel.get("launch_profiles", []):
+    raise SystemExit("pyxel:rk2020 launch profile missing")
 PY
 grep -q '^PLUMOS_INPUT_AB_LAYOUT=east-confirm$' "$ROOT/config/system/input-map.env"
 grep -q '^PLUMOS_INPUT_A_CODE=305$' "$ROOT/config/system/input-map.env"
@@ -361,17 +361,17 @@ if find "$ROOT/config" "$ROOT/share" "$ROOT/licenses" -type f \
        -o -name '*.txt' -o -name 'LICENSE' \) -exec \
     grep -EIil "(^|[^[:alnum:]_])($foreign_models)([^[:alnum:]_]|$)" {} + | \
     grep -q .; then
-    printf 'error: foreign device identity in Pixel2 user-facing files\n' >&2
+    printf 'error: foreign device identity in RK2020 user-facing files\n' >&2
     exit 1
 fi
-if strings "$ROOT/bin/plumos-frontend-pixel2" "$ROOT/bin/plumos-text-ui" | \
+if strings "$ROOT/bin/plumos-frontend-rk2020" "$ROOT/bin/plumos-text-ui" | \
     grep -Eiq "(^|[^[:alnum:]_])($foreign_models)([^[:alnum:]_]|$)"; then
-    printf 'error: foreign device identity in Pixel2 frontend binaries\n' >&2
+    printf 'error: foreign device identity in RK2020 frontend binaries\n' >&2
     exit 1
 fi
 if strings "$ROOT/bin/plumos-hardware-keys" | \
     grep -Eiq "(^|[^[:alnum:]_])($foreign_models)([^[:alnum:]_]|$)"; then
-    printf 'error: foreign device identity in Pixel2 hardware key daemon\n' >&2
+    printf 'error: foreign device identity in RK2020 hardware key daemon\n' >&2
     exit 1
 fi
 rom_like_content=
@@ -448,9 +448,9 @@ for system in systems:
                     missing.append(profile)
             elif profile.startswith("pyxel:"):
                 pyxel_profile = profile.split(":", 1)[1]
-                if pyxel_profile != "pixel2":
+                if pyxel_profile != "rk2020":
                     missing.append(profile)
-                elif not (root / "bin/plumos-pyxel-pixel2-launch").exists():
+                elif not (root / "bin/plumos-pyxel-rk2020-launch").exists():
                     missing.append(profile)
                 elif not (root / "apps/pyxel/site/pyxel/__init__.py").exists():
                     missing.append(profile)
@@ -478,7 +478,7 @@ if [ "$(uname -m)" = aarch64 ]; then
         "$ROOT/bin/retroarch" --version | grep -q '^Version: 1\.22\.2'
     "$ROOT/bin/plumos-text-ui" --help >/dev/null
 
-    runtime_tmp=$(mktemp -d /tmp/plumos-pixel2-app-verify.XXXXXX)
+    runtime_tmp=$(mktemp -d /tmp/plumos-rk2020-app-verify.XXXXXX)
     trap 'rm -rf "$runtime_tmp"' EXIT
     mkdir -p "$runtime_tmp/app/state" "$runtime_tmp/roms/nes" \
         "$runtime_tmp/roms/pyxel" "$runtime_tmp/roms/ports"
@@ -493,7 +493,7 @@ if [ "$(uname -m)" = aarch64 ]; then
         PLUMOS_SDCARD_ROOT="$runtime_tmp" \
         "$ROOT/bin/plumos-frontend-diagnostics" >/dev/null
     PLUMOS_ROOT="$runtime_tmp/app" \
-        "$ROOT/bin/plumos-python-pixel2" \
+        "$ROOT/bin/plumos-python-rk2020" \
         -c 'import pyxel, pygame, numpy, PIL' >/dev/null
     printf 'NES-test-fixture' >"$runtime_tmp/roms/nes/test.nes"
     printf 'print("Pyxel test fixture")\n' >"$runtime_tmp/roms/pyxel/test.pyxapp"
@@ -515,7 +515,7 @@ if [ "$(uname -m)" = aarch64 ]; then
         PLUMOS_ROM_ROOT="$runtime_tmp/roms" \
         "$ROOT/bin/plumos-text-ui" launch pyxel pyxel/test.pyxapp --no-scan \
         >"$runtime_tmp/pyxel-launch-plan.txt"
-    grep -q '^launch_profile: pyxel:pixel2$' "$runtime_tmp/pyxel-launch-plan.txt"
+    grep -q '^launch_profile: pyxel:rk2020$' "$runtime_tmp/pyxel-launch-plan.txt"
     grep -q '^can_execute: yes$' "$runtime_tmp/pyxel-launch-plan.txt"
     PLUMOS_ROOT="$runtime_tmp/app" \
         PLUMOS_SDCARD_ROOT="$runtime_tmp" \

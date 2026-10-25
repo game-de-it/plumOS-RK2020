@@ -9,13 +9,13 @@ if ! command -v unsquashfs >/dev/null 2>&1; then
     IMAGE_PATH="$(CDPATH= cd -- "$(dirname -- "$IMAGE")" && pwd)/$(basename -- "$IMAGE")"
     case "$IMAGE_PATH" in "$ROOT_DIR"/*) ;; *) exit 2 ;; esac
     relative=${IMAGE_PATH#"$ROOT_DIR"/}
-    TOOL_IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
+    TOOL_IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
     exec docker run --rm --platform linux/arm64 \
         -v "$ROOT_DIR:/work" -w /work "$TOOL_IMAGE" \
         ./scripts/verify-system-dispatcher.sh "/work/$relative"
 fi
 
-tmp="$(mktemp -d /tmp/plumos-pixel2-dispatcher.XXXXXX)"
+tmp="$(mktemp -d /tmp/plumos-rk2020-dispatcher.XXXXXX)"
 trap 'rm -rf "$tmp"' EXIT
 unsquashfs -d "$tmp/rootfs" "$IMAGE" >/dev/null
 test -x "$tmp/rootfs/init"

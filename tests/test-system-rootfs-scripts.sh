@@ -2,22 +2,22 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-test -x "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/05-gpu"
+test -x "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/05-gpu"
 grep -q 'modprobe panfrost' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/05-gpu"
-grep -q '/dev/shm' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'exec \$bb init' "$ROOT_DIR/rootfs/pixel2/sbin/init"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/05-gpu"
+grep -q '/dev/shm' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'exec \$bb init' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 ! grep -q 'exec \$bb setsid \$bb cttyhack /bin/sh -l' \
-    "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q '^::askfirst:-/bin/sh$' "$ROOT_DIR/rootfs/pixel2/etc/inittab"
+    "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q '^::askfirst:-/bin/sh$' "$ROOT_DIR/rootfs/rk2020/etc/inittab"
 grep -q '^::ctrlaltdel:/bin/busybox reboot$' \
-    "$ROOT_DIR/rootfs/pixel2/etc/inittab"
-grep -q 'ip link set lo up' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'ip addr add 127.0.0.1/8 dev lo' "$ROOT_DIR/rootfs/pixel2/sbin/init"
+    "$ROOT_DIR/rootfs/rk2020/etc/inittab"
+grep -q 'ip link set lo up' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'ip addr add 127.0.0.1/8 dev lo' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 for script in \
     "$ROOT_DIR/scripts/build-system-rootfs.sh" \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh" \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh" \
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh" \
     "$ROOT_DIR/scripts/install-frontend-rootfs.sh" \
     "$ROOT_DIR/scripts/docker-build.sh" \
     "$ROOT_DIR/scripts/build-frontend-component.sh" \
@@ -27,115 +27,115 @@ for script in \
     "$ROOT_DIR/scripts/verify-app-layer.sh" \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh" \
     "$ROOT_DIR/scripts/verify-system-dispatcher.sh" \
-    "$ROOT_DIR/rootfs/pixel2-dispatcher/init" \
-    "$ROOT_DIR/rootfs/pixel2/sbin/init" \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/systemd/systemd" \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate" \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/20-usb-wifi" \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/30-ssh" \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/35-network-services"; do
+    "$ROOT_DIR/rootfs/rk2020-dispatcher/init" \
+    "$ROOT_DIR/rootfs/rk2020/sbin/init" \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/systemd/systemd" \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate" \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/20-usb-wifi" \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/30-ssh" \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/35-network-services"; do
     bash -n "$script"
 done
 
 python3 -m py_compile \
     "$ROOT_DIR/scripts/plumos-system-update.py" \
-    "$ROOT_DIR/scripts/build-pixel2-update-package.py"
+    "$ROOT_DIR/scripts/build-rk2020-update-package.py"
 grep -q 'unsquashfs is required to verify the embedded System' \
-    "$ROOT_DIR/scripts/build-pixel2-update-package.py"
+    "$ROOT_DIR/scripts/build-rk2020-update-package.py"
 grep -q 'system-manifest.json' \
-    "$ROOT_DIR/scripts/build-pixel2-update-package.py"
+    "$ROOT_DIR/scripts/build-rk2020-update-package.py"
 grep -q 'system-{inactive}.manifest' \
     "$ROOT_DIR/scripts/plumos-system-update.py"
 
-bash -n "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
-bash -n "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/50-update-health"
-bash -n "$ROOT_DIR/rootfs/pixel2/usr/bin/plumos-diagnostics"
-grep -q 'PLUMOS_DEVICE_ID=pixel2' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+bash -n "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
+bash -n "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/50-update-health"
+bash -n "$ROOT_DIR/rootfs/rk2020/usr/bin/plumos-diagnostics"
+grep -q 'PLUMOS_DEVICE_ID=rk2020' \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'PLUMOS_FBDEV_ROTATION=ccw' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'east-confirm' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'clear_frontend_handoff_framebuffer' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'phase=pre-start' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'input-map.env' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
-grep -q 'pixel2_joypad' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
+grep -q 'rk2020_joypad' \
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'physical_yres' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
-test ! -e "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/10-adbd"
-test ! -e "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/plumos-pixel2-usb-role"
+test ! -e "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/10-adbd"
+test ! -e "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/plumos-rk2020-usb-role"
 test ! -e "$ROOT_DIR/scripts/build-adbd-overlay.sh"
-test ! -e "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-adbd-watchdog"
-! grep -q 'plumos-pixel2-usb-role' "$ROOT_DIR/scripts/build-system-rootfs.sh"
-test ! -e "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/adb-uevent"
+test ! -e "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-adbd-watchdog"
+! grep -q 'plumos-rk2020-usb-role' "$ROOT_DIR/scripts/build-system-rootfs.sh"
+test ! -e "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/adb-uevent"
 grep -q 'plumos-init=usb-owner mode=wifi-preferred charging=otg-auto' \
-    "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'plumos-enable-adb' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-test -x "$ROOT_DIR/tests/test-pixel2-usb-host-reenumerate.sh"
-"$ROOT_DIR/tests/test-pixel2-usb-host-reenumerate.sh"
+    "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'plumos-enable-adb' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+test -x "$ROOT_DIR/tests/test-rk2020-usb-host-reenumerate.sh"
+"$ROOT_DIR/tests/test-rk2020-usb-host-reenumerate.sh"
 grep -q 'ff300000.usb' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'force_wifi_host_mode' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'release_wifi_host_mode' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q "printf 'otg" \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'usb2-phy@100/otg_mode' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'usb-upstream-online' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/15-usb-host-reenumerate"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'plumos-network-services' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/35-network-services"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/35-network-services"
 grep -q 'plumos-wifi-recovery' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-network-control"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-network-control"
 grep -q '"$RECOVERY" sync' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/20-usb-wifi"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/20-usb-wifi"
 grep -q 'plumos-wifi-recovery" sync' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'busybox uevent' \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-wifi-recovery"
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-wifi-recovery"
 grep -q 'owner=plumos-network-services' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/30-ssh"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/30-ssh"
 ! grep -q 'dropbear ' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/30-ssh"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/30-ssh"
 grep -q 'start-enabled' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/35-network-services"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/35-network-services"
 grep -q 'result=degraded' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/35-network-services"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/35-network-services"
 grep -q ') &' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/35-network-services"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/35-network-services"
 grep -q '/mnt/plumos/ssh/libexec/sftp-server' \
     "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'blkid eject sfdisk' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'rootfs/usr/bin/eject' "$ROOT_DIR/scripts/verify-system-rootfs.sh"
-grep -q 'PLUMOS_SYS' "$ROOT_DIR/rootfs/pixel2/sbin/init"
+grep -q 'PLUMOS_SYS' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'app-layer-selected' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 ! grep -q 'sha256sum -c' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/40-frontend"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'system-booted' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/50-update-health"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/50-update-health"
 grep -q 'plumos-system-update mark-healthy' \
-    "$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/50-update-health"
-grep -q 'apply_pending_update' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q '"$updater" apply-pending' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'reason=no-pending-state' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'runtime-pending.json' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'runtime-transaction.json' "$ROOT_DIR/rootfs/pixel2/sbin/init"
+    "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/50-update-health"
+grep -q 'apply_pending_update' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q '"$updater" apply-pending' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'reason=no-pending-state' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'runtime-pending.json' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'runtime-transaction.json' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'verify-runtime' "$ROOT_DIR/scripts/plumos-system-update.py"
-grep -q 'generate-pixel2-update-progress.py' \
+grep -q 'generate-rk2020-update-progress.py' \
     "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'update_finalize update_rollback update_error' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
 
-progress_dir=$(mktemp -d "${TMPDIR:-/tmp}/plumos-pixel2-progress.XXXXXX")
+progress_dir=$(mktemp -d "${TMPDIR:-/tmp}/plumos-rk2020-progress.XXXXXX")
 trap 'rm -rf "$progress_dir"' EXIT
-python3 "$ROOT_DIR/scripts/generate-pixel2-update-progress.py" \
+python3 "$ROOT_DIR/scripts/generate-rk2020-update-progress.py" \
     --output-dir "$progress_dir"
 for frame in blank prepare resize userdata verify start error update_verify \
     update_runtime update_system update_finalize update_rollback update_error; do
@@ -150,79 +150,79 @@ import sys
 payload = Path(sys.argv[1]).read_bytes()
 assert payload == b"\x00\x00\x00\xff" * (480 * 640)
 PY
-grep -q 'build-pixel2-update-package.py' "$ROOT_DIR/scripts/docker-build.sh"
+grep -q 'build-rk2020-update-package.py' "$ROOT_DIR/scripts/docker-build.sh"
 
-! grep -q '\$bb mountpoint' "$ROOT_DIR/rootfs/pixel2/sbin/init"
+! grep -q '\$bb mountpoint' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'ROOTFS_DIR/dev/pts' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'ROOTFS_DIR/mnt/plumos' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'mnt/plumos-user' "$ROOT_DIR/scripts/verify-system-rootfs.sh"
 grep -q 'user-data=first-boot-provisioner' \
-    "$ROOT_DIR/rootfs/pixel2/sbin/init"
+    "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q 'ROOTFS_DIR/flash' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'usr/lib/systemd/systemd' "$ROOT_DIR/scripts/verify-system-rootfs.sh"
-grep -q 'is_mounted /storage' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'umount /.plumos-dispatcher-old' "$ROOT_DIR/rootfs/pixel2/sbin/init"
-grep -q 'stock-handoff.log' "$ROOT_DIR/rootfs/pixel2/usr/lib/systemd/systemd"
-grep -q 'mount-source storage=stock-initramfs' "$ROOT_DIR/rootfs/pixel2/sbin/init"
+grep -q 'is_mounted /storage' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'umount /.plumos-dispatcher-old' "$ROOT_DIR/rootfs/rk2020/sbin/init"
+grep -q 'stock-handoff.log' "$ROOT_DIR/rootfs/rk2020/usr/lib/systemd/systemd"
+grep -q 'mount-source storage=stock-initramfs' "$ROOT_DIR/rootfs/rk2020/sbin/init"
 grep -q '5.10.198' "$ROOT_DIR/scripts/install-kernel-runtime.sh"
 grep -q '^rtlwifi/rtl8188eufw.bin$' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
-grep -q 'build-rtl8821cu-pixel2.sh' \
+grep -q 'build-rtl8821cu-rk2020.sh' \
     "$ROOT_DIR/scripts/build-system-rootfs.sh"
-grep -q 'plumos-pixel2-kernel-cache' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
-grep -q 'plumos-pixel2-kernel-cache' \
+grep -q 'plumos-rk2020-kernel-cache' \
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
+grep -q 'plumos-rk2020-kernel-cache' \
     "$ROOT_DIR/scripts/docker-build.sh"
 ! grep -q 'CACHE="\$ROOT_DIR/.cache/kernel"' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q -- '--verify-output' "$ROOT_DIR/scripts/build-system-rootfs.sh"
-grep -q 'kernel-modules) exec ./scripts/build-rtl8821cu-pixel2.sh' \
+grep -q 'kernel-modules) exec ./scripts/build-rtl8821cu-rk2020.sh' \
     "$ROOT_DIR/scripts/docker-build.sh"
 grep -q '96c65c58b544241178638e810b333dcc9aa26b91' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q 'EXPECTED_STOCK_SRCVERSION=33E331B2DEB16477EAAB1D6' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q -- '--disable DEBUG_SPINLOCK' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q -- '--disable FTRACE' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q -- '--disable KALLSYMS' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q -- '--disable FUNCTION_TRACER' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q 'stock_module_struct_size' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q 'stock_module_exit_offset' \
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh"
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh"
 grep -q 'lib/modules/\$release/extra/8821cu.ko' \
     "$ROOT_DIR/scripts/install-kernel-runtime.sh"
 grep -q 'modinfo -b.*8821cu' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
 grep -q 'lib/firmware/rtlwifi/rtl8188eufw.bin' \
     "$ROOT_DIR/scripts/verify-system-rootfs.sh"
-grep -q 'stock-pixel2' "$ROOT_DIR/scripts/build-system-rootfs.sh"
-grep -q 'stock-pixel2' "$ROOT_DIR/scripts/verify-system-rootfs.sh"
-grep -q 'system-pending-attempted' "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
-grep -q 'system_rolled_back' "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
+grep -q 'stock-rk2020' "$ROOT_DIR/scripts/build-system-rootfs.sh"
+grep -q 'stock-rk2020' "$ROOT_DIR/scripts/verify-system-rootfs.sh"
+grep -q 'system-pending-attempted' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
+grep -q 'system_rolled_back' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'pivot_root . .plumos-dispatcher-old' \
-    "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
-! grep -q 'switch_root /newroot' "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
+    "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
+! grep -q 'switch_root /newroot' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'for mountpoint in sys flash storage' \
-    "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
+    "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'mount --move /dev /newroot/dev' \
-    "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
+    "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'mount --move /proc /newroot/proc' \
-    "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
-! grep -q 'for mountpoint in dev ' "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
-grep -q 'system-dispatcher.log' "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
-grep -q 'PLUMOS_DISPATCHER_TEST' "$ROOT_DIR/rootfs/pixel2-dispatcher/init"
+    "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
+! grep -q 'for mountpoint in dev ' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
+grep -q 'system-dispatcher.log' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
+grep -q 'PLUMOS_DISPATCHER_TEST' "$ROOT_DIR/rootfs/rk2020-dispatcher/init"
 grep -q 'fixed-dispatcher,system-a,system-b' "$ROOT_DIR/scripts/build-sd-image.sh"
 grep -q 'DISPATCHER_DIR/usr/lib/systemd' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'DISPATCHER_DIR/dev/pts' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 grep -q 'DISPATCHER_DIR/storage' "$ROOT_DIR/scripts/build-system-rootfs.sh"
 
 if grep -R -E -i '(rocknix|emuelec|batocera|knulli)' \
-    "$ROOT_DIR/rootfs/pixel2" >/dev/null; then
+    "$ROOT_DIR/rootfs/rk2020" >/dev/null; then
     printf 'error: foreign distribution identity in source overlay\n' >&2
     exit 1
 fi

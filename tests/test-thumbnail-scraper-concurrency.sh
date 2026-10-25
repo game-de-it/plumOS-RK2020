@@ -135,7 +135,7 @@ PLUMOS_BUSYBOX="$TEST_ROOT/fake-busybox" \
 PLUMOS_THUMBNAIL_FETCH_TIMEOUT=10 \
 PLUMOS_THUMBNAIL_FETCH_RETRY=0 \
 PLUMOS_THUMBNAIL_INDEX_LOCK_WAIT=15 \
-    "$ROOT_DIR/package/app-layer-pixel2/bin/plumos-thumbnail-scraper" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-thumbnail-scraper" \
     --fetch --system nes --kind Named_Titles >"$TEST_ROOT/result.tsv"
 
 awk -F '\t' '

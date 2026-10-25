@@ -2,12 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-SOURCE_ROOT="${PLUMOS_PIXEL2_STOCK_BOOT_ROOT:-/Volumes/EMUELEC}"
-OUT_DIR="${PLUMOS_PIXEL2_VENDOR_OUT:-$ROOT_DIR/artifacts/vendor/pixel2-stock}"
+SOURCE_ROOT="${PLUMOS_RK2020_STOCK_BOOT_ROOT:-/Volumes/EMUELEC}"
+OUT_DIR="${PLUMOS_RK2020_VENDOR_OUT:-$ROOT_DIR/artifacts/vendor/rk2020-stock}"
 EXPECTED="$ROOT_DIR/configs/stock-boot.expected.sha256"
-TOOLS_IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
-TOOLS_PLATFORM="${PLUMOS_PIXEL2_TOOLS_PLATFORM:-linux/arm64}"
-PREFIX_SOURCE="${PLUMOS_PIXEL2_BOOT_PREFIX:-}"
+TOOLS_IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
+TOOLS_PLATFORM="${PLUMOS_RK2020_TOOLS_PLATFORM:-linux/arm64}"
+PREFIX_SOURCE="${PLUMOS_RK2020_BOOT_PREFIX:-}"
 
 sha256_file() {
     if command -v sha256sum >/dev/null 2>&1; then
@@ -38,14 +38,14 @@ verify_source() {
     }
 }
 
-for name in Image SYSTEM rk3326s-gkd-pixel2.dtb; do
+for name in Image SYSTEM rk3326s-gkd-rk2020.dtb; do
     [ -f "$SOURCE_ROOT/$name" ] || {
         printf 'error: missing stock artifact: %s/%s\n' "$SOURCE_ROOT" "$name" >&2
         exit 1
     }
 done
 
-UBOOT_DTB="$SOURCE_ROOT/.backup/rk3326s-gkd-pixel2-uboot.dtb"
+UBOOT_DTB="$SOURCE_ROOT/.backup/rk3326s-gkd-rk2020-uboot.dtb"
 [ -f "$UBOOT_DTB" ] || {
     printf 'error: missing U-Boot DTB backup: %s\n' "$UBOOT_DTB" >&2
     exit 1
@@ -53,13 +53,13 @@ UBOOT_DTB="$SOURCE_ROOT/.backup/rk3326s-gkd-pixel2-uboot.dtb"
 
 verify_source "$SOURCE_ROOT/Image" Image
 verify_source "$SOURCE_ROOT/SYSTEM" SYSTEM
-verify_source "$SOURCE_ROOT/rk3326s-gkd-pixel2.dtb" rk3326s-gkd-pixel2.dtb
-verify_source "$UBOOT_DTB" rk3326s-gkd-pixel2-uboot.dtb
+verify_source "$SOURCE_ROOT/rk3326s-gkd-rk2020.dtb" rk3326s-gkd-rk2020.dtb
+verify_source "$UBOOT_DTB" rk3326s-gkd-rk2020-uboot.dtb
 
 mkdir -p "$OUT_DIR/boot" "$OUT_DIR/kernel"
 cp -p "$SOURCE_ROOT/Image" "$OUT_DIR/boot/Image"
-cp -p "$SOURCE_ROOT/rk3326s-gkd-pixel2.dtb" "$OUT_DIR/boot/"
-cp -p "$UBOOT_DTB" "$OUT_DIR/boot/rk3326s-gkd-pixel2-uboot.dtb"
+cp -p "$SOURCE_ROOT/rk3326s-gkd-rk2020.dtb" "$OUT_DIR/boot/"
+cp -p "$UBOOT_DTB" "$OUT_DIR/boot/rk3326s-gkd-rk2020-uboot.dtb"
 
 if [ -n "$PREFIX_SOURCE" ]; then
     [ -f "$PREFIX_SOURCE" ] || {
@@ -98,8 +98,8 @@ docker run --rm \
 SOURCE_REF="$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || printf unknown)"
 MANIFEST="$OUT_DIR/manifest.tsv"
 {
-    printf 'format\tplumos-pixel2-vendor-boot-v1\n'
-    printf 'device\tpixel2\n'
+    printf 'format\tplumos-rk2020-vendor-boot-v1\n'
+    printf 'device\trk2020\n'
     printf 'architecture\taarch64\n'
     printf 'kernel_version\t5.10.198\n'
     printf 'source_ref\t%s\n' "$SOURCE_REF"

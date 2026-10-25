@@ -1,0 +1,69 @@
+diff --git a/src/plugin.c b/src/plugin.c
+index 974b1db..cad1fa2 100644
+--- a/src/plugin.c
++++ b/src/plugin.c
+@@ -88,6 +88,21 @@ static int l_PluginInit = 0;
+ static int l_joyWasInit = 0;
+ static int l_hapticWasInit = 0;
+ 
++#if SDL_VERSION_ATLEAST(2,0,0)
++static int rk2020_dpad_mode[4] = {0, 0, 0, 0};
++static char rk2020_dpad_mode_path[64] = "";
++
++static int rk2020_dpad_mode_requested(int Control)
++{
++    if (Control != 0)
++        return 0;
++    if (rk2020_dpad_mode_path[0] == '\0')
++        snprintf(rk2020_dpad_mode_path, sizeof(rk2020_dpad_mode_path),
++            "/run/plumos/mupen64plus-dpad-mode.%ld", (long) getpid());
++    return access(rk2020_dpad_mode_path, F_OK) == 0;
++}
++#endif
++
+ static unsigned short button_bits[] = {
+     0x0001,  // R_DPAD
+     0x0002,  // L_DPAD
+@@ -612,6 +627,42 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
+         if (iY >  80) iY =  80;
+         controller[Control].buttons.X_AXIS = iX;
+         controller[Control].buttons.Y_AXIS = iY;
++
++#if SDL_VERSION_ATLEAST(2,0,0)
++        /*
++         * RK2020 has a digital D-pad but no analog stick.  The normal mapping
++         * exposes that D-pad as the N64 analog stick.  A short Function press
++         * toggles a reversible N64 D-pad layer.  RK2020's Function event is
++         * not exposed consistently through SDL, so the raw evdev hotkey
++         * helper publishes the debounced mode through a per-process marker.
++         * A long Function press remains reserved for safe exit.
++         */
++        if (Control == 0 && controller[Control].joystick != NULL)
++        {
++            int requested_mode = rk2020_dpad_mode_requested(Control);
++            if (requested_mode != rk2020_dpad_mode[Control])
++            {
++                rk2020_dpad_mode[Control] = requested_mode;
++                DebugMessage(M64MSG_INFO,
++                    "RK2020 D-pad mode: %s",
++                    rk2020_dpad_mode[Control] ? "N64 D-pad" : "analog stick");
++            }
++
++            if (rk2020_dpad_mode[Control])
++            {
++                controller[Control].buttons.X_AXIS = 0;
++                controller[Control].buttons.Y_AXIS = 0;
++                if (SDL_JoystickGetButton(controller[Control].joystick, 13))
++                    controller[Control].buttons.Value |= button_bits[R_DPAD];
++                if (SDL_JoystickGetButton(controller[Control].joystick, 12))
++                    controller[Control].buttons.Value |= button_bits[L_DPAD];
++                if (SDL_JoystickGetButton(controller[Control].joystick, 11))
++                    controller[Control].buttons.Value |= button_bits[D_DPAD];
++                if (SDL_JoystickGetButton(controller[Control].joystick, 10))
++                    controller[Control].buttons.Value |= button_bits[U_DPAD];
++            }
++        }
++#endif
+     }
+ 
+     // process mouse events

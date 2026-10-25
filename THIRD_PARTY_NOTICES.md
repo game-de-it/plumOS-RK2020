@@ -1,8 +1,8 @@
 # Third-Party Notices
 
 This document records the principal third-party and vendor-derived components
-distributed by plumOS Pixel2. Exact revisions remain in build recipes,
-component manifests, and `package/licenses-pixel2/runtime-license-index.tsv`.
+distributed by plumOS RK2020. Exact revisions remain in build recipes,
+component manifests, and `package/licenses-rk2020/runtime-license-index.tsv`.
 
 plumOS-authored material is licensed under the repository MIT License. That
 license does not relicense third-party binaries, source, fonts, firmware,
@@ -14,20 +14,20 @@ Japanese counterpart:
 
 ## Platform Boundary
 
-The GKD Pixel2 Rockchip boot prefix, stock Linux 5.10.198 kernel, runtime DTB,
+The GKD RK2020 Rockchip boot prefix, stock Linux 5.10.198 kernel, runtime DTB,
 stock initramfs, selected modules, and firmware are the hardware compatibility
 substrate. Vendor-derived material retains its original terms and is not
 covered by the plumOS MIT License. The release records exact registered hashes
-and includes `pixel2-stock-vendor-runtime-NOTICE.txt`.
+and includes `rk2020-stock-vendor-runtime-NOTICE.txt`.
 
 ## Bundled Runtime Families
 
 | Runtime family | Upstream or origin | Packaged evidence |
 | --- | --- | --- |
-| plumOS frontend and hardware services | plumOS Pixel2 repository | `plumOS-MIT.txt`, component manifests, font notices |
+| plumOS frontend and hardware services | plumOS RK2020 repository | `plumOS-MIT.txt`, component manifests, font notices |
 | System | plumOS, BusyBox, Debian runtime packages, stock-kernel modules/firmware | System `/usr/share/licenses`, System manifest, stock vendor notice |
 | RetroArch | <https://github.com/libretro/RetroArch> | Exact source-tree `COPYING` and component manifest |
-| libretro cores | Immutable repositories/refs in `docker/pixel2-tools/libretro-core-recipes.tsv` | Collected upstream license-bearing files and core manifest |
+| libretro cores | Immutable repositories/refs in `docker/rk2020-tools/libretro-core-recipes.tsv` | Collected upstream license-bearing files and core manifest |
 | PicoArch and SDL compatibility | <https://github.com/shauninman/picoarch> and SDL compatibility projects | PicoArch and SDL license texts |
 | Standalone emulators | PCSX-ReARMed, steward-fu/nds with DraStic, PPSSPP, OpenBOR, and Mupen64Plus | Upstream license/notice files, pinned refs, hashes, standalone manifest |
 | PICO-8 | User-supplied proprietary runtime | No PICO-8 binary or game data is included in a plumOS release |
@@ -49,7 +49,7 @@ The steward-fu/nds integration source is LGPL-2.1, but the packaged DraStic
 executable is separately authored closed software. The integration LGPL does
 not apply to or relicense that executable. The official release README, exact
 asset hash, component manifest, and dedicated notice are retained. plumOS
-Pixel2 follows the same documented inclusion policy as the other plumOS
+RK2020 follows the same documented inclusion policy as the other plumOS
 handheld releases without making an additional claim about DraStic rights.
 
 ## Distribution Checklist
@@ -58,7 +58,7 @@ Before publishing a binary release:
 
 - retain `LICENSE`, `NOTICE.md`, both third-party notice files, the runtime
   license index, component manifests, and exact source refs;
-- run `scripts/audit-pixel2-license-bundle.sh` against the final app layer and
+- run `scripts/audit-rk2020-license-bundle.sh` against the final app layer and
   System output;
 - run the strict content gate and verify the compressed image checksum;
 - exclude ROMs, BIOS files, saves/states, credentials, personal keys,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Transactional Runtime and A/B System updater for plumOS Pixel2."""
+"""Transactional Runtime and A/B System updater for plumOS RK2020."""
 
 from __future__ import annotations
 
@@ -41,9 +41,9 @@ LOCK_FILE = Path(os.environ.get(
 SYSTEM_ABI_FILE = Path(os.environ.get("PLUMOS_SYSTEM_ABI_FILE", "/etc/plumos-system-abi"))
 SYSTEM_VERSION_FILE = Path(os.environ.get("PLUMOS_SYSTEM_VERSION_FILE", "/etc/plumos-system-version"))
 RUNTIME_ABI_FILE = PLUMOS_ROOT / "RUNTIME_ABI"
-DEVICE_ID = "pixel2"
+DEVICE_ID = "rk2020"
 ARCHITECTURE = "aarch64"
-VENDOR_RUNTIME = "pixel2-rockchip-r1"
+VENDOR_RUNTIME = "rk2020-rockchip-r1"
 METADATA_LAST = {"VERSION", "manifest.json", "checksums.sha256"}
 MANAGED_ROOTS = {
     "apps", "bin", "components", "cores", "emulator", "factory-defaults",
@@ -273,7 +273,7 @@ def load_package(path: Path) -> tuple[dict[str, Any], bytes, bytes]:
 def load_package_metadata(path: Path) -> dict[str, Any]:
     """Read the signed leading metadata without streaming the payload.
 
-    Pixel2 packages are built with manifest.json and manifest.sig as the first
+    RK2020 packages are built with manifest.json and manifest.sig as the first
     two archive members. Scanning every payload made the FE hash/decompress all
     old packages merely to decide whether an update existed. Full member and
     payload validation still happens in request() for the selected package.
@@ -330,7 +330,7 @@ def validate_manifest(manifest: dict[str, Any], archive_names: set[str]) -> None
     if manifest.get("package_type") not in {"runtime", "system"}:
         raise UpdateError("unsupported update package type")
     if manifest.get("device_id") != DEVICE_ID or manifest.get("architecture") != ARCHITECTURE:
-        raise UpdateError("package target does not match Pixel2 aarch64")
+        raise UpdateError("package target does not match RK2020 aarch64")
     if manifest.get("vendor_runtime") != VENDOR_RUNTIME:
         raise UpdateError("vendor runtime mismatch")
     for key in ("version", "source_version", "payload_uncompressed_bytes"):
@@ -439,7 +439,7 @@ def scan_packages() -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     if not inbox.is_dir():
         return results
-    for path in sorted(inbox.glob("plumos-pixel2-*.tar.gz")):
+    for path in sorted(inbox.glob("plumos-rk2020-*.tar.gz")):
         try:
             item = inspect_metadata(path)
             item["mtime"] = path.stat().st_mtime_ns
@@ -754,7 +754,7 @@ def apply_system(package: Path, manifest: dict[str, Any], manifest_bytes: bytes,
             if not value or "\n" in value or "\r" in value:
                 raise UpdateError(f"invalid System slot metadata field: {label}")
         slot_manifest = (
-            "format=plumos-pixel2-system-v1\n"
+            "format=plumos-rk2020-system-v1\n"
             f"device={DEVICE_ID}\n"
             f"architecture={ARCHITECTURE}\n"
             f"version={manifest['version']}\n"

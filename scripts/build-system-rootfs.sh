@@ -2,24 +2,24 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
-OUT_DIR="${PLUMOS_PIXEL2_SYSTEM_OUT:-$ROOT_DIR/output/system-rootfs/pixel2}"
+IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
+OUT_DIR="${PLUMOS_RK2020_SYSTEM_OUT:-$ROOT_DIR/output/system-rootfs/rk2020}"
 
 if [ "${1:-}" != --inside ]; then
     docker image inspect "$IMAGE" >/dev/null 2>&1 || "$ROOT_DIR/scripts/build-tools-image.sh"
     exec docker run --rm --platform linux/arm64 \
         -e SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-}" \
-        -e PLUMOS_PIXEL2_VERSION="${PLUMOS_PIXEL2_VERSION:-0.1.0-dev}" \
+        -e PLUMOS_RK2020_VERSION="${PLUMOS_RK2020_VERSION:-0.1.0-dev}" \
         -v "$ROOT_DIR:/work" -w /work "$IMAGE" \
         ./scripts/build-system-rootfs.sh --inside
 fi
 
 ROOT_DIR=/work
-OUT_DIR=/work/output/system-rootfs/pixel2
+OUT_DIR=/work/output/system-rootfs/rk2020
 ROOTFS_DIR="$OUT_DIR/rootfs"
 PAYLOAD_DIR="$OUT_DIR/payload"
 DISPATCHER_DIR="$OUT_DIR/dispatcher"
-VERSION="${PLUMOS_PIXEL2_VERSION:-0.1.0-dev}"
+VERSION="${PLUMOS_RK2020_VERSION:-0.1.0-dev}"
 SOURCE_REF="$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || printf unknown)"
 SOURCE_EPOCH="${SOURCE_DATE_EPOCH:-}"
 [ -n "$SOURCE_EPOCH" ] || SOURCE_EPOCH="$(git -C "$ROOT_DIR" show -s --format=%ct HEAD)"
@@ -28,7 +28,7 @@ case "$SOURCE_EPOCH" in
     ''|*[!0-9]*) printf 'error: invalid SOURCE_DATE_EPOCH\n' >&2; exit 2 ;;
 esac
 
-"$ROOT_DIR/tests/test-pixel2-update.sh"
+"$ROOT_DIR/tests/test-rk2020-update.sh"
 
 rm -rf "$OUT_DIR"
 mkdir -p "$ROOTFS_DIR" "$PAYLOAD_DIR/system-slots" "$DISPATCHER_DIR/bin" \
@@ -41,9 +41,9 @@ mkdir -p "$ROOTFS_DIR" "$PAYLOAD_DIR/system-slots" "$DISPATCHER_DIR/bin" \
     "$ROOTFS_DIR/flash" "$ROOTFS_DIR/storage" \
     "$ROOTFS_DIR/state" "$ROOTFS_DIR/roms" "$ROOTFS_DIR/root" \
     "$ROOTFS_DIR/mnt/plumos" "$ROOTFS_DIR/mnt/plumos-user"
-cp -a "$ROOT_DIR/rootfs/pixel2/." "$ROOTFS_DIR/"
-if ! "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh" --inside --verify-output; then
-    "$ROOT_DIR/scripts/build-rtl8821cu-pixel2.sh" --inside
+cp -a "$ROOT_DIR/rootfs/rk2020/." "$ROOTFS_DIR/"
+if ! "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh" --inside --verify-output; then
+    "$ROOT_DIR/scripts/build-rtl8821cu-rk2020.sh" --inside
 fi
 "$ROOT_DIR/scripts/install-kernel-runtime.sh" "$ROOTFS_DIR"
 "$ROOT_DIR/scripts/install-frontend-rootfs.sh" "$ROOTFS_DIR"
@@ -95,16 +95,16 @@ find /usr/lib/python3.11/lib-dynload -type f -name '*.so' -print0 | \
     done
 install -D -m 0755 "$ROOT_DIR/scripts/plumos-system-update.py" \
     "$ROOTFS_DIR/usr/sbin/plumos-system-update"
-install -D -m 0644 "$ROOT_DIR/package/system-pixel2/plumos-update-public.pem" \
+install -D -m 0644 "$ROOT_DIR/package/system-rk2020/plumos-update-public.pem" \
     "$ROOTFS_DIR/etc/plumos-update-public.pem"
 progress_dir="$OUT_DIR/update-progress"
-python3 "$ROOT_DIR/scripts/generate-pixel2-update-progress.py" \
+python3 "$ROOT_DIR/scripts/generate-rk2020-update-progress.py" \
     --output-dir "$progress_dir"
 for frame in "$progress_dir"/*.raw; do
     install -D -m 0644 "$frame" \
         "$ROOTFS_DIR/usr/share/plumos/update-progress/$(basename "$frame")"
 done
-printf '%s\n' 'plumos-pixel2-v1' >"$ROOTFS_DIR/etc/plumos-system-abi"
+printf '%s\n' 'plumos-rk2020-v1' >"$ROOTFS_DIR/etc/plumos-system-abi"
 printf '%s\n' "$VERSION" >"$ROOTFS_DIR/etc/plumos-system-version"
 install -D -m 0755 /lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 \
     "$ROOTFS_DIR/lib/ld-linux-aarch64.so.1"
@@ -119,8 +119,8 @@ install -m 0644 "$ROOT_DIR/LICENSE" \
 install -m 0644 "$ROOT_DIR/NOTICE.md" \
     "$ROOTFS_DIR/usr/share/licenses/NOTICE.txt"
 install -m 0644 \
-    "$ROOT_DIR/package/licenses-pixel2/pixel2-stock-vendor-runtime-NOTICE.txt" \
-    "$ROOTFS_DIR/usr/share/licenses/pixel2-stock-vendor-runtime-NOTICE.txt"
+    "$ROOT_DIR/package/licenses-rk2020/rk2020-stock-vendor-runtime-NOTICE.txt" \
+    "$ROOTFS_DIR/usr/share/licenses/rk2020-stock-vendor-runtime-NOTICE.txt"
 for package in busybox-static kmod iproute2 iw wpasupplicant dropbear-bin \
     python3.11-minimal openssl fdisk util-linux eject e2fsprogs dosfstools; do
     install -m 0644 "/usr/share/doc/$package/copyright" \
@@ -128,19 +128,19 @@ for package in busybox-static kmod iproute2 iw wpasupplicant dropbear-bin \
 done
 
 sed -i "s/VERSION_ID=.*/VERSION_ID=\"$VERSION\"/" "$ROOTFS_DIR/etc/os-release"
-sed -i "s/PRETTY_NAME=.*/PRETTY_NAME=\"plumOS Pixel2 $VERSION\"/" \
+sed -i "s/PRETTY_NAME=.*/PRETTY_NAME=\"plumOS RK2020 $VERSION\"/" \
     "$ROOTFS_DIR/etc/os-release"
 KERNEL_RELEASE=$(find "$ROOTFS_DIR/lib/modules" -mindepth 1 -maxdepth 1 \
     -type d -printf '%f\n')
 cat >"$ROOTFS_DIR/usr/lib/plumos/system-manifest.json" <<EOF
 {
-  "name": "plumOS Pixel2 System",
-  "device": "pixel2",
+  "name": "plumOS RK2020 System",
+  "device": "rk2020",
   "architecture": "aarch64",
   "version": "$VERSION",
-  "runtime_abi": "plumos-pixel2-app-layer-v1",
+  "runtime_abi": "plumos-rk2020-app-layer-v1",
   "kernel_release": "$KERNEL_RELEASE",
-  "boot_substrate": "stock-pixel2",
+  "boot_substrate": "stock-rk2020",
   "firmware_origin": "stock-kernel-overlay",
   "source_ref": "$SOURCE_REF",
   "source_date_epoch": $SOURCE_EPOCH,
@@ -156,11 +156,11 @@ env -u SOURCE_DATE_EPOCH mksquashfs "$ROOTFS_DIR" "$PAYLOAD_DIR/system-slots/sys
 size=$(stat -c '%s' "$PAYLOAD_DIR/system-slots/system-a.squashfs")
 sha=$(sha256sum "$PAYLOAD_DIR/system-slots/system-a.squashfs" | awk '{print $1}')
 cat >"$PAYLOAD_DIR/system-slots/system-a.manifest" <<EOF
-format=plumos-pixel2-system-v1
-device=pixel2
+format=plumos-rk2020-system-v1
+device=rk2020
 architecture=aarch64
 version=$VERSION
-runtime_abi=plumos-pixel2-app-layer-v1
+runtime_abi=plumos-rk2020-app-layer-v1
 source_ref=$SOURCE_REF
 source_date_epoch=$SOURCE_EPOCH
 image_size=$size
@@ -173,7 +173,7 @@ cp -a "$PAYLOAD_DIR/system-slots/system-a.manifest" \
 printf '%s  system-a.squashfs\n' "$sha" >"$PAYLOAD_DIR/system-slots/system-a.sha256"
 printf '%s  system-b.squashfs\n' "$sha" >"$PAYLOAD_DIR/system-slots/system-b.sha256"
 
-install -m 0755 "$ROOT_DIR/rootfs/pixel2-dispatcher/init" "$DISPATCHER_DIR/init"
+install -m 0755 "$ROOT_DIR/rootfs/rk2020-dispatcher/init" "$DISPATCHER_DIR/init"
 install -m 0755 /bin/busybox "$DISPATCHER_DIR/bin/busybox"
 ln -s busybox "$DISPATCHER_DIR/bin/sh"
 ln -s /init "$DISPATCHER_DIR/sbin/init"
@@ -186,8 +186,8 @@ env -u SOURCE_DATE_EPOCH mksquashfs "$DISPATCHER_DIR" "$PAYLOAD_DIR/SYSTEM" \
 dispatcher_size=$(stat -c '%s' "$PAYLOAD_DIR/SYSTEM")
 dispatcher_sha=$(sha256sum "$PAYLOAD_DIR/SYSTEM" | awk '{print $1}')
 cat >"$PAYLOAD_DIR/SYSTEM.manifest" <<EOF
-format=plumos-pixel2-system-dispatcher-v1
-device=pixel2
+format=plumos-rk2020-system-dispatcher-v1
+device=rk2020
 architecture=aarch64
 version=$VERSION
 source_ref=$SOURCE_REF

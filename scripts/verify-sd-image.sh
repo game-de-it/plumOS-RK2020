@@ -16,7 +16,7 @@ if ! command -v parted >/dev/null 2>&1; then
         "$ROOT_DIR"/*:"$ROOT_DIR"/*) ;;
         *) printf 'error: inputs must be under repository for Docker verification\n' >&2; exit 2 ;;
     esac
-    TOOLS_IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
+    TOOLS_IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
     docker image inspect "$TOOLS_IMAGE" >/dev/null 2>&1 || \
         "$ROOT_DIR/scripts/build-tools-image.sh"
     container="$(
@@ -44,7 +44,7 @@ printf '%s\n' "$layout" | grep -q '^1:32768s:1081343s:1048576s:fat32::boot, lba;
 printf '%s\n' "$layout" | grep -q '^2:1081344s:5275647s:4194304s:ext4::;$'
 [ "$(printf '%s\n' "$layout" | grep -c '^[0-9][0-9]*:')" -eq 2 ]
 
-WORK="$(mktemp -d /tmp/plumos-pixel2-verify.XXXXXX)"
+WORK="$(mktemp -d /tmp/plumos-rk2020-verify.XXXXXX)"
 trap 'rm -rf "$WORK"' EXIT
 dd if="$IMAGE" of="$WORK/image-prefix.bin" bs=512 skip=1 count=32767 status=none
 dd if="$PREFIX" of="$WORK/source-prefix.bin" bs=512 skip=1 count=32767 status=none
@@ -54,7 +54,7 @@ dd if="$IMAGE" of="$WORK/plumos-sys.ext4" bs=512 skip=1081344 count=4194304 stat
 fsck.vfat -n "$WORK/boot.fat" >/dev/null
 e2fsck -fn "$WORK/plumos-sys.ext4" >/dev/null
 [ "$(blkid -s LABEL -o value "$WORK/plumos-sys.ext4")" = PLUMOS_SYS ]
-for file in Image SYSTEM rk3326s-gkd-pixel2.dtb oemsplash-1080.png plumos-image.manifest \
+for file in Image SYSTEM rk3326s-gkd-rk2020.dtb oemsplash-1080.png plumos-image.manifest \
     post-flash.sh post-sysroot.sh; do
     MTOOLS_SKIP_CHECK=1 mcopy -i "$WORK/boot.fat" "::/$file" "$WORK/$file"
 done
@@ -64,18 +64,18 @@ for slot in a b; do
             "::/system-slots/system-$slot.$suffix" "$WORK/system-$slot.$suffix"
     done
 done
-cmp "$WORK/Image" "$ROOT_DIR/artifacts/vendor/pixel2-stock/boot/Image"
-cmp "$WORK/rk3326s-gkd-pixel2.dtb" \
-    "$ROOT_DIR/artifacts/vendor/pixel2-stock/boot/rk3326s-gkd-pixel2.dtb"
+cmp "$WORK/Image" "$ROOT_DIR/artifacts/vendor/rk2020-stock/boot/Image"
+cmp "$WORK/rk3326s-gkd-rk2020.dtb" \
+    "$ROOT_DIR/artifacts/vendor/rk2020-stock/boot/rk3326s-gkd-rk2020.dtb"
 expected_runtime_dtb_sha=$(awk -F= '$1 == "runtime_dtb_sha256" { print $2 }' \
     "$WORK/plumos-image.manifest")
-actual_runtime_dtb_sha=$(sha256sum "$WORK/rk3326s-gkd-pixel2.dtb" | awk '{print $1}')
+actual_runtime_dtb_sha=$(sha256sum "$WORK/rk3326s-gkd-rk2020.dtb" | awk '{print $1}')
 [ "$actual_runtime_dtb_sha" = "$expected_runtime_dtb_sha" ]
-python3 "$ROOT_DIR/scripts/verify-pixel2-boot-splash.py" \
+python3 "$ROOT_DIR/scripts/verify-rk2020-boot-splash.py" \
     "$WORK/oemsplash-1080.png"
 cmp "$WORK/oemsplash-1080.png" \
-    "$ROOT_DIR/package/boot-assets-pixel2/oemsplash-1080.png"
-grep -q '^boot_substrate=stock-pixel2$' "$WORK/plumos-image.manifest"
+    "$ROOT_DIR/package/boot-assets-rk2020/oemsplash-1080.png"
+grep -q '^boot_substrate=stock-rk2020$' "$WORK/plumos-image.manifest"
 grep -q '^runtime_dtb_policy=exact-stock$' \
     "$WORK/plumos-image.manifest"
 grep -q '^boot_splash=oemsplash-1080.png$' "$WORK/plumos-image.manifest"
@@ -95,11 +95,11 @@ grep -q '^first_boot_p3_label=PLUMOS_USER$' "$WORK/plumos-image.manifest"
 grep -q '/usr/bin/ply-image /flash/oemsplash-1080.png' "$WORK/post-flash.sh"
 grep -q 'boot-splash result=plumos' "$WORK/post-flash.sh"
 grep -q 'post-sysroot' "$WORK/post-sysroot.sh"
-cmp "$WORK/SYSTEM" "$ROOT_DIR/output/system-rootfs/pixel2/payload/SYSTEM"
+cmp "$WORK/SYSTEM" "$ROOT_DIR/output/system-rootfs/rk2020/payload/SYSTEM"
 "$ROOT_DIR/scripts/verify-system-dispatcher.sh" "$WORK/SYSTEM"
 for slot in a b; do
     cmp "$WORK/system-$slot.squashfs" \
-        "$ROOT_DIR/output/system-rootfs/pixel2/payload/system-slots/system-$slot.squashfs"
+        "$ROOT_DIR/output/system-rootfs/rk2020/payload/system-slots/system-$slot.squashfs"
     expected=$(awk '{print $1}' "$WORK/system-$slot.sha256")
     actual=$(sha256sum "$WORK/system-$slot.squashfs" | awk '{print $1}')
     [ "$actual" = "$expected" ]
@@ -108,8 +108,8 @@ done
 mkdir -p "$WORK/app-layer"
 debugfs -R "rdump / $WORK/app-layer" "$WORK/plumos-sys.ext4" >/dev/null 2>&1
 "$ROOT_DIR/scripts/verify-app-layer.sh" "$WORK/app-layer"
-"$ROOT_DIR/tests/test-pixel2-first-boot-provision.sh" "$IMAGE"
-if strings "$WORK/Image" "$WORK/rk3326s-gkd-pixel2.dtb" \
+"$ROOT_DIR/tests/test-rk2020-first-boot-provision.sh" "$IMAGE"
+if strings "$WORK/Image" "$WORK/rk3326s-gkd-rk2020.dtb" \
     "$WORK/plumos-image.manifest" | grep -Eiq '(rock[n]ix|emuel[e]c|batocer[a]|knull[i])'; then
     printf 'error: foreign distribution identity in boot payload\n' >&2
     exit 1

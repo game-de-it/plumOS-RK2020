@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 DISK="${1:-}"
-OUT="${2:-$ROOT_DIR/artifacts/vendor/pixel2-stock-source/rockchip-boot-prefix.bin}"
+OUT="${2:-$ROOT_DIR/artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin}"
 
 case "$DISK" in
     /dev/disk[0-9]*) ;;

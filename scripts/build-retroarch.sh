@@ -12,12 +12,12 @@ SOURCE_URL=https://github.com/libretro/RetroArch.git
 SOURCE_COMMIT=69a4f0ea1e8aaf442ae4858f2e7f2b31a1776576
 ASSETS_SOURCE_URL=https://github.com/libretro/retroarch-assets.git
 ASSETS_SOURCE_COMMIT=73106363e14e34c08a5854b4cfbc29f184e3b783
-WORK="$ROOT_DIR/output/build/retroarch-pixel2"
-ASSETS_WORK="$ROOT_DIR/output/build/retroarch-assets-pixel2"
-OUT_ROOT="$ROOT_DIR/output/retroarch/pixel2"
+WORK="$ROOT_DIR/output/build/retroarch-rk2020"
+ASSETS_WORK="$ROOT_DIR/output/build/retroarch-assets-rk2020"
+OUT_ROOT="$ROOT_DIR/output/retroarch/rk2020"
 PLUMOS_DIR="$OUT_ROOT/plumos"
 COMPONENT_DIR="$PLUMOS_DIR/components/retroarch"
-VERSION="${PLUMOS_PIXEL2_VERSION:-0.1.0-dev}"
+VERSION="${PLUMOS_RK2020_VERSION:-0.1.0-dev}"
 SOURCE_REF="$(git -C "$ROOT_DIR" rev-parse --short HEAD)"
 SOURCE_EPOCH="${SOURCE_DATE_EPOCH:-}"
 [ -n "$SOURCE_EPOCH" ] || SOURCE_EPOCH="$(git -C "$ROOT_DIR" show -s --format=%ct HEAD)"
@@ -86,16 +86,16 @@ mkdir -p "$PLUMOS_DIR/bin" "$PLUMOS_DIR/emulator/lib" \
     "$PLUMOS_DIR/licenses" "$COMPONENT_DIR"
 install -m 0755 "$WORK/retroarch" "$PLUMOS_DIR/bin/retroarch"
 strip "$PLUMOS_DIR/bin/retroarch" 2>/dev/null || true
-install -m 0644 "$ROOT_DIR/package/retroarch-pixel2/retroarch.cfg" \
+install -m 0644 "$ROOT_DIR/package/retroarch-rk2020/retroarch.cfg" \
     "$PLUMOS_DIR/factory-defaults/retroarch/retroarch.cfg"
-install -m 0644 "$ROOT_DIR/package/retroarch-pixel2/retroarch-core-options.cfg" \
+install -m 0644 "$ROOT_DIR/package/retroarch-rk2020/retroarch-core-options.cfg" \
     "$PLUMOS_DIR/factory-defaults/retroarch/retroarch-core-options.cfg"
 install -m 0644 \
-    "$ROOT_DIR/package/retroarch-pixel2/remaps/ParaLLEl N64/ParaLLEl N64.rmp" \
+    "$ROOT_DIR/package/retroarch-rk2020/remaps/ParaLLEl N64/ParaLLEl N64.rmp" \
     "$PLUMOS_DIR/factory-defaults/retroarch/remaps/ParaLLEl N64/ParaLLEl N64.rmp"
-install -m 0644 "$ROOT_DIR/package/retroarch-pixel2/pixel2-joypad-udev.cfg" \
-    "$PLUMOS_DIR/factory-defaults/retroarch/autoconfig/udev/pixel2_joypad.cfg"
-install -m 0644 "$ROOT_DIR/package/retroarch-pixel2/alsa.conf" \
+install -m 0644 "$ROOT_DIR/package/retroarch-rk2020/rk2020-joypad-udev.cfg" \
+    "$PLUMOS_DIR/factory-defaults/retroarch/autoconfig/udev/rk2020_joypad.cfg"
+install -m 0644 "$ROOT_DIR/package/retroarch-rk2020/alsa.conf" \
     "$PLUMOS_DIR/factory-defaults/alsa/alsa.conf"
 install -m 0644 "$WORK/COPYING" "$PLUMOS_DIR/licenses/RetroArch-COPYING"
 
@@ -122,7 +122,7 @@ copy_runtime_tree() {
         sort -u | while IFS= read -r library; do
             [ -f "$library" ] || continue
             base=${library##*/}
-            # These are provided by the stock Pixel2 System ABI. Everything
+            # These are provided by the stock RK2020 System ABI. Everything
             # else belongs to this managed graphics/emulator runtime.
             case "$base" in libc.so.*|libm.so.*|ld-linux-*.so.*) continue ;; esac
             if [ ! -f "$PLUMOS_DIR/emulator/lib/$base" ]; then
@@ -142,7 +142,7 @@ MESA_EGL=/usr/lib/aarch64-linux-gnu/libEGL_mesa.so.0
 MESA_EGL_JSON=/usr/share/glvnd/egl_vendor.d/50_mesa.json
 for required in "$MESA_DRI" "$MESA_EGL" "$MESA_EGL_JSON"; do
     [ -r "$required" ] || {
-        printf 'error: Mesa Pixel2 runtime input is missing: %s\n' "$required" >&2
+        printf 'error: Mesa RK2020 runtime input is missing: %s\n' "$required" >&2
         exit 1
     }
 done
@@ -164,9 +164,9 @@ done
 
 cat >"$COMPONENT_DIR/manifest.json" <<EOF
 {
-  "name": "RetroArch for plumOS Pixel2",
+  "name": "RetroArch for plumOS RK2020",
   "component": "retroarch",
-  "device": "pixel2",
+  "device": "rk2020",
   "architecture": "aarch64",
   "version": "$VERSION",
   "upstream": "$SOURCE_URL",

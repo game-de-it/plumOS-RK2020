@@ -2,16 +2,16 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-SHIM="$ROOT_DIR/package/portmaster-pixel2/plumos/apps/portmaster/adapter/shims/pgrep"
+SHIM="$ROOT_DIR/package/portmaster-rk2020/plumos/apps/portmaster/adapter/shims/pgrep"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/plumos-portmaster-pgrep.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
 mkdir -p "$TMP/proc/101" "$TMP/proc/202"
 printf 'love.aarch64\0--game\0' >"$TMP/proc/101/cmdline"
 printf 'love.aarch64\n' >"$TMP/proc/101/comm"
-printf 'plumos-frontend-pixel2\0--renderer\0fbdev\0' \
+printf 'plumos-frontend-rk2020\0--renderer\0fbdev\0' \
   >"$TMP/proc/202/cmdline"
-printf 'plumos-frontend-pixel2\n' >"$TMP/proc/202/comm"
+printf 'plumos-frontend-rk2020\n' >"$TMP/proc/202/comm"
 
 result="$(PLUMOS_PORTMASTER_PROC_ROOT="$TMP/proc" "$SHIM" -f 'love[.]aarch64')"
 [ "$result" = 101 ]
@@ -27,5 +27,5 @@ if PLUMOS_PORTMASTER_PROC_ROOT="$TMP/proc" "$SHIM" -x love >/dev/null 2>&1; then
 fi
 
 grep -q 'ADAPTER_DIR}/shims:${RUN_ROOT}/busybox-bin:${ADAPTER_DIR}/bin/aarch64:${PLUMOS_ROOT}/bin' \
-  "$ROOT_DIR/package/portmaster-pixel2/plumos/bin/plumos-portmaster-launch"
+  "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-launch"
 printf 'portmaster_pgrep=result-ok\n'

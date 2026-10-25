@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
+IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
 if [ "${1:-}" != --inside ]; then
     exec docker run --rm --platform linux/arm64 \
         -v "$ROOT_DIR:/work:ro" -w /work "$IMAGE" \
@@ -12,7 +12,7 @@ work=$(mktemp -d /tmp/plumos-update-health.XXXXXX)
 trap 'rm -rf "$work"' EXIT
 state="$work/state"
 mkdir -p "$state"
-helper="$ROOT_DIR/rootfs/pixel2/usr/lib/plumos/init.d/50-update-health"
+helper="$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/50-update-health"
 
 printf 'a\n' >"$state/system-booted"
 PLUMOS_UPDATE_BUSYBOX=/bin/busybox PLUMOS_UPDATE_STATE_ROOT="$state" \

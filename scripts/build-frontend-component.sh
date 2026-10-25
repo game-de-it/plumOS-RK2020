@@ -8,14 +8,14 @@ fi
 shift
 
 ROOT_DIR=/work
-OUT_ROOT="$ROOT_DIR/output/frontend/pixel2"
+OUT_ROOT="$ROOT_DIR/output/frontend/rk2020"
 PLUMOS_DIR="$OUT_ROOT/plumos"
 BIN_DIR="$PLUMOS_DIR/bin"
 LIB_DIR="$PLUMOS_DIR/frontend/lib"
 SCRAPER_LIB_DIR="$PLUMOS_DIR/scraper/lib"
 COMPONENT_DIR="$PLUMOS_DIR/components/frontend"
 SOURCE_DIR="$ROOT_DIR/vendor/plumos-frontend/src"
-VERSION="${PLUMOS_PIXEL2_VERSION:-0.1.0-dev}"
+VERSION="${PLUMOS_RK2020_VERSION:-0.1.0-dev}"
 SOURCE_REF="$(git -C "$ROOT_DIR" rev-parse --short HEAD)"
 SOURCE_EPOCH="${SOURCE_DATE_EPOCH:-}"
 [ -n "$SOURCE_EPOCH" ] || SOURCE_EPOCH="$(git -C "$ROOT_DIR" show -s --format=%ct HEAD)"
@@ -24,19 +24,19 @@ rm -rf "$OUT_ROOT"
 mkdir -p "$BIN_DIR" "$LIB_DIR" "$SCRAPER_LIB_DIR" "$COMPONENT_DIR" \
     "$PLUMOS_DIR/licenses/plumos-frontend" "$PLUMOS_DIR/fonts"
 cp -a "$ROOT_DIR/vendor/plumos-frontend/seed/." "$PLUMOS_DIR/"
-rsync -a "$ROOT_DIR/package/app-layer-pixel2/" "$PLUMOS_DIR/"
+rsync -a "$ROOT_DIR/package/app-layer-rk2020/" "$PLUMOS_DIR/"
 install -m 0755 /usr/sbin/fsck.fat "$BIN_DIR/fsck.fat"
-python3 "$ROOT_DIR/scripts/generate-pixel2-system-logos.py" \
+python3 "$ROOT_DIR/scripts/generate-rk2020-system-logos.py" \
     "$PLUMOS_DIR/themes/default/logos/systems"
-install -m 0644 "$ROOT_DIR/package/frontend-pixel2/systems.json" \
+install -m 0644 "$ROOT_DIR/package/frontend-rk2020/systems.json" \
     "$PLUMOS_DIR/config/frontend/systems.json"
-install -m 0644 "$ROOT_DIR/package/frontend-pixel2/menus.json" \
+install -m 0644 "$ROOT_DIR/package/frontend-rk2020/menus.json" \
     "$PLUMOS_DIR/config/frontend/menus.json"
-install -m 0644 "$ROOT_DIR/package/frontend-pixel2/apps.json" \
+install -m 0644 "$ROOT_DIR/package/frontend-rk2020/apps.json" \
     "$PLUMOS_DIR/config/frontend/apps.json"
-install -m 0644 "$ROOT_DIR/package/frontend-pixel2/feature-contract.json" \
+install -m 0644 "$ROOT_DIR/package/frontend-rk2020/feature-contract.json" \
     "$PLUMOS_DIR/config/frontend/feature-contract.json"
-install -m 0644 "$ROOT_DIR/package/frontend-pixel2/scraper-sources.tsv" \
+install -m 0644 "$ROOT_DIR/package/frontend-rk2020/scraper-sources.tsv" \
     "$PLUMOS_DIR/config/frontend/scraper-sources.tsv"
 install -m 0644 "$ROOT_DIR/vendor/plumos-frontend/LICENSE" \
     "$PLUMOS_DIR/licenses/plumos-frontend/LICENSE"
@@ -64,7 +64,7 @@ gcc "${common[@]}" $png_cflags $freetype_cflags $drm_cflags \
     -DPLUMOS_FBDEV_ENABLE_PNG=1 \
     -DPLUMOS_FBDEV_ENABLE_FREETYPE=1 \
     -DPLUMOS_FBDEV_ENABLE_DRM=1 \
-    "$SOURCE_DIR/plumos_controller_ui.c" -o "$BIN_DIR/plumos-frontend-pixel2" \
+    "$SOURCE_DIR/plumos_controller_ui.c" -o "$BIN_DIR/plumos-frontend-rk2020" \
     $png_libs $freetype_libs $drm_libs
 gcc "${common[@]}" "$SOURCE_DIR/plumos_library_scan.c" \
     -o "$BIN_DIR/plumos-library-scan"
@@ -72,7 +72,7 @@ gcc "${common[@]}" "$SOURCE_DIR/plumos_text_ui.c" \
     -o "$BIN_DIR/plumos-text-ui"
 gcc "${common[@]}" "$SOURCE_DIR/plumos_frontend.c" \
     -o "$BIN_DIR/plumos-frontend-diagnostics"
-gcc "${common[@]}" $drm_cflags "$SOURCE_DIR/plumos_pixel2_hardware_keys.c" \
+gcc "${common[@]}" $drm_cflags "$SOURCE_DIR/plumos_rk2020_hardware_keys.c" \
     -o "$BIN_DIR/plumos-hardware-keys" $drm_libs
 gcc "${common[@]}" "$SOURCE_DIR/plumos_rk817_resume.c" \
     -o "$BIN_DIR/plumos-rk817-resume" \
@@ -175,15 +175,15 @@ install_scraper_runtime
 
 cat >"$COMPONENT_DIR/manifest.json" <<EOF
 {
-  "name": "plumOS Pixel2 frontend",
+  "name": "plumOS RK2020 frontend",
   "component": "frontend",
-  "device": "pixel2",
+  "device": "rk2020",
   "architecture": "aarch64",
   "version": "$VERSION",
   "source_ref": "$SOURCE_REF",
   "source_date_epoch": $SOURCE_EPOCH,
   "renderer": "drm-fbdev-ccw",
-  "input": "gkd-pixel2-joypad",
+  "input": "gkd-rk2020-joypad",
   "hardware_key_daemon": "bin/plumos-hardware-keys",
   "resolver": "bin/plumos-text-ui",
   "catalog": "config/frontend/systems.json"

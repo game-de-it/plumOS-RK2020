@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-REPAIR="$ROOT_DIR/package/app-layer-pixel2/bin/plumos-np2kai-config-repair"
+REPAIR="$ROOT_DIR/package/app-layer-rk2020/bin/plumos-np2kai-config-repair"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 

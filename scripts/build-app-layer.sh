@@ -12,20 +12,20 @@ while [ "$#" -gt 0 ]; do
 done
 
 ROOT_DIR=/work
-OUT_ROOT="$ROOT_DIR/output/app-layer/pixel2"
+OUT_ROOT="$ROOT_DIR/output/app-layer/rk2020"
 PLUMOS_DIR="$OUT_ROOT/plumos"
-FRONTEND="$ROOT_DIR/output/frontend/pixel2/plumos"
-RETROARCH="$ROOT_DIR/output/retroarch/pixel2/plumos"
-CORES="$ROOT_DIR/output/libretro-cores/pixel2/plumos"
-PICOARCH="$ROOT_DIR/output/picoarch/pixel2/plumos"
-STANDALONE="$ROOT_DIR/output/standalone/pixel2/plumos"
-AUDIO_ROUTER="$ROOT_DIR/output/audio-router/pixel2/plumos"
-PYXEL="$ROOT_DIR/output/pyxel-runtime/pixel2/plumos"
-NEXTCOMMANDER="$ROOT_DIR/output/nextcommander/pixel2/plumos"
-MUSIC_PLAYER="$ROOT_DIR/output/music-player/pixel2/plumos"
-NETWORK_SERVICES="$ROOT_DIR/output/network-services/pixel2/plumos"
-PORTMASTER="$ROOT_DIR/output/portmaster/pixel2/plumos"
-VERSION="${PLUMOS_PIXEL2_VERSION:-0.1.0-dev}"
+FRONTEND="$ROOT_DIR/output/frontend/rk2020/plumos"
+RETROARCH="$ROOT_DIR/output/retroarch/rk2020/plumos"
+CORES="$ROOT_DIR/output/libretro-cores/rk2020/plumos"
+PICOARCH="$ROOT_DIR/output/picoarch/rk2020/plumos"
+STANDALONE="$ROOT_DIR/output/standalone/rk2020/plumos"
+AUDIO_ROUTER="$ROOT_DIR/output/audio-router/rk2020/plumos"
+PYXEL="$ROOT_DIR/output/pyxel-runtime/rk2020/plumos"
+NEXTCOMMANDER="$ROOT_DIR/output/nextcommander/rk2020/plumos"
+MUSIC_PLAYER="$ROOT_DIR/output/music-player/rk2020/plumos"
+NETWORK_SERVICES="$ROOT_DIR/output/network-services/rk2020/plumos"
+PORTMASTER="$ROOT_DIR/output/portmaster/rk2020/plumos"
+VERSION="${PLUMOS_RK2020_VERSION:-0.1.0-dev}"
 SOURCE_REF="$(git -C "$ROOT_DIR" rev-parse --short HEAD)"
 SOURCE_EPOCH="${SOURCE_DATE_EPOCH:-}"
 [ -n "$SOURCE_EPOCH" ] || SOURCE_EPOCH="$(git -C "$ROOT_DIR" show -s --format=%ct HEAD)"
@@ -58,7 +58,7 @@ rsync -a "$NEXTCOMMANDER/" "$PLUMOS_DIR/"
 rsync -a "$MUSIC_PLAYER/" "$PLUMOS_DIR/"
 rsync -a "$NETWORK_SERVICES/" "$PLUMOS_DIR/"
 rsync -a "$PORTMASTER/" "$PLUMOS_DIR/"
-rsync -a "$ROOT_DIR/package/app-layer-pixel2/" "$PLUMOS_DIR/"
+rsync -a "$ROOT_DIR/package/app-layer-rk2020/" "$PLUMOS_DIR/"
 chmod 0755 "$PLUMOS_DIR/bin/"*
 
 # Publish the repository and third-party license boundary inside the binary
@@ -74,13 +74,13 @@ install -m 0644 "$ROOT_DIR/THIRD_PARTY_NOTICES.md" \
     "$PLUMOS_DIR/licenses/THIRD_PARTY_NOTICES.md"
 install -m 0644 "$ROOT_DIR/THIRD_PARTY_NOTICES.ja.md" \
     "$PLUMOS_DIR/licenses/THIRD_PARTY_NOTICES.ja.md"
-install -m 0644 "$ROOT_DIR/package/licenses-pixel2/runtime-license-index.tsv" \
+install -m 0644 "$ROOT_DIR/package/licenses-rk2020/runtime-license-index.tsv" \
     "$PLUMOS_DIR/licenses/RUNTIME_LICENSE_INDEX.tsv"
 for notice in \
-    pixel2-stock-vendor-runtime-NOTICE.txt \
+    rk2020-stock-vendor-runtime-NOTICE.txt \
     drastic-upstream-NOTICE.txt \
     nextcommander-upstream-NOTICE.txt; do
-    install -m 0644 "$ROOT_DIR/package/licenses-pixel2/$notice" \
+    install -m 0644 "$ROOT_DIR/package/licenses-rk2020/$notice" \
         "$PLUMOS_DIR/licenses/$notice"
 done
 for component in \
@@ -124,11 +124,11 @@ fi
 mkdir -p "$PLUMOS_DIR/config" "$PLUMOS_DIR/state" "$PLUMOS_DIR/saves" \
     "$PLUMOS_DIR/states" "$PLUMOS_DIR/logs" "$PLUMOS_DIR/updates"
 printf '%s\n' "$VERSION" >"$PLUMOS_DIR/VERSION"
-printf 'pixel2-rockchip-r1\n' >"$PLUMOS_DIR/COMPAT_VENDOR"
-printf 'plumos-pixel2-app-layer-v1\n' >"$PLUMOS_DIR/RUNTIME_ABI"
+printf 'rk2020-rockchip-r1\n' >"$PLUMOS_DIR/COMPAT_VENDOR"
+printf 'plumos-rk2020-app-layer-v1\n' >"$PLUMOS_DIR/RUNTIME_ABI"
 
 # All components above are mandatory and checksum-verified before the
-# assembler reaches this point.  A successful Pixel2 app-layer assembly is
+# assembler reaches this point.  A successful RK2020 app-layer assembly is
 # therefore complete regardless of whether the compatibility --strict flag was
 # supplied.  Emitting complete=false here made the default command create an
 # unusable tree and then fail its own verifier without a useful error.
@@ -139,12 +139,12 @@ launch_profiles_json="$(
 )"
 cat >"$PLUMOS_DIR/manifest.json" <<EOF
 {
-  "name": "plumOS Pixel2 app layer",
-  "device": "pixel2",
+  "name": "plumOS RK2020 app layer",
+  "device": "rk2020",
   "architecture": "aarch64",
   "version": "$VERSION",
-  "runtime_abi": "plumos-pixel2-app-layer-v1",
-  "compat_vendor": "pixel2-rockchip-r1",
+  "runtime_abi": "plumos-rk2020-app-layer-v1",
+  "compat_vendor": "rk2020-rockchip-r1",
   "source_ref": "$SOURCE_REF",
   "source_date_epoch": $SOURCE_EPOCH,
   "complete": $complete,
@@ -166,5 +166,5 @@ EOF
         while IFS= read -r file; do sha256sum "$file"; done
 ) >"$PLUMOS_DIR/checksums.sha256"
 "$ROOT_DIR/scripts/verify-app-layer.sh" "$PLUMOS_DIR"
-"$ROOT_DIR/scripts/audit-pixel2-license-bundle.sh" --app-only "$PLUMOS_DIR"
+"$ROOT_DIR/scripts/audit-rk2020-license-bundle.sh" --app-only "$PLUMOS_DIR"
 printf 'app_layer=result-ok strict=%s output=%s\n' "$STRICT" "$PLUMOS_DIR"

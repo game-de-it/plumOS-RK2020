@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-SHIM="$ROOT_DIR/package/portmaster-pixel2/plumos/apps/portmaster/adapter/shims/df"
+SHIM="$ROOT_DIR/package/portmaster-rk2020/plumos/apps/portmaster/adapter/shims/df"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/plumos-portmaster-df.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Pixel2 frontend routes against a user-provided ROM set.
+"""Validate RK2020 frontend routes against a user-provided ROM set.
 
 This is a host-side, non-mutating validator. It does not copy ROMs and it does
 not execute emulators. It checks every launch profile exposed by each enabled
@@ -80,7 +80,7 @@ def candidate_dirs(system: dict[str, Any], rom_dirs: dict[str, Path]) -> list[Pa
     names.extend(EXTRA_DIR_ALIASES.get(system["id"], []))
     # The supplied archival ROM set keeps less frequently used systems below
     # `_etc/<system>`. Treat those directories as additional read-only aliases;
-    # the device staging path remains the canonical Pixel2 FE directory.
+    # the device staging path remains the canonical RK2020 FE directory.
     names.extend(
         f"_etc/{name}"
         for name in list(names)
@@ -167,10 +167,10 @@ def profile_status(app_root: Path, profile: str, standalone_ids: set[str]) -> tu
         return "pending-binary", emulator
     if profile.startswith("pyxel:"):
         pyxel_profile = profile.split(":", 1)[1]
-        launcher = app_root / "bin/plumos-pyxel-pixel2-launch"
+        launcher = app_root / "bin/plumos-pyxel-rk2020-launch"
         python = app_root / "apps/python/bin/python3.11"
         package = app_root / "apps/pyxel/site/pyxel/__init__.py"
-        if pyxel_profile != "pixel2":
+        if pyxel_profile != "rk2020":
             return "unknown-profile", profile
         if not launcher.exists():
             return "missing-launcher", str(launcher.relative_to(app_root))
@@ -184,7 +184,7 @@ def profile_status(app_root: Path, profile: str, standalone_ids: set[str]) -> tu
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--app-root", default="output/app-layer/pixel2/plumos")
+    parser.add_argument("--app-root", default="output/app-layer/rk2020/plumos")
     parser.add_argument("--rom-root", required=True)
     parser.add_argument("--markdown", default="")
     parser.add_argument("--json", default="")
@@ -287,7 +287,7 @@ def main() -> int:
         markdown_path = Path(args.markdown)
         markdown_path.parent.mkdir(parents=True, exist_ok=True)
         lines = [
-            "# Pixel2 ROM set route validation",
+            "# RK2020 ROM set route validation",
             "",
             f"ROM root: `{rom_root}`",
             f"App root: `{app_root}`",

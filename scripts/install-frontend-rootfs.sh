@@ -35,7 +35,7 @@ gcc "${common_flags[@]}" $png_cflags $freetype_cflags $drm_cflags \
     -DPLUMOS_FBDEV_ENABLE_FREETYPE=1 \
     -DPLUMOS_FBDEV_ENABLE_DRM=1 \
     "$SOURCE_DIR/plumos_controller_ui.c" \
-    -o "$ROOTFS_DIR/usr/bin/plumos-frontend-pixel2" \
+    -o "$ROOTFS_DIR/usr/bin/plumos-frontend-rk2020" \
     $png_libs $freetype_libs $drm_libs
 gcc "${common_flags[@]}" "$SOURCE_DIR/plumos_library_scan.c" \
     -o "$ROOTFS_DIR/usr/bin/plumos-library-scan"
@@ -43,11 +43,11 @@ gcc "${common_flags[@]}" "$SOURCE_DIR/plumos_text_ui.c" \
     -o "$ROOTFS_DIR/usr/bin/plumos-text-ui"
 gcc "${common_flags[@]}" "$SOURCE_DIR/plumos_frontend.c" \
     -o "$ROOTFS_DIR/usr/bin/plumos-frontend-diagnostics"
-strip "$ROOTFS_DIR/usr/bin/plumos-frontend-pixel2" \
+strip "$ROOTFS_DIR/usr/bin/plumos-frontend-rk2020" \
     "$ROOTFS_DIR/usr/bin/plumos-library-scan" \
     "$ROOTFS_DIR/usr/bin/plumos-text-ui" \
     "$ROOTFS_DIR/usr/bin/plumos-frontend-diagnostics" 2>/dev/null || true
-chmod 0755 "$ROOTFS_DIR/usr/bin/plumos-frontend-pixel2" \
+chmod 0755 "$ROOTFS_DIR/usr/bin/plumos-frontend-rk2020" \
     "$ROOTFS_DIR/usr/bin/plumos-library-scan" \
     "$ROOTFS_DIR/usr/bin/plumos-text-ui" \
     "$ROOTFS_DIR/usr/bin/plumos-frontend-diagnostics"
@@ -62,9 +62,9 @@ copy_dependencies() {
         cp -L "$library" "$ROOTFS_DIR$library"
     done
 }
-copy_dependencies "$ROOTFS_DIR/usr/bin/plumos-frontend-pixel2"
+copy_dependencies "$ROOTFS_DIR/usr/bin/plumos-frontend-rk2020"
 copy_dependencies "$ROOTFS_DIR/usr/bin/plumos-library-scan"
 copy_dependencies "$ROOTFS_DIR/usr/bin/plumos-text-ui"
 copy_dependencies "$ROOTFS_DIR/usr/bin/plumos-frontend-diagnostics"
 
-printf 'frontend-rootfs=result-ok target=pixel2 renderer=drm-fbdev\n'
+printf 'frontend-rootfs=result-ok target=rk2020 renderer=drm-fbdev\n'

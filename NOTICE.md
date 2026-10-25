@@ -1,6 +1,6 @@
-# plumOS Pixel2 Notice
+# plumOS RK2020 Notice
 
-plumOS Pixel2 uses a checksum-registered GKD Pixel2 stock boot substrate: the
+plumOS RK2020 uses a checksum-registered GKD RK2020 stock boot substrate: the
 Rockchip boot prefix, Linux 5.10.198 kernel image, runtime DTB, stock initramfs,
 selected kernel modules, and firmware required to start the plumOS-owned
 `SYSTEM` and app layer.
@@ -8,7 +8,7 @@ selected kernel modules, and firmware required to start the plumOS-owned
 Those stock/vendor-derived files retain their original terms. They are not
 covered by the plumOS MIT License. Their origin, hashes, and immutable boundary
 are recorded by the stock capture manifests and
-`package/licenses-pixel2/pixel2-stock-vendor-runtime-NOTICE.txt`.
+`package/licenses-rk2020/rk2020-stock-vendor-runtime-NOTICE.txt`.
 
 plumOS-authored source, scripts, configuration, documentation, integration
 patches, and artwork are licensed under the repository `LICENSE` unless a file

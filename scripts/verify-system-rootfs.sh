@@ -12,7 +12,7 @@ if ! command -v unsquashfs >/dev/null 2>&1; then
         *) printf 'error: image must be under repository for Docker verification\n' >&2; exit 2 ;;
     esac
     relative=${IMAGE_PATH#"$ROOT_DIR"/}
-    TOOL_IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
+    TOOL_IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
     docker image inspect "$TOOL_IMAGE" >/dev/null 2>&1 || \
         "$ROOT_DIR/scripts/build-tools-image.sh"
     exec docker run --rm --platform linux/arm64 \
@@ -20,7 +20,7 @@ if ! command -v unsquashfs >/dev/null 2>&1; then
         ./scripts/verify-system-rootfs.sh "/work/$relative"
 fi
 
-tmp="$(mktemp -d /tmp/plumos-pixel2-rootfs.XXXXXX)"
+tmp="$(mktemp -d /tmp/plumos-rk2020-rootfs.XXXXXX)"
 trap 'rm -rf "$tmp"' EXIT
 unsquashfs -d "$tmp/rootfs" "$IMAGE" >/dev/null
 
@@ -35,13 +35,13 @@ grep -q '^ID=plumos$' "$tmp/rootfs/etc/os-release"
 for path in \
     usr/share/licenses/plumOS-MIT.txt \
     usr/share/licenses/NOTICE.txt \
-    usr/share/licenses/pixel2-stock-vendor-runtime-NOTICE.txt; do
+    usr/share/licenses/rk2020-stock-vendor-runtime-NOTICE.txt; do
     test -s "$tmp/rootfs/$path" || {
         printf 'error: System license material missing: %s\n' "$path" >&2
         exit 1
     }
 done
-grep -q '"device": "pixel2"' "$tmp/rootfs/usr/lib/plumos/system-manifest.json"
+grep -q '"device": "rk2020"' "$tmp/rootfs/usr/lib/plumos/system-manifest.json"
 test -x "$tmp/rootfs/usr/lib/plumos/init.d/20-usb-wifi"
 test -x "$tmp/rootfs/usr/lib/plumos/init.d/15-usb-host-reenumerate"
 grep -q 'force_wifi_host_mode' \
@@ -58,7 +58,7 @@ grep -q 'plumos-enable-adb' "$tmp/rootfs/sbin/init"
 test ! -e "$tmp/rootfs/usr/lib/plumos/init.d/10-adbd"
 test ! -e "$tmp/rootfs/usr/sbin/adbd"
 test ! -e "$tmp/rootfs/usr/lib/plumos/adbd"
-test -x "$tmp/rootfs/usr/bin/plumos-frontend-pixel2"
+test -x "$tmp/rootfs/usr/bin/plumos-frontend-rk2020"
 test -x "$tmp/rootfs/usr/bin/plumos-library-scan"
 test -x "$tmp/rootfs/usr/bin/plumos-text-ui"
 test -x "$tmp/rootfs/usr/bin/plumos-frontend-diagnostics"
@@ -95,7 +95,7 @@ for frame in blank prepare resize userdata verify start error update_verify \
         exit 1
     }
     [ "$(stat -c '%s' "$path")" -eq $((480 * 640 * 4)) ] || {
-        printf 'error: invalid Pixel2 update progress frame: %s.raw\n' "$frame" >&2
+        printf 'error: invalid RK2020 update progress frame: %s.raw\n' "$frame" >&2
         exit 1
     }
 done
@@ -105,7 +105,7 @@ import sys
 
 payload = Path(sys.argv[1]).read_bytes()
 assert payload == b"\x00\x00\x00\xff" * (480 * 640), \
-    "Pixel2 frontend handoff frame is not opaque black"
+    "RK2020 frontend handoff frame is not opaque black"
 PY
 grep -q 'clear_frontend_handoff_framebuffer' \
     "$tmp/rootfs/usr/lib/plumos/init.d/40-frontend"
@@ -123,9 +123,9 @@ grep -q 'show_progress start' \
     "$tmp/rootfs/usr/sbin/plumos-first-boot-provision"
 grep -q 'is_mounted /mnt/plumos-user' "$tmp/rootfs/sbin/init"
 grep -q 'user-data=first-boot-provisioner' "$tmp/rootfs/sbin/init"
-grep -q '^plumos-pixel2-v1$' "$tmp/rootfs/etc/plumos-system-abi"
-grep -q '^DEVICE_ID = "pixel2"$' "$tmp/rootfs/usr/sbin/plumos-system-update"
-grep -q '"runtime_abi": "plumos-pixel2-app-layer-v1"' \
+grep -q '^plumos-rk2020-v1$' "$tmp/rootfs/etc/plumos-system-abi"
+grep -q '^DEVICE_ID = "rk2020"$' "$tmp/rootfs/usr/sbin/plumos-system-update"
+grep -q '"runtime_abi": "plumos-rk2020-app-layer-v1"' \
     "$tmp/rootfs/usr/lib/plumos/system-manifest.json"
 test -s "$tmp/rootfs/etc/plumos-system-version"
 test -x "$tmp/rootfs/lib/ld-linux-aarch64.so.1"
@@ -144,7 +144,7 @@ case "$release" in
     5.10.198) ;;
     *) printf 'error: unexpected kernel module ABI: %s\n' "$release" >&2; exit 1 ;;
 esac
-grep -q '"boot_substrate": "stock-pixel2"' \
+grep -q '"boot_substrate": "stock-rk2020"' \
     "$tmp/rootfs/usr/lib/plumos/system-manifest.json"
 test -f "$tmp/rootfs/lib/firmware/regulatory.db"
 test -f "$tmp/rootfs/lib/firmware/ath9k_htc/htc_9271-1.4.0.fw"
@@ -186,14 +186,14 @@ if [ "$(uname -m)" = aarch64 ]; then
     chroot "$tmp/rootfs" /usr/sbin/iw --version >/dev/null
     chroot "$tmp/rootfs" /usr/sbin/dropbear -V >/dev/null
     chroot "$tmp/rootfs" /usr/bin/kmod --version >/dev/null
-    chroot "$tmp/rootfs" /usr/bin/plumos-frontend-pixel2 --help >/dev/null
+    chroot "$tmp/rootfs" /usr/bin/plumos-frontend-rk2020 --help >/dev/null
     chroot "$tmp/rootfs" /usr/bin/plumos-library-scan --help >/dev/null
     chroot "$tmp/rootfs" /usr/bin/plumos-text-ui --help >/dev/null
     chroot "$tmp/rootfs" /usr/bin/python3 -c \
         'import fcntl, hashlib, json, shutil, subprocess, tarfile, tempfile'
     test "$(chroot "$tmp/rootfs" /usr/bin/python3 -c \
         'import runpy; print(runpy.run_path("/usr/sbin/plumos-system-update")["DEVICE_ID"])')" \
-        = pixel2
+        = rk2020
     chroot "$tmp/rootfs" /usr/bin/openssl version >/dev/null
     chroot "$tmp/rootfs" /usr/sbin/plumos-system-update --help >/dev/null
     chroot "$tmp/rootfs" /usr/sbin/sfdisk --version >/dev/null

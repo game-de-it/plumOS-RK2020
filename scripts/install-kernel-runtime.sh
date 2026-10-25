@@ -3,19 +3,19 @@ set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 ROOTFS_DIR="${1:-}"
-STOCK_KERNEL_ROOT="$ROOT_DIR/artifacts/vendor/pixel2-stock"
+STOCK_KERNEL_ROOT="$ROOT_DIR/artifacts/vendor/rk2020-stock"
 MODULES_SRC="$STOCK_KERNEL_ROOT/kernel/extracted/usr/lib/kernel-overlays/base/lib/modules"
-FIRMWARE_SRC="$ROOT_DIR/artifacts/vendor/pixel2-stock/kernel/extracted/usr/lib/kernel-overlays/base/lib/firmware"
-EXTERNAL_MODULE_ROOT="$ROOT_DIR/output/kernel-modules/pixel2"
+FIRMWARE_SRC="$ROOT_DIR/artifacts/vendor/rk2020-stock/kernel/extracted/usr/lib/kernel-overlays/base/lib/firmware"
+EXTERNAL_MODULE_ROOT="$ROOT_DIR/output/kernel-modules/rk2020"
 
 [ -d "$ROOTFS_DIR" ] || {
     printf 'usage: %s ROOTFS_DIR\n' "$0" >&2
     exit 2
 }
 [ -f "$STOCK_KERNEL_ROOT/boot/Image" ] && \
-    [ -f "$STOCK_KERNEL_ROOT/boot/rk3326s-gkd-pixel2.dtb" ] && \
+    [ -f "$STOCK_KERNEL_ROOT/boot/rk3326s-gkd-rk2020.dtb" ] && \
     [ -d "$MODULES_SRC" ] || {
-    printf 'error: captured Pixel2 stock kernel artifacts missing; run ./scripts/capture-stock-boot-artifacts.sh first\n' >&2
+    printf 'error: captured RK2020 stock kernel artifacts missing; run ./scripts/capture-stock-boot-artifacts.sh first\n' >&2
     exit 2
 }
 [ -d "$FIRMWARE_SRC" ] || {
@@ -40,7 +40,7 @@ mkdir -p "$ROOTFS_DIR/lib/modules" "$ROOTFS_DIR/lib/firmware" \
 cp -a "$MODULES_SRC/$release" "$ROOTFS_DIR/lib/modules/"
 
 (cd "$EXTERNAL_MODULE_ROOT" && sha256sum -c checksums.sha256 >/dev/null) || {
-    printf 'error: Pixel2 external kernel modules missing or invalid; run ./scripts/docker-build.sh kernel-modules\n' >&2
+    printf 'error: RK2020 external kernel modules missing or invalid; run ./scripts/docker-build.sh kernel-modules\n' >&2
     exit 2
 }
 install -D -m 0644 \
@@ -53,7 +53,7 @@ install -m 0644 "$EXTERNAL_MODULE_ROOT/rtl8821cu.required-kernel-symbols" \
 install -m 0644 "$EXTERNAL_MODULE_ROOT/licenses/rtl8821cu/LICENSE" \
     "$ROOTFS_DIR/usr/share/licenses/rtl8821cu/LICENSE"
 
-# Minimal firmware set for the USB Wi-Fi families enabled by the Pixel2 kernel.
+# Minimal firmware set for the USB Wi-Fi families enabled by the RK2020 kernel.
 # These files are captured from the stock kernel overlay; no stock executable,
 # service, configuration, or userspace library is copied.
 while IFS= read -r relative; do

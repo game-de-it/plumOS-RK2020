@@ -10,12 +10,12 @@ if [ "${1:-}" = --inside ]; then
   shift
 fi
 OUT_DIR_EXPLICIT=0
-if [ "${PLUMOS_PIXEL2_CORES_OUT+x}" = x ]; then
+if [ "${PLUMOS_RK2020_CORES_OUT+x}" = x ]; then
   OUT_DIR_EXPLICIT=1
 fi
-OUT_ROOT="${PLUMOS_PIXEL2_CORES_OUT:-output/libretro-cores/pixel2}"
-SRC_ROOT="${PLUMOS_PIXEL2_CORES_SRC:-output/build/libretro-cores-pixel2/src}"
-CORE_RECIPES="${CORE_RECIPES:-${ROOT_DIR}/docker/pixel2-tools/libretro-core-recipes.tsv}"
+OUT_ROOT="${PLUMOS_RK2020_CORES_OUT:-output/libretro-cores/rk2020}"
+SRC_ROOT="${PLUMOS_RK2020_CORES_SRC:-output/build/libretro-cores-rk2020/src}"
+CORE_RECIPES="${CORE_RECIPES:-${ROOT_DIR}/docker/rk2020-tools/libretro-core-recipes.tsv}"
 CORE_INFO_REPO="${CORE_INFO_REPO:-https://github.com/libretro/libretro-core-info.git}"
 CORE_INFO_REF="${CORE_INFO_REF:-HEAD}"
 PLUMOS_CORE_FILTER="${PLUMOS_CORE_FILTER:-all}"
@@ -45,10 +45,10 @@ Usage:
   scripts/build-libretro-cores.sh [options]
 
 Options:
-  --out-dir PATH       Output root; default output/libretro-cores/pixel2.
-  --src-root PATH      Source/build root; default output/build/libretro-cores-pixel2/src.
-  --recipes PATH       Recipe TSV; default docker/pixel2-tools/libretro-core-recipes.tsv.
-  --filter FILTER      all, pixel2, plumos, class-a, class-b, class-o,
+  --out-dir PATH       Output root; default output/libretro-cores/rk2020.
+  --src-root PATH      Source/build root; default output/build/libretro-cores-rk2020/src.
+  --recipes PATH       Recipe TSV; default docker/rk2020-tools/libretro-core-recipes.tsv.
+  --filter FILTER      all, rk2020, plumos, class-a, class-b, class-o,
                        class-ab, or comma-separated core IDs.
                        Default: all. Filtered builds use an isolated output.
   --jobs N             Per-core make jobs; default nproc.
@@ -140,13 +140,13 @@ if [ "$complete_filter" -eq 0 ] && [ "$OUT_DIR_EXPLICIT" -eq 0 ]; then
     tr '[:upper:]' '[:lower:]' |
     sed 's/[^a-z0-9._-]/_/g; s/^_*//; s/_*$//')"
   [ -n "$safe_filter" ] || safe_filter=custom
-  OUT_ROOT="output/libretro-cores/pixel2-filtered/$safe_filter"
+  OUT_ROOT="output/libretro-cores/rk2020-filtered/$safe_filter"
 fi
 case "$OUT_ROOT" in
   /*) ;;
   *) OUT_ROOT="$ROOT_DIR/$OUT_ROOT" ;;
 esac
-CANONICAL_OUT_DIR="$ROOT_DIR/output/libretro-cores/pixel2"
+CANONICAL_OUT_DIR="$ROOT_DIR/output/libretro-cores/rk2020"
 if [ "$complete_filter" -eq 0 ] && [ "$OUT_ROOT" = "$CANONICAL_OUT_DIR" ] &&
    [ "$REPLACE_CANONICAL" -ne 1 ]; then
   printf 'error: filtered core builds cannot replace canonical output: %s\n' "$OUT_ROOT" >&2
@@ -188,7 +188,7 @@ core_aliases() {
 }
 
 core_output_aliases() {
-  # Match Pixel2 package filenames when the Pixel2-safe aarch64 build is provided
+  # Match RK2020 package filenames when the RK2020-safe aarch64 build is provided
   # by the same upstream family under a different libretro core name.
   case "$1:$2" in
     beetle_saturn:mednafen_saturn_libretro.so)
@@ -247,7 +247,7 @@ core_selected() {
       all|ALL)
         return 0
         ;;
-      pixel2|plumos|default|class-plumos|Class-plumOS)
+      rk2020|plumos|default|class-plumos|Class-plumOS)
         { [ "$class" = "A" ] || [ "$class" = "B" ]; } && return 0
         ;;
       class-a|Class-A|a|A)
@@ -425,7 +425,7 @@ patch_core_source() {
   local id="$1"
   local src="$2"
   local log="$3"
-  local patch_dir="$ROOT_DIR/docker/pixel2-tools/patches"
+  local patch_dir="$ROOT_DIR/docker/rk2020-tools/patches"
   local lua_makefile
 
   if [ "$id" = "yabasanshiro" ]; then
@@ -477,7 +477,7 @@ patch_core_source() {
       return 1
     fi
     patch -d "$src" -p1 < "$unibios_drive_patch" >> "$log" 2>&1
-    printf '\n[plumOS] patched NeoCD UniBIOS 3.3 to use the Pixel2-compatible top-loader drive path\n' >> "$log"
+    printf '\n[plumOS] patched NeoCD UniBIOS 3.3 to use the RK2020-compatible top-loader drive path\n' >> "$log"
   fi
 
   if [ "$id" = "gw" ]; then
@@ -632,16 +632,16 @@ patch_core_source() {
       fi
       ;;
     parallel_n64)
-      if [ -f "$patch_dir/parallel-n64-pixel2-aarch64-gles.patch" ]; then
-        if patch --dry-run -d "$src" -p1 < "$patch_dir/parallel-n64-pixel2-aarch64-gles.patch" >/dev/null 2>> "$log"; then
-          patch -d "$src" -p1 < "$patch_dir/parallel-n64-pixel2-aarch64-gles.patch" >> "$log" 2>&1
-          printf '\n[plumOS] patched Parallel-N64 with the Pixel2 AArch64 GLES target\n' >> "$log"
+      if [ -f "$patch_dir/parallel-n64-rk2020-aarch64-gles.patch" ]; then
+        if patch --dry-run -d "$src" -p1 < "$patch_dir/parallel-n64-rk2020-aarch64-gles.patch" >/dev/null 2>> "$log"; then
+          patch -d "$src" -p1 < "$patch_dir/parallel-n64-rk2020-aarch64-gles.patch" >> "$log" 2>&1
+          printf '\n[plumOS] patched Parallel-N64 with the RK2020 AArch64 GLES target\n' >> "$log"
         else
-          printf '\n[plumOS] required Parallel-N64 Pixel2 GLES patch does not apply\n' >> "$log"
+          printf '\n[plumOS] required Parallel-N64 RK2020 GLES patch does not apply\n' >> "$log"
           return 1
         fi
       else
-        printf '\n[plumOS] missing required Parallel-N64 Pixel2 GLES patch\n' >> "$log"
+        printf '\n[plumOS] missing required Parallel-N64 RK2020 GLES patch\n' >> "$log"
         return 1
       fi
       while IFS= read -r lua_makefile; do
@@ -661,7 +661,7 @@ $(find "$src" -maxdepth 4 -type f \( \
   -name '*.mak' \
 \) -print)
 EOF_PARALLEL_N64_LTO
-      printf '\n[plumOS] patched LTO-sensitive Makefiles for native Pixel2 feedback builds\n' >> "$log"
+      printf '\n[plumOS] patched LTO-sensitive Makefiles for native RK2020 feedback builds\n' >> "$log"
       ;;
     mednafen_ngp|beetle_saturn|flycast|flycast_xtreme|yabasanshiro)
       while IFS= read -r lua_makefile; do
@@ -681,7 +681,7 @@ $(find "$src" -maxdepth 4 -type f \( \
   -name '*.mak' \
 \) -print)
 EOF_HIGH_END_LTO
-      printf '\n[plumOS] patched LTO-sensitive Makefiles for native Pixel2 feedback builds\n' >> "$log"
+      printf '\n[plumOS] patched LTO-sensitive Makefiles for native RK2020 feedback builds\n' >> "$log"
       ;;
     easyrpg)
       if [ -f "$src/builds/libretro/CMakeLists.txt" ]; then
@@ -1297,9 +1297,9 @@ FAILED_COUNT=0
 SKIPPED_COUNT=0
 
 {
-  printf 'name=plumOS Pixel2 libretro cores\n'
+  printf 'name=plumOS RK2020 libretro cores\n'
   printf 'generated_at=%s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-  printf 'target=pixel2-aarch64-linux-gnu\n'
+  printf 'target=rk2020-aarch64-linux-gnu\n'
   printf 'recipes=%s\n' "$CORE_RECIPES"
   printf 'filter=%s\n' "$PLUMOS_CORE_FILTER"
   printf 'cc=%s\n' "$CC"
@@ -1428,9 +1428,9 @@ jq -s \
   --argjson failed "$FAILED_COUNT" \
   --argjson skipped "$SKIPPED_COUNT" \
   '{
-    name: "plumOS Pixel2 libretro cores",
+    name: "plumOS RK2020 libretro cores",
     component: "libretro-cores",
-    device: "pixel2",
+    device: "rk2020",
     architecture: "aarch64",
     source_ref: $source_ref,
     filter: $filter,

@@ -1,0 +1,41 @@
+{
+  "format": "plumos-rk2020-input-v1",
+  "device": "rk2020",
+  "evdev": {
+    "preferred_device_name": "rk2020_joypad",
+    "ab_layout": "east-confirm",
+    "buttons": {
+      "a": 305,
+      "b": 304,
+      "x": 307,
+      "y": 308,
+      "function": 704
+    }
+  },
+  "udev": {
+    "buttons": {
+      "a": 1,
+      "b": 0,
+      "x": 2,
+      "y": 3,
+      "l": 4,
+      "r": 5,
+      "l2": 6,
+      "r2": 7,
+      "select": 8,
+      "start": 9,
+      "up": 10,
+      "down": 11,
+      "left": 12,
+      "right": 13,
+      "function": 14
+    },
+    "axes": {
+      "left": "-0",
+      "right": "+0",
+      "up": "-1",
+      "down": "+1"
+    },
+    "analog_dpad_mode": "none"
+  }
+}

@@ -2,13 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-OUT_DIR="${1:-$ROOT_DIR/artifacts/vendor/pixel2-stock}"
+OUT_DIR="${1:-$ROOT_DIR/artifacts/vendor/rk2020-stock}"
 MANIFEST="$OUT_DIR/manifest.tsv"
 
 for path in \
     "$OUT_DIR/boot/Image" \
-    "$OUT_DIR/boot/rk3326s-gkd-pixel2.dtb" \
-    "$OUT_DIR/boot/rk3326s-gkd-pixel2-uboot.dtb" \
+    "$OUT_DIR/boot/rk3326s-gkd-rk2020.dtb" \
+    "$OUT_DIR/boot/rk3326s-gkd-rk2020-uboot.dtb" \
     "$OUT_DIR/kernel/extracted/usr/lib/kernel-overlays/base/lib/modules" \
     "$OUT_DIR/kernel/extracted/usr/lib/kernel-overlays/base/lib/firmware" \
     "$MANIFEST"; do

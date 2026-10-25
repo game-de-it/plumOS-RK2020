@@ -1,0 +1,210 @@
+#!/bin/sh
+set -u
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH HOME=/root HOSTNAME=plumos-rk2020
+
+bb=/bin/busybox
+is_mounted() {
+    $bb grep -qs " $1 " /proc/mounts 2>/dev/null
+}
+
+if is_mounted /.plumos-dispatcher-old; then
+    printf 'plumos-init=dispatcher-detach-start\n' \
+        >>/storage/plumos/logs/system-dispatcher.log 2>/dev/null || true
+    $bb umount /.plumos-dispatcher-old 2>/dev/null || \
+        $bb umount -l /.plumos-dispatcher-old 2>/dev/null || true
+    printf 'plumos-init=dispatcher-detach-complete\n' \
+        >>/storage/plumos/logs/system-dispatcher.log 2>/dev/null || true
+    $bb sync
+fi
+
+is_mounted /proc || $bb mount -t proc proc /proc
+is_mounted /sys || $bb mount -t sysfs sysfs /sys
+is_mounted /dev || $bb mount -t devtmpfs devtmpfs /dev
+$bb ip link set lo up 2>/dev/null || true
+$bb ip -4 addr show dev lo 2>/dev/null | $bb grep -q '127\.0\.0\.1/8' ||
+    $bb ip addr add 127.0.0.1/8 dev lo 2>/dev/null || true
+$bb mkdir -p /dev/pts /dev/shm /run /tmp /boot /state /roms /root \
+    /flash /storage /mnt/plumos /mnt/plumos-user
+is_mounted /dev/pts || $bb mount -t devpts devpts /dev/pts
+$bb mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /run 2>/dev/null || true
+$bb mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /tmp 2>/dev/null || true
+$bb chmod 1777 /dev/shm
+$bb hostname "$HOSTNAME"
+
+mkdir -p /run/plumos
+exec >/dev/console 2>&1
+printf 'plumos-init=result-start device=rk2020\n'
+printf 'plumos-init=result-start device=rk2020\n' >/dev/kmsg 2>/dev/null || true
+if is_mounted /storage; then
+    $bb mkdir -p /storage/plumos/logs
+    printf 'plumos-init=result-start device=rk2020 storage=pre-mounted\n' \
+        >>/storage/plumos/logs/init.log 2>/dev/null || true
+fi
+
+echo /sbin/mdev >/proc/sys/kernel/hotplug 2>/dev/null || true
+$bb mdev -s
+
+find_label() {
+    $bb blkid -L "$1" 2>/dev/null || true
+}
+
+mount_partition() {
+    target=$1
+    label=$2
+    fallback=$3
+    options=$4
+    device=$(find_label "$label")
+    [ -n "$device" ] || device=$fallback
+    [ -b "$device" ] || return 1
+    $bb mount -o "$options" "$device" "$target"
+}
+
+if is_mounted /flash; then
+    printf 'plumos-init=mount-source flash=stock-initramfs\n'
+    is_mounted /boot || $bb mount --bind /flash /boot 2>/dev/null || true
+else
+    mount_partition /boot PLUMOS_BOOT /dev/mmcblk0p1 ro 2>/dev/null || \
+        printf 'plumos-init=warn mount=boot\n'
+fi
+if is_mounted /storage; then
+    printf 'plumos-init=mount-source storage=stock-initramfs\n'
+    is_mounted /mnt/plumos || $bb mount --bind /storage /mnt/plumos 2>/dev/null || true
+fi
+if ! is_mounted /mnt/plumos && \
+    ! mount_partition /mnt/plumos PLUMOS_SYS /dev/mmcblk0p2 rw 2>/dev/null; then
+    if mount_partition /mnt/plumos PLUMOS_STATE /dev/mmcblk0p2 rw 2>/dev/null; then
+        printf 'plumos-init=warn mount=runtime legacy-label=PLUMOS_STATE\n'
+    else
+        $bb mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /mnt/plumos
+        printf 'plumos-init=warn mount=runtime fallback=tmpfs\n'
+    fi
+fi
+
+provisioner=/usr/sbin/plumos-first-boot-provision
+if [ -x "$provisioner" ]; then
+    "$provisioner"
+    provision_rc=$?
+    case "$provision_rc" in
+        0) ;;
+        20)
+            printf 'plumos-init=provision result=reboot-required\n'
+            $bb sync
+            exec $bb reboot -f
+            ;;
+        30)
+            printf 'plumos-init=provision result=preserved-existing-layout\n'
+            ;;
+        *)
+            printf 'plumos-init=provision result=failed rc=%s action=recovery-shell\n' \
+                "$provision_rc"
+            exec $bb setsid $bb cttyhack /bin/sh -l
+            ;;
+    esac
+fi
+if is_mounted /mnt/plumos-user; then
+    printf 'plumos-init=mount-source user-data=first-boot-provisioner\n'
+elif ! mount_partition /mnt/plumos-user PLUMOS_USER /dev/mmcblk0p3 rw 2>/dev/null; then
+    if mount_partition /mnt/plumos-user PLUMOS_ROMS /dev/mmcblk0p3 rw 2>/dev/null; then
+        printf 'plumos-init=warn mount=user-data legacy-label=PLUMOS_ROMS\n'
+    else
+        $bb mount -t tmpfs -o mode=0755,nosuid,nodev tmpfs /mnt/plumos-user
+        printf 'plumos-init=warn mount=user-data fallback=tmpfs\n'
+    fi
+fi
+
+$bb mkdir -p /mnt/plumos/state /mnt/plumos/config /mnt/plumos/logs \
+    /mnt/plumos/root/.ssh /mnt/plumos-user/roms /mnt/plumos-user/bios \
+    /mnt/plumos-user/Images /mnt/plumos-user/Screenshots \
+    /mnt/plumos-user/updates
+$bb mount --bind /mnt/plumos/state /state 2>/dev/null || true
+[ -e /state/plumos ] || $bb ln -s /mnt/plumos /state/plumos
+$bb mount --bind /mnt/plumos-user/roms /roms 2>/dev/null || true
+chmod 0700 /mnt/plumos/root /mnt/plumos/root/.ssh
+$bb mount --bind /mnt/plumos/root /root 2>/dev/null || true
+printf 'plumos-init=mounts-ready boot=%s runtime=%s user=%s\n' \
+    "$(is_mounted /boot && echo 1 || echo 0)" \
+    "$(is_mounted /mnt/plumos && echo 1 || echo 0)" \
+    "$(is_mounted /mnt/plumos-user && echo 1 || echo 0)" \
+    >>/mnt/plumos/logs/init.log 2>/dev/null || true
+/usr/bin/plumos-diagnostics > /state/plumos/logs/boot-diagnostics.txt 2>&1 || true
+
+apply_pending_update() {
+    updater=/usr/sbin/plumos-system-update
+    log=/mnt/plumos/logs/system-update-boot.log
+    state=/mnt/plumos/update-state
+    [ -x "$updater" ] || return 0
+    # Starting the Python updater costs several seconds on RK3326 even when
+    # there is no work. Only enter it for an explicit request, an unconfirmed
+    # Runtime generation, or a journal that is not already healthy/rolled back.
+    update_needed=0
+    [ -f "$state/request.json" ] && update_needed=1
+    [ -f "$state/runtime-pending.json" ] && update_needed=1
+    if [ "$update_needed" -eq 0 ] && [ -f "$state/runtime-transaction.json" ]; then
+        if ! $bb grep -Eq '"status"[[:space:]]*:[[:space:]]*"(healthy|rolled_back)"' \
+            "$state/runtime-transaction.json" 2>/dev/null; then
+            update_needed=1
+        fi
+    fi
+    if [ "$update_needed" -eq 0 ]; then
+        printf '%s update=apply-pending result=skipped reason=no-pending-state\n' \
+            "$($bb date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$log"
+        return 0
+    fi
+    printf '%s update=apply-pending stage=start\n' \
+        "$($bb date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$log"
+    PLUMOS_ROOT=/mnt/plumos PLUMOS_USERDATA_ROOT=/mnt/plumos-user \
+        PLUMOS_BOOT_ROOT=/flash "$updater" apply-pending >>"$log" 2>&1
+    rc=$?
+    printf '%s update=apply-pending stage=end rc=%s\n' \
+        "$($bb date -u +%Y-%m-%dT%H:%M:%SZ)" "$rc" >>"$log"
+    case "$rc" in
+        0) return 0 ;;
+        20)
+            $bb sync
+            if [ -x /mnt/plumos/bin/plumos-safe-shutdown ]; then
+                /mnt/plumos/bin/plumos-safe-shutdown --reboot --no-hold-resume \
+                    >>"$log" 2>&1 || true
+            fi
+            exec $bb reboot -f
+            ;;
+        *) return 0 ;;
+    esac
+}
+
+apply_pending_update
+
+# ADB was retired from RK2020.  Preserve network credentials and service
+# selections, but remove the obsolete single-port ownership keys and recovery
+# marker so every boot leaves the controller under the Wi-Fi-preferred OTG
+# policy. Physical host attachment may claim it; charger/dongle removal returns
+# it to the stock automatic role.
+services_conf=/mnt/plumos/config/network/services.conf
+if [ -r "$services_conf" ]; then
+    services_tmp=${services_conf}.wifi-migration
+    $bb grep -v -e '^usb_mode=' -e '^adb_enabled=' "$services_conf" \
+        >"$services_tmp" 2>/dev/null || true
+    $bb mv "$services_tmp" "$services_conf"
+fi
+$bb rm -f /mnt/plumos-user/plumos-enable-adb 2>/dev/null || true
+printf 'plumos-init=usb-owner mode=wifi-preferred charging=otg-auto adb=retired\n' \
+    >>/mnt/plumos/logs/init.log 2>/dev/null || true
+
+for service in /usr/lib/plumos/init.d/*; do
+    [ -x "$service" ] || continue
+    service_name=${service##*/}
+    printf 'plumos-init=service-start name=%s\n' "${service##*/}"
+    "$service" start || printf 'plumos-init=service-failed name=%s rc=%s\n' \
+        "${service##*/}" "$?"
+done
+
+/usr/bin/plumos-diagnostics > /state/plumos/logs/runtime-diagnostics.txt 2>&1 || true
+
+printf 'plumos-init=result-ready console=tty1\n'
+# Keep a real init as PID 1 after the one-shot plumOS boot setup.  The previous
+# frontend wait followed by a login shell left no child reaper once the first
+# frontend process exited; emulator and launcher descendants then accumulated
+# as zombies under PID 1.  BusyBox init preserves the recovery console while
+# continuously reaping orphaned descendants.
+exec $bb init

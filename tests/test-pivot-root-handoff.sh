@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
+IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
 if [ "${1:-}" != --inside ]; then
     exec docker run --rm --privileged --platform linux/arm64 \
         -v "$ROOT_DIR:/work:ro" -w /work "$IMAGE" \

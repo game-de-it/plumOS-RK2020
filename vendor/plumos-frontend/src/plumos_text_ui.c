@@ -411,7 +411,7 @@ static int valid_cpu_policy(const char *s) {
 
 static int valid_retroarch_audio_driver(const char *s) {
   return s && (strcmp(s, "oss") == 0 || strcmp(s, "alsa") == 0 ||
-               strcmp(s, "alsathread") == 0 || strcmp(s, "pixel2_compat_ao") == 0);
+               strcmp(s, "alsathread") == 0 || strcmp(s, "rk2020_compat_ao") == 0);
 }
 
 static int parse_audio_latency_ms(const char *s, long *out) {
@@ -1031,7 +1031,7 @@ static __attribute__((noinline)) const char *runtime_shell_path(void) {
   if (configured && configured[0] && access(configured, X_OK) == 0) {
     return configured;
   }
-  if (!device_id || strcmp(device_id, "pixel2") != 0) {
+  if (!device_id || strcmp(device_id, "rk2020") != 0) {
     return "/bin/sh";
   }
   if (access("/mnt/SDCARD/.tmp_update/busybox", X_OK) == 0) {
@@ -1194,7 +1194,7 @@ static void redirect_stdio_to_devnull(void) {
   }
 }
 
-static int pixel2_compat_runtime_owns_hotkeyd(const char *plumos_root,
+static int rk2020_compat_runtime_owns_hotkeyd(const char *plumos_root,
                                     const struct launch_plan *plan) {
   char path[PATH_MAX];
 
@@ -1205,12 +1205,12 @@ static int pixel2_compat_runtime_owns_hotkeyd(const char *plumos_root,
     return 1;
   }
   if (strcmp(plan->kind, "retroarch") == 0) {
-    if (join_path(path, sizeof(path), plumos_root, "config/enable-pixel2_compat-ra-runtime") &&
+    if (join_path(path, sizeof(path), plumos_root, "config/enable-rk2020_compat-ra-runtime") &&
         file_exists(path)) {
       return 1;
     }
     if (join_path(path, sizeof(path), plumos_root,
-                  "config/enable-pixel2_compat-onion-compatible-ra") &&
+                  "config/enable-rk2020_compat-onion-compatible-ra") &&
         file_exists(path)) {
       return 1;
     }
@@ -1223,7 +1223,7 @@ static int launch_plan_uses_safe_hotkeyd(const char *plumos_root,
   if (!plan) {
     return 0;
   }
-  if (pixel2_compat_runtime_owns_hotkeyd(plumos_root, plan)) {
+  if (rk2020_compat_runtime_owns_hotkeyd(plumos_root, plan)) {
     return 0;
   }
   return strcmp(plan->kind, "retroarch") == 0 ||
@@ -1391,7 +1391,7 @@ static int picoarch_core_id_allowed(const char *core_id) {
     return 0;
   }
   /*
-   * The Pixel2 PicoArch component is a software framebuffer host. Cores packaged
+   * The RK2020 PicoArch component is a software framebuffer host. Cores packaged
    * with the hardware-GLES rendering contract must stay on RetroArch, which
    * can create the required graphics context.
    */
@@ -1403,7 +1403,7 @@ static int picoarch_core_id_allowed(const char *core_id) {
   }
   /*
    * Frodo needs RetroArch's Mapped Port = 2 path for common C64 joystick-port-2
-   * titles. PicoArch does not expose that mapping and is too slow on Pixel2.
+   * titles. PicoArch does not expose that mapping and is too slow on RK2020.
    */
   if (strcmp(core_id, "frodo") == 0) {
     return 0;
@@ -1418,7 +1418,7 @@ static int picoarch_core_id_allowed(const char *core_id) {
   return 1;
 }
 
-static int launch_profile_allowed_on_pixel2(const char *profile) {
+static int launch_profile_allowed_on_rk2020(const char *profile) {
   if (!profile || !profile[0]) {
     return 0;
   }
@@ -1432,7 +1432,7 @@ static int launch_profile_allowed_on_pixel2(const char *profile) {
 }
 
 static int add_core_profile(struct core_system_def *system, const char *profile) {
-  if (!valid_launch_profile_id(profile) || !launch_profile_allowed_on_pixel2(profile)) {
+  if (!valid_launch_profile_id(profile) || !launch_profile_allowed_on_rk2020(profile)) {
     return 0;
   }
   if (core_profile_index(system, profile) >= 0) {
@@ -1448,11 +1448,11 @@ static int add_core_profile(struct core_system_def *system, const char *profile)
 }
 
 static int picoarch_companion_core_allowed(const char *system_id, const char *core_id) {
-  /* N64 hardware-render cores are not supported by the Pixel2 PicoArch host. */
+  /* N64 hardware-render cores are not supported by the RK2020 PicoArch host. */
   if (system_id && strcmp(system_id, "n64") == 0) {
     return 0;
   }
-  /* No Saturn core reaches a usable launch path through PicoArch on Pixel2. */
+  /* No Saturn core reaches a usable launch path through PicoArch on RK2020. */
   if (system_id && strcmp(system_id, "saturn") == 0) {
     return 0;
   }
@@ -1486,7 +1486,7 @@ static void add_picoarch_companion_profiles(struct core_system_def *system) {
         (int)sizeof(pico_profile)) {
       continue;
     }
-    if (!launch_profile_allowed_on_pixel2(pico_profile)) {
+    if (!launch_profile_allowed_on_rk2020(pico_profile)) {
       continue;
     }
     add_core_profile(system, pico_profile);
@@ -2847,24 +2847,24 @@ static int build_retroarch_core_path(char *out, size_t out_size, const char *plu
   return join_path(out, out_size, cores_dir, file_name);
 }
 
-static int retroarch_pixel2_compat_runtime_enabled(const char *plumos_root) {
+static int retroarch_rk2020_compat_runtime_enabled(const char *plumos_root) {
   char flag_path[PATH_MAX];
 
   if (join_path(flag_path, sizeof(flag_path), plumos_root,
-                "config/enable-pixel2_compat-ra-runtime") &&
+                "config/enable-rk2020_compat-ra-runtime") &&
       file_exists(flag_path)) {
     return 1;
   }
   return join_path(flag_path, sizeof(flag_path), plumos_root,
-                   "config/enable-pixel2_compat-onion-compatible-ra") &&
+                   "config/enable-rk2020_compat-onion-compatible-ra") &&
          file_exists(flag_path);
 }
 
-static int retroarch_pixel2_compat_launcher_exists(const char *plumos_root) {
+static int retroarch_rk2020_compat_launcher_exists(const char *plumos_root) {
   char launcher_path[PATH_MAX];
 
   if (join_path(launcher_path, sizeof(launcher_path), plumos_root,
-                "bin/plumos-retroarch-pixel2_compat-launch") &&
+                "bin/plumos-retroarch-rk2020_compat-launch") &&
       file_exists(launcher_path)) {
     return 1;
   }
@@ -2877,12 +2877,12 @@ static int picoarch_onion_compat_enabled(const char *plumos_root) {
   char flag_path[PATH_MAX];
 
   if (join_path(flag_path, sizeof(flag_path), plumos_root,
-                "config/enable-pixel2_compat-emulator-runtime") &&
+                "config/enable-rk2020_compat-emulator-runtime") &&
       file_exists(flag_path)) {
     return 1;
   }
   return join_path(flag_path, sizeof(flag_path), plumos_root,
-                   "config/enable-pixel2_compat-onion-compatible-emulators") &&
+                   "config/enable-rk2020_compat-onion-compatible-emulators") &&
          file_exists(flag_path);
 }
 
@@ -2972,7 +2972,7 @@ static int build_launch_plan(struct launch_plan *plan, const char *plumos_root,
     const char *core_id = launch_profile + 10;
     char launcher_dir[PATH_MAX];
     char content_path[PATH_MAX];
-    int pixel2_compat_runtime = retroarch_pixel2_compat_runtime_enabled(plumos_root);
+    int rk2020_compat_runtime = retroarch_rk2020_compat_runtime_enabled(plumos_root);
 
     copy_string(plan->kind, sizeof(plan->kind), "retroarch");
     /* EasyRPG is presented as one FE entry per project directory.  The
@@ -3022,9 +3022,9 @@ static int build_launch_plan(struct launch_plan *plan, const char *plumos_root,
       return 0;
     }
     plan->runtime_exists = file_exists(plan->retroarch_path);
-    if (pixel2_compat_runtime) {
+    if (rk2020_compat_runtime) {
       plan->runtime_exists = plan->runtime_exists &&
-                             retroarch_pixel2_compat_launcher_exists(plumos_root);
+                             retroarch_rk2020_compat_launcher_exists(plumos_root);
     }
     plan->core_exists = file_exists(plan->core_path);
 
@@ -3087,11 +3087,11 @@ static int build_launch_plan(struct launch_plan *plan, const char *plumos_root,
     char launcher_dir[PATH_MAX];
     char extension[32];
     const char *pyxel_profile = launch_profile + 6;
-    const char *launcher_name = "plumos-pyxel-pixel2-launch";
+    const char *launcher_name = "plumos-pyxel-rk2020-launch";
     const char *pyxel_command = NULL;
 
     copy_string(plan->kind, sizeof(plan->kind), "pyxel");
-    if (pyxel_profile[0] && strcmp(pyxel_profile, "pixel2") != 0) {
+    if (pyxel_profile[0] && strcmp(pyxel_profile, "rk2020") != 0) {
       plan->can_execute = 0;
       return 1;
     }
@@ -4178,7 +4178,7 @@ static void usage(const char *argv0) {
   printf("  %s menu start|apps [--limit N]\n", argv0);
   printf("  %s core system SYSTEM [--set PROFILE] [--cpu interactive|performance|ondemand|schedutil|conservative] [--clear-profile|--clear|--clear-cpu]\n",
          argv0);
-  printf("  %s core rom SYSTEM RELATIVE_PATH [--set PROFILE] [--cpu interactive|performance|ondemand|schedutil|conservative] [--content-suffix '#EXE'] [--audio oss|alsa|alsathread|pixel2_compat_ao] [--latency MS] [--dosbox-force60fps true|false] [--dosbox-cycles auto|max|N] [--clear-profile|--clear|--clear-cpu|--clear-content-suffix|--clear-audio|--clear-dosbox] [--no-scan]\n",
+  printf("  %s core rom SYSTEM RELATIVE_PATH [--set PROFILE] [--cpu interactive|performance|ondemand|schedutil|conservative] [--content-suffix '#EXE'] [--audio oss|alsa|alsathread|rk2020_compat_ao] [--latency MS] [--dosbox-force60fps true|false] [--dosbox-cycles auto|max|N] [--clear-profile|--clear|--clear-cpu|--clear-content-suffix|--clear-audio|--clear-dosbox] [--no-scan]\n",
          argv0);
   printf("  %s favorites [--limit N]\n", argv0);
   printf("  %s favorite rom SYSTEM RELATIVE_PATH [--toggle|--set|--clear] [--no-scan]\n",
@@ -5163,7 +5163,7 @@ int main(int argc, char **argv) {
         }
         set_audio_driver = argv[++i];
         if (!valid_retroarch_audio_driver(set_audio_driver)) {
-          fprintf(stderr, "error: --audio expects oss, alsa, alsathread, or pixel2_compat_ao\n");
+          fprintf(stderr, "error: --audio expects oss, alsa, alsathread, or rk2020_compat_ao\n");
           return 2;
         }
       } else if (strcmp(argv[i], "--latency") == 0 && i + 1 < argc) {

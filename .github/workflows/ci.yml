@@ -1,4 +1,4 @@
-name: Pixel2 source gates
+name: RK2020 source gates
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq p7zip-full shellcheck xz-utils
       - name: Run source, identity, implementation, and release-script gates
-        run: ./scripts/run-pixel2-source-gates.sh
+        run: ./scripts/run-rk2020-source-gates.sh
 
   shellcheck:
     runs-on: ubuntu-24.04
@@ -35,7 +35,7 @@ jobs:
       - name: Check release orchestration
         run: |
           shellcheck \
-            scripts/run-pixel2-source-gates.sh \
-            scripts/run-pixel2-strict-release-gate.sh \
-            scripts/prepare-pixel2-release.sh \
-            scripts/audit-pixel2-license-bundle.sh
+            scripts/run-rk2020-source-gates.sh \
+            scripts/run-rk2020-strict-release-gate.sh \
+            scripts/prepare-rk2020-release.sh \
+            scripts/audit-rk2020-license-bundle.sh

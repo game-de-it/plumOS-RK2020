@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-IMAGE="${PLUMOS_PIXEL2_TOOLS_IMAGE:-plumos-pixel2-tools:dev}"
+IMAGE="${PLUMOS_RK2020_TOOLS_IMAGE:-plumos-rk2020-tools:dev}"
 if [ "${1:-}" != --inside ]; then
     exec docker run --rm --platform linux/arm64 \
         -v "$ROOT_DIR:/work:ro" -w /work "$IMAGE" \
@@ -24,7 +24,7 @@ run_dispatcher() {
     PLUMOS_DISPATCHER_BUSYBOX=/bin/busybox \
     PLUMOS_DISPATCHER_STATE_ROOT="$state" \
     PLUMOS_DISPATCHER_SYSTEM_ROOT="$slots" \
-        /bin/busybox sh /work/rootfs/pixel2-dispatcher/init
+        /bin/busybox sh /work/rootfs/rk2020-dispatcher/init
 }
 
 printf 'a\n' >"$state/system-active"
