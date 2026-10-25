@@ -131,8 +131,13 @@ parted -s "$IMAGE" unit s mklabel msdos \
     mkpart primary fat32 "${BOOT_START}s" "$((BOOT_START + BOOT_SECTORS - 1))s" \
     mkpart primary ext4 "${SYS_START}s" "$((SYS_START + SYS_SECTORS - 1))s" \
     set 1 boot on 2> >(grep -v 'udevadm: not found' >&2)
-# Keep the partition table deterministic while leaving the Rockchip payload at
-# sectors 1..32767 untouched.
+# parted clears stale signatures in sectors 1 and 2 while creating an MBR.
+# Restore every non-MBR sector from the registered stock prefix so the
+# Rockchip loader payload remains byte-identical.
+dd if="$PREFIX" of="$IMAGE" bs=512 skip=1 seek=1 count=32767 \
+    conv=notrunc status=none
+# Keep only the MBR disk signature deterministic; the partition entries made
+# above remain intact.
 printf '\x50\x4c\x55\x4d' | dd of="$IMAGE" bs=1 seek=440 conv=notrunc status=none
 
 truncate -s "$((BOOT_SECTORS * 512))" "$WORK/boot.fat"

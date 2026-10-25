@@ -9,6 +9,7 @@ bash -n "$ROOT_DIR/tests/test-rk2020-first-boot-provision.sh"
 python3 "$ROOT_DIR/scripts/verify-rk2020-boot-splash.py" \
     "$ROOT_DIR/package/boot-assets-rk2020/oemsplash-1080.png"
 grep -q 'BOOT_START=32768' "$ROOT_DIR/scripts/build-sd-image.sh"
+grep -q 'skip=1 seek=1 count=32767' "$ROOT_DIR/scripts/build-sd-image.sh"
 grep -q 'refusing\|boot prefix missing' "$ROOT_DIR/scripts/build-sd-image.sh"
 grep -q 'cmp.*image-prefix' "$ROOT_DIR/scripts/verify-sd-image.sh"
 grep -q 'rk2020-stock.expected.sha256' "$ROOT_DIR/scripts/build-sd-image.sh"
