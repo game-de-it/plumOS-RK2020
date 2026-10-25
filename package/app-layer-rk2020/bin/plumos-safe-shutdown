@@ -50,6 +50,7 @@ software_backlight_saved=
 software_backlight_power_saved=
 sleep_display_blanked=0
 shutdown_charger_present=0
+charge_mode_reboot_enabled=${PLUMOS_RK2020_CHARGE_MODE_REBOOT:-0}
 sleep_usb_guard_armed=0
 
 mkdir -p "$log_dir" "$runtime_root" 2>/dev/null || true
@@ -491,6 +492,7 @@ is_uint "$sleep_wifi_guard_settle_sec" || exit 2
 is_uint "$sleep_wifi_recovery_window_sec" || exit 2
 is_uint "$sleep_wifi_recovery_retry_sec" || exit 2
 [ "$sleep_wifi_recovery_retry_sec" -gt 0 ] || exit 2
+case "$charge_mode_reboot_enabled" in 0|1) ;; *) exit 2 ;; esac
 
 if ! mkdir "$lock_dir" 2>/dev/null; then
     log "power=result-already-running action=$action"
@@ -529,11 +531,18 @@ case "$action" in
                 exec "$bb" reboot -f
                 ;;
             shutdown)
-                if [ "$shutdown_charger_present" -eq 1 ]; then
+                if [ "$shutdown_charger_present" -eq 1 ] &&
+                    [ "$charge_mode_reboot_enabled" -eq 1 ]; then
                     if charge_mode_reboot; then
                         exit 0
                     fi
                     log 'power=charge-mode-fallback method=rk817-dev-off'
+                elif [ "$shutdown_charger_present" -eq 1 ]; then
+                    # RK2020's retained bootloader does not honor restart2
+                    # charge mode as a terminal state: it returns to the OS.
+                    # Use the RK817 DEV_OFF path unless a future hardware-
+                    # validated profile explicitly enables charge-mode reboot.
+                    log 'power=charge-mode-disabled action=pmic-off'
                 fi
                 if [ "$terminal_test" = 1 ]; then
                     log 'power=terminal-test action=rk817-dev-off'

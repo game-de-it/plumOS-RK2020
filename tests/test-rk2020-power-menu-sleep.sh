@@ -244,10 +244,33 @@ PLUMOS_REBOOT_MODE_HELPER="$TEST_ROOT/reboot-mode" \
 PLUMOS_POWER_TEST_TERMINAL=1 \
 PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown" --shutdown
-grep -q '^reboot-mode charge$' "$TEST_ROOT/calls"
-! grep -q '^devmem ' "$TEST_ROOT/calls"
+[ ! -s "$TEST_ROOT/calls" ]
 grep -q 'power=charger-detected source=battery-status value=Charging' \
     "$TEST_ROOT/logs/power.log"
+grep -q 'power=charge-mode-disabled action=pmic-off' \
+    "$TEST_ROOT/logs/power.log"
+grep -q 'power=terminal-test action=rk817-dev-off' \
+    "$TEST_ROOT/logs/power.log"
+
+# restart2 charge mode remains available only as an explicit, future
+# hardware-profile opt-in; it is not the RK2020 default.
+: >"$TEST_ROOT/calls"
+PLUMOS_ROOT="$TEST_ROOT/plumos" \
+PLUMOS_RUNTIME_ROOT="$TEST_ROOT/run" \
+PLUMOS_BUSYBOX="$TEST_ROOT/busybox" \
+PLUMOS_POWER_LOG_DIR="$TEST_ROOT/logs" \
+PLUMOS_POWER_LOCK_DIR="$TEST_ROOT/run/power.lock" \
+PLUMOS_BATTERY_STATUS="$TEST_ROOT/battery-status" \
+PLUMOS_BATTERY_CURRENT="$TEST_ROOT/battery-current" \
+PLUMOS_USB_ONLINE="$TEST_ROOT/usb-online" \
+PLUMOS_AC_ONLINE="$TEST_ROOT/ac-online" \
+PLUMOS_DEVMEM="$TEST_ROOT/devmem" \
+PLUMOS_REBOOT_MODE_HELPER="$TEST_ROOT/reboot-mode" \
+PLUMOS_RK2020_CHARGE_MODE_REBOOT=1 \
+PLUMOS_POWER_TEST_TERMINAL=1 \
+PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown" --shutdown
+grep -q '^reboot-mode charge$' "$TEST_ROOT/calls"
 grep -q 'power=terminal-test action=charge-mode-restart2 mode=charge' \
     "$TEST_ROOT/logs/power.log"
 
@@ -274,8 +297,10 @@ PLUMOS_REBOOT_MODE_HELPER="$TEST_ROOT/reboot-mode" \
 PLUMOS_POWER_TEST_TERMINAL=1 \
 PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown" --shutdown
-grep -q '^reboot-mode charge$' "$TEST_ROOT/calls"
+[ ! -s "$TEST_ROOT/calls" ]
 grep -q 'power=charger-detected source=phy-bvalid status=Full' \
+    "$TEST_ROOT/logs/power.log"
+grep -q 'power=charge-mode-disabled action=pmic-off' \
     "$TEST_ROOT/logs/power.log"
 
 printf '0x00000000\n' >"$TEST_ROOT/phy-status"
