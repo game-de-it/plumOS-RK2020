@@ -71,7 +71,7 @@ The following gates passed:
 - app-layer strict checksum verification;
 - app-layer license audit (168 license files, 110 libretro cores);
 - frontend component and app-layer manifests both identify source
-  `bdb3c52`;
+  `b129e75` in the final rebuilt image;
 - rebuilt System A/B rootfs and fixed dispatcher verification;
 - complete SD-image verification, including FAT/ext4 checks, stock boot-prefix
   comparison, exact stock kernel/DTB comparison, SYSTEM slot verification,
@@ -81,8 +81,8 @@ Generated image:
 
 - path: `output/image/rk2020/plumOS-RK2020-0.1.0-dev.img`;
 - size: `2701131776` bytes;
-- SHA-256: `17dbf5ff30bb03c04445aa346a609008fa23b648a913a3edfa1664e9633ece83`;
-- source ref: `bdb3c52`.
+- SHA-256: `015a498bf4d7750ac7eae0e2cb81773eb808cf14086abfc343ea882eb776507c`;
+- source ref: `b129e75`.
 
 ## Live deployment evidence
 
