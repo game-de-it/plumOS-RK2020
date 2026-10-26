@@ -44,7 +44,7 @@ index 7c58f8b..02f1747 100644
 +#if defined(GKD_RK2020)
 +        if ((e->type == EV_ABS) &&
 +            ((e->code == ABS_X) || (e->code == ABS_Y))) {
-+            trace("got RK2020 dpad axis event\n");
++            trace("got RK2020 analog stick axis event\n");
 +            return 1;
 +        }
 +#endif
@@ -56,7 +56,7 @@ index 7c58f8b..02f1747 100644
  #endif
  
 +#if defined(GKD_RK2020)
-+static int handle_rk2020_dpad_axis(const struct input_event *e)
++static int handle_rk2020_stick_axis(const struct input_event *e)
 +{
 +    static int horizontal = 0;
 +    static int vertical = 0;
@@ -120,7 +120,7 @@ index 7c58f8b..02f1747 100644
              trace("code=%d, value=%d\n", ev.code, ev.value);
 +#if defined(GKD_RK2020)
 +            if (ev.type == EV_ABS) {
-+                handle_rk2020_dpad_axis(&ev);
++                handle_rk2020_stick_axis(&ev);
 +            }
 +            else {
 +                update_key_bit(ev.code, ev.value);
@@ -151,9 +151,9 @@ index 76c8079..046d77d 100644
  
 -#if defined(GKD_PIXEL2)
 +#if defined(GKD_RK2020)
-+/* RK2020 exposes its D-pad as ABS_X/ABS_Y, L2 as BTN_TRIGGER_HAPPY3,
-+ * and R2 as BTN_TRIGGER_HAPPY4. L2 is the hotkey modifier rather than a DS
-+ * input; R2 is reserved for the DraStic screen-swap action. */
++/* RK2020 exposes one non-clickable analog stick as ABS_X/ABS_Y in addition
++ * to its digital D-pad. L2 is the hotkey modifier rather than a DS input;
++ * R2 is reserved for the DraStic screen-swap action. */
 +#define DEV_KEY_CODE_UP         544
 +#define DEV_KEY_CODE_DOWN       545
 +#define DEV_KEY_CODE_LEFT       546
@@ -166,8 +166,8 @@ index 76c8079..046d77d 100644
 +#define DEV_KEY_CODE_R1         311
 +#define DEV_KEY_CODE_L2         -1
 +#define DEV_KEY_CODE_R2         707
-+#define DEV_KEY_CODE_START      315
-+#define DEV_KEY_CODE_SELECT     314
++#define DEV_KEY_CODE_START      709
++#define DEV_KEY_CODE_SELECT     704
 +#define DEV_KEY_CODE_MENU       706
 +#define DEV_KEY_CODE_POWER      -1
 +#define DEV_KEY_CODE_VOL_UP     -1

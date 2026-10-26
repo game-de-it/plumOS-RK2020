@@ -165,9 +165,12 @@ grep -Fq 'DRASTIC_RUNNER_PATCH' "$SA_BUILD" ||
 for contract in \
     '#define DEV_KEY_CODE_L2         -1' \
     '#define DEV_KEY_CODE_R2         707' \
+    '#define DEV_KEY_CODE_START      709' \
+    '#define DEV_KEY_CODE_SELECT     704' \
     '#define DEV_KEY_CODE_MENU       706' \
-    'got RK2020 dpad axis event' \
-    'handle_rk2020_dpad_axis' \
+    'got RK2020 analog stick axis event' \
+    'handle_rk2020_stick_axis' \
+    'one non-clickable analog stick as ABS_X/ABS_Y' \
     'myconfig.hotkey = HOTKEY_BIND_MENU' \
     '#elif !defined(GKD_RK2020)'; do
     grep -Fq "$contract" "$DRASTIC_INPUT_PATCH" ||
