@@ -23,9 +23,14 @@
   Automated no-input evidence now covers all 73 content-backed systems: 70
   clean passes, one Game & Watch harness-exit failure later superseded by a
   normal physical FE exit, one TI-83 route blocked by missing calculator BIOS,
-  and one missing proprietary PICO-8 runtime. Fifteen catalog systems still
-  lack representative content; manual gameplay, standalone final-scanout
-  color, and remaining per-route checks stay open. A second Amiga title was
+  and one PICO-8 route that was initially missing its proprietary runtime.
+  The user-supplied PICO-8 0.2.7 AArch64 runtime now launches a representative
+  cart through the managed standalone route; process, dependency, rotation,
+  direct-scanout, clean-stop, and FE-return checks pass. Physical controls,
+  audible output, color, and hotkey exit remain separate PICO-8 acceptance
+  gates. Fifteen catalog systems still lack representative content; manual
+  gameplay, standalone final-scanout color, and remaining per-route checks
+  stay open. A second Amiga title was
   physically viewed with normal color, closing the earlier HAM-sample color
   ambiguity. TI-83 remains in the frontend catalog but now rejects launch before
   taking the display when none of `ti83se.rom`, `ti83plus.rom`, or `ti83.rom`
