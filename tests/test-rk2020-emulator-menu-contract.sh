@@ -20,6 +20,7 @@ DRASTIC_ROTATION_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-r
 DRASTIC_MENU_PRESENT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-menu-present.patch"
 DRASTIC_INPUT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-input.patch"
 DRASTIC_TOUCH_MODE_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-touch-mode.patch"
+DRASTIC_TOUCH_SPEED_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-touch-speed.patch"
 PPSSPP_CONTROLS="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/controls.ini"
 PPSSPP_CONFIG="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/ppsspp.ini"
 PPSSPP_CONTROLLER_PATCH="$ROOT_DIR/patches/ppsspp/ppsspp-1.20.4-rk2020-controller.patch"
@@ -197,6 +198,18 @@ grep -Fq 'DRASTIC_TOUCH_MODE_PATCH' "$SA_BUILD" ||
     fail 'DraStic build does not consume RK2020 touch-mode patch'
 grep -Fq 'touch_mode_patch_sha256' "$SA_BUILD" ||
     fail 'DraStic manifest does not record touch-mode patch'
+for contract in \
+    '#if defined(GKD_RK2020)' \
+    'move = (myconfig.pen.speed + 1) / 2;' \
+    'move = (move + 2) / 3;' \
+    'if (move < 1)'; do
+    grep -Fq "$contract" "$DRASTIC_TOUCH_SPEED_PATCH" ||
+        fail "DraStic RK2020 touch-speed contract missing: $contract"
+done
+grep -Fq 'DRASTIC_TOUCH_SPEED_PATCH' "$SA_BUILD" ||
+    fail 'DraStic build does not consume RK2020 touch-speed patch'
+grep -Fq 'touch_speed_patch_sha256' "$SA_BUILD" ||
+    fail 'DraStic manifest does not record touch-speed patch'
 for contract in \
     '#define R_DISPLAY_W 320' \
     '#define R_DISPLAY_H 480' \

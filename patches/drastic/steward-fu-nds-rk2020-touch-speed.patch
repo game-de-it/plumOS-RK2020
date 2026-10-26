@@ -1,0 +1,40 @@
+--- a/sdl2/src/video/nds/nds_event.c
++++ b/sdl2/src/video/nds/nds_event.c
+@@ -143,19 +143,37 @@ TEST(sdl2_event, is_book_mode)
+ static int inc_touch_axis(int type)
+ {
++#if defined(GKD_RK2020)
++    int move = 0;
++
++    trace("call %s(type=%d)\n", __func__, type);
++
++    /* The 320x480 RK2020 panel makes the upstream two-coordinate default
++     * feel delayed. Keep PEN SPEED effective, but use five coordinates per
++     * update at 1.0x and two while R1 precision movement is held. */
++    move = (myconfig.pen.speed + 1) / 2;
++    if (myevent.touch.slow_down) {
++        move = (move + 2) / 3;
++    }
++    if (move < 1) {
++        move = 1;
++    }
++    return move;
++#else
+     float move = 0.0;
+     float v = 100000.0 / ((float)myconfig.pen.speed / 10.0);
+ 
+     trace("call %s(type=%d)\n", __func__, type);
+ 
+     if (myevent.touch.slow_down) {
+         v *= 2;
+     }
+ 
+     move = 250000.0 / v;
+     if (move <= 0.0) {
+         move = 1.0;
+     }
+     return (int)(1.0 * move);
++#endif
+ }
+ 
+ #if defined(UT)
