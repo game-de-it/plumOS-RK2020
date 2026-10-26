@@ -43,7 +43,7 @@ The source-built SDL2 integration now uses the observed RK2020 evdev contract:
 | Physical input | Raw event | DraStic action |
 | --- | --- | --- |
 | D-pad | 544/545/546/547 | DS D-pad and menu navigation |
-| Analog stick | `ABS_X` / `ABS_Y` | DS directions and menu navigation |
+| Analog stick | `ABS_X` / `ABS_Y` | DS directions/menu navigation, or touch cursor in touch mode |
 | A/B/X/Y | 305/304/307/308 | DS face buttons |
 | L/R | 310/311 | DS shoulder buttons |
 | L2 | 706 | hotkey modifier; not sent as a DS button |
@@ -54,6 +54,7 @@ The user-facing combinations are:
 
 - `L2 + START`: open the steward-fu integration menu;
 - `L2 + SELECT`: open the native DraStic menu;
+- `L2 + X`: toggle normal controls and touch mode;
 - `R2`: swap the two DS screens;
 - `L2 + A`: switch to the alternate screen layout.
 
@@ -66,6 +67,13 @@ plus/minus 450. Once held, it stays held until the axis returns within
 plus/minus 250. Separate press and release thresholds prevent jitter around a
 single boundary while leaving half of the measured travel available on each
 side.
+
+In touch mode, the analog stick or D-pad moves the visible DS stylus cursor,
+`A` presses/releases the touchscreen, and `R` slows cursor movement for fine
+positioning. Repeating `L2 + X` returns to normal DS controls. The transition
+calls DraStic's input-release path so neither a touch nor a game button can
+remain logically held across the mode change. Commit `7fa625f` implements this
+without changing the persistent user configuration.
 
 This route deliberately bypasses DraStic's SDL joystick table.  The persistent
 user configuration remains untouched; on the test unit it still records menu
@@ -100,6 +108,14 @@ e84fb979d3a38f1bf727dce0794683fc3cf040879b2691b184ff0bd9b4141907  patches/drasti
 e31d39f3ac15c12008d58699162e24a6ac82ff70610582906c64f16f2a7b7d80  standalone/drastic/lib/libSDL2-2.0.so.0
 b01148b146bf231589ea6212f97f6f25a7b661acf101d1ac327e39c86ec20845  standalone/drastic/bin/runner
 bce96caf0a8d8748795faed192a8a996cec13180c0244c250e4b8c902a09024f  standalone/drastic/build-manifest.json
+```
+
+The touch-mode update produced these additional/current hashes:
+
+```text
+b475bc3e169b71583ca97578cd2a08fb89772ce3e45997feb1f51a55e4502e27  patches/drastic/steward-fu-nds-rk2020-touch-mode.patch
+248ddbbe5eb7c093d57bb74df303566268ad1fed3714701a00cb1efd40c9c778  standalone/drastic/lib/libSDL2-2.0.so.0
+3d0d9d59f2dad25b35f234f659ed8bced3c89f4ce04ed2b89915880ff90a8a5f  standalone/drastic/build-manifest.json
 ```
 
 ## Live deployment and smoke test
@@ -146,11 +162,35 @@ bounded stop removed both processes, and the frontend restarted as PID 22598.
 The current kernel tail again contained no panic, Oops, BUG, internal error, or
 trace end.
 
+The `7fa625f` touch-mode deployment replaced the SDL input integration, its
+build manifest, and five corresponding metadata files. All 636 standalone and
+11,284 root checksum entries passed before and after deployment. The deployed
+hybrid metadata hashes are:
+
+```text
+f81edb9bd521b81f0c6fb87242869f6e2aa296ed5a1039c164da184f84f43b32  components/standalone/checksums.sha256
+b76a466ad84e448b128f9c20f13303085864e84a000f5ff7d73074ead5fa02c6  checksums.sha256
+```
+
+The previous seven managed files are recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-drastic-touch-7fa625f/before.tar
+SHA-256 888ec5797aa450d0e086bac56d987596d14e65a19fb46e6f164ebc3d2541c67e
+```
+
+The post-deployment smoke test reached first-frame ready with runner PID 24624
+and core PID 24674. The running ARMHF core mapped the new SDL2 integration with
+hash `248ddbbe...c778`, bounded stop removed both processes, and the frontend
+restarted as PID 24836. The kernel tail had no fault signature.
+
 ## Remaining physical gate
 
 The smoke test proves loading, first-frame presentation, managed-library use,
-bounded termination, and frontend restoration. Direct operator input is still
-required to accept the menu-present correction with both D-pad and analog
-navigation. D-pad/game controls, dead-zone-corrected analog directions, `R2`
-screen swap, corrected `L2 + START` and `L2 + SELECT` combinations, and return
-to the frontend remain part of the same physical gate.
+bounded termination, and frontend restoration. The operator accepted stable
+menu navigation with both D-pad and analog input after the menu-present update.
+D-pad/game controls, dead-zone-corrected analog directions, `R2` screen swap,
+the remaining L2 combinations, and return to the frontend remain part of the
+physical-input gate. The visible cursor, movement, touch press, slow movement,
+and return to normal controls through the new `L2 + X` touch mode also require
+direct operator acceptance.
