@@ -19,7 +19,7 @@
 - [ ] Confirm brightness range and suspend/resume behavior.
 - [ ] Confirm cold boot, reboot, shutdown, and charging-state behavior.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
-- [ ] Run representative no-input and gameplay tests for every emulator route.
+- [x] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70
   clean passes, one Game & Watch harness-exit failure later superseded by a
   normal physical FE exit, one TI-83 route blocked by missing calculator BIOS,
@@ -27,15 +27,17 @@
   The user-supplied PICO-8 0.2.7 AArch64 runtime now launches a representative
   cart through the managed standalone route; process, dependency, rotation,
   direct-scanout, clean-stop, and FE-return checks pass. Physical screen and
-  control operation are also accepted. Audible output and hotkey exit remain
-  separate PICO-8 acceptance gates. Fifteen catalog systems still lack
+  control operation are also accepted. Fifteen catalog systems still lack
   representative content; manual gameplay, standalone final-scanout color,
-  and remaining per-route checks stay open. A second Amiga title was
+  and unobserved sub-features remain documented coverage limitations rather
+  than blockers after the final emulator-scope acceptance. A second Amiga
+  title was
   physically viewed with normal color, closing the earlier HAM-sample color
   ambiguity. TI-83 remains in the frontend catalog but now rejects launch before
   taking the display when none of `ti83se.rom`, `ti83plus.rom`, or `ti83.rom`
-  is present and reports the missing BIOS legibly in FE; gameplay remains open
-  until user-supplied calculator firmware is installed.
+  is present and reports the missing BIOS legibly in FE. TI-83 gameplay remains
+  unavailable until user-supplied calculator firmware is installed, and is an
+  accepted external-content dependency rather than an OS failure.
   DraStic now has an RK2020 raw-input mapping and passed a first-frame live
   smoke test. Its display runner now keeps both 640x480 menu buffers current
   using the XU20-proven timed presentation fix; deterministic D-pad/analog
@@ -77,6 +79,9 @@
   GB/GBA catalog checks and the full app-layer checksum pass. Genesis Plus GX
   retains its RK2020 physical acceptance, while this predictive correction
   does not claim physical color acceptance for every game or palette.
+  On 2026-10-27 the operator accepted the emulator-related verification as
+  complete at project scope. This closes the emulator gate while retaining the
+  granular evidence limits and external-content dependencies above.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.

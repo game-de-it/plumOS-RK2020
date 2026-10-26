@@ -141,4 +141,14 @@ The user later supplied a licensed PICO-8 0.2.7 AArch64 runtime. The managed
 produced an upright centered 4:3 direct KMS scanout. Programmatic stop returned
 cleanly to FE. The subsequent physical test accepted screen display and game
 controls. This removes the missing-runtime blocker; audible-output and
-hotkey-exit acceptance remain open.
+hotkey-exit behavior were not separately observed in that focused test.
+
+## 2026-10-27 emulator-scope acceptance
+
+After the PICO-8 screen and control test, the operator accepted the emulator
+verification as complete for this port. This project-level acceptance closes
+the emulator gate. It does not rewrite the evidence granularity: TI-83 still
+requires user-supplied calculator firmware, fifteen catalog systems still lack
+representative content, and a feature not explicitly observed above must not be
+reported as an individual measured pass. Those are retained as known coverage
+or external-content limits, not release-blocking emulator failures.

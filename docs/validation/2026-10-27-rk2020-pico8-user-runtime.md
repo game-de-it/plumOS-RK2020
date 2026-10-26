@@ -76,4 +76,6 @@ aspect ratio, controlled stop, and FE restoration pass.
 The operator subsequently reported that both the screen and controls work
 correctly during PICO-8 gameplay. This accepts the physical display and control
 gates without inferring unreported behavior. Audible output and the handheld
-hotkey exit remain separate open checks.
+hotkey exit were not separately observed in this focused test. The operator's
+subsequent project-level emulator acceptance closes the route as a blocker
+without turning those unobserved sub-features into individual measured passes.
