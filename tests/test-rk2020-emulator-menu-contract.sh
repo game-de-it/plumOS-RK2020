@@ -95,6 +95,23 @@ for binding in \
     grep -Fq "$binding" "$PICO_PATCH" ||
         fail "PicoArch RK2020 physical D-pad binding missing: $binding"
 done
+for binding in \
+    'BTN_TRIGGER_HAPPY1, IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_SELECT' \
+    'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_L2' \
+    'BTN_TRIGGER_HAPPY4, IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_R2' \
+    'BTN_TRIGGER_HAPPY6, IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_START'; do
+    grep -Fq "$binding" "$PICO_PATCH" ||
+        fail "PicoArch RK2020 raw special-button binding missing: $binding"
+done
+for stale_binding in \
+    'BTN_SELECT, IN_BINDTYPE_PLAYER12' \
+    'BTN_START,  IN_BINDTYPE_PLAYER12' \
+    'BTN_TL2,    IN_BINDTYPE_PLAYER12' \
+    'BTN_TR2,    IN_BINDTYPE_PLAYER12'; do
+    if grep -Fq "$stale_binding" "$PICO_PATCH"; then
+        fail "PicoArch retained non-RK2020 special-button mapping: $stale_binding"
+    fi
+done
 if grep -Fq 'BTN_MODE' "$PICO_PATCH"; then
     fail 'PicoArch still treats RK2020 FUNCTION as BTN_MODE'
 fi
