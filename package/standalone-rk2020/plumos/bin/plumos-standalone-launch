@@ -234,16 +234,17 @@ case "$id" in
     if ! pidof PPSSPPSDL >/dev/null 2>&1; then
       rm -f /dev/shm/PPSSPP_ID /run/shm/PPSSPP_ID 2>/dev/null || true
     fi
-    # Migrate only the exact settings shipped by the first RK2020 PPSSPP
-    # package. The portrait LCD presenter needs a 9/16 correction before its
-    # final CCW rotation, while the A30-proven -2 UI scale remains readable on
-    # the 480x320 logical screen. Other user settings are preserved.
+    # Migrate only the exact settings shipped by earlier RK2020 PPSSPP
+    # packages. The portrait LCD presenter needs a 9/16 correction before its
+    # final CCW rotation. A -6 UI scale keeps the complete pause-menu labels
+    # inside the 480x320 logical screen. Other user settings are preserved.
     if [ -f "$ppsspp_config" ]; then
       ppsspp_config_tmp="${ppsspp_config}.tmp.$$"
       awk '
         /^\[/ { section=$0 }
-        $0 == "UIScaleFactor = -8" {
-          print "UIScaleFactor = -2"
+        $0 == "UIScaleFactor = -8" ||
+          $0 == "UIScaleFactor = -2" {
+          print "UIScaleFactor = -6"
           next
         }
         section == "[DisplayLayout.Landscape]" &&
@@ -269,7 +270,7 @@ case "$id" in
       else
         mv -f "$ppsspp_config_tmp" "$ppsspp_config" ||
           fail "failed to install PPSSPP display config migration" 78
-        printf 'id=ppsspp config_migration=rk2020-aspect-ui-v1\n' >>"$LOG_ROOT/launcher.log"
+        printf 'id=ppsspp config_migration=rk2020-aspect-ui-v2\n' >>"$LOG_ROOT/launcher.log"
       fi
     fi
     ppsspp_controls="${ppsspp_config_dir}/controls.ini"

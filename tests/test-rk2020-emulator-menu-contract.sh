@@ -328,7 +328,7 @@ grep -Eq '^Pause[[:space:]]*=.*(^|,)10-4(,|$)' "$PPSSPP_CONTROLS" ||
     fail 'PPSSPP factory FUNCTION pause binding is missing'
 grep -Fq "s/$/,10-4/" "$SA_LAUNCHER" ||
     fail 'PPSSPP existing config migration is missing'
-grep -Fqx 'UIScaleFactor = -2' "$PPSSPP_CONFIG" ||
+grep -Fqx 'UIScaleFactor = -6' "$PPSSPP_CONFIG" ||
     fail 'PPSSPP RK2020 readable UI scale is missing'
 ppsspp_landscape_aspect="$(awk '
     /^\[DisplayLayout.Landscape\]$/ { in_section=1; next }
@@ -338,9 +338,9 @@ ppsspp_landscape_aspect="$(awk '
 [ "$ppsspp_landscape_aspect" = 0.562500 ] ||
     fail 'PPSSPP RK2020 landscape aspect correction is missing'
 for contract in \
-    'config_migration=rk2020-aspect-ui-v1' \
+    'config_migration=rk2020-aspect-ui-v2' \
     'DisplayAspectRatio = 0.562500' \
-    'UIScaleFactor = -2'; do
+    'UIScaleFactor = -6'; do
     grep -Fq "$contract" "$SA_LAUNCHER" ||
         fail "PPSSPP existing display config migration missing: $contract"
 done
