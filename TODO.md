@@ -40,7 +40,11 @@
   physical retest accept the centered 4:3 viewport. PPSSPP's inherited `-2`
   UI scale clipped pause-menu labels at 480x320; the managed `-6` correction
   now fits all rows and actions in a direct KMS capture, with final physical
-  readability and control acceptance still pending.
+  readability and control acceptance still pending. PPSSPP's RK2020 SDL
+  controller mapping omitted the measured `ABS_X`/`ABS_Y` axes even though
+  the saved controls already reference SDL controller axes. The live binary
+  now maps them as `leftx:a0,lefty:a1`; direct analog gameplay confirmation is
+  pending on the Ridge Racer test left running on the device.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
