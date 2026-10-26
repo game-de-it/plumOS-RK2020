@@ -390,6 +390,7 @@ case "$id" in
       fail "PCSX-ReARMed SDL2 pthread compatibility runtime missing" 127
     export LD_LIBRARY_PATH="${workdir}/lib:${PLUMOS_ROOT}/emulator/lib:${LD_LIBRARY_PATH}"
     export PLUMOS_PCSX_RK2020_ROTATE=1
+    export SDL12COMPAT_SYNC_TO_VBLANK=1
     export SDL_VIDEODRIVER=kmsdrm
     export SDL_RENDER_DRIVER=opengles2
     export SDL_AUDIODRIVER=alsa

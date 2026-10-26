@@ -767,7 +767,11 @@ grep -q 'PCSX_SDL12_REF=.*fc2ec0c128197f1f5050e48359bc41e618f3abfb' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'renderer.*sdl12-compat-kmsdrm-gles2-rk2020-ccw' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -q 'frame_pacing.*sdl-kmsdrm-present-vsync' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'PLUMOS_PCSX_RK2020_ROTATE=1' \
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
+grep -q 'SDL12COMPAT_SYNC_TO_VBLANK=1' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'SDL_VIDEODRIVER=kmsdrm' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"

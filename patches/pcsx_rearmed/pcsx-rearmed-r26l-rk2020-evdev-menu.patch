@@ -2,7 +2,7 @@ diff --git a/frontend/plat_sdl.c b/frontend/plat_sdl.c
 index b0acb113..74002587 100644
 --- a/frontend/plat_sdl.c
 +++ b/frontend/plat_sdl.c
-@@ -28,5 +28,58 @@
+@@ -28,5 +28,61 @@
  #include "plat.h"
  #include "revision.h"
  
@@ -33,6 +33,8 @@ index b0acb113..74002587 100644
 +  { BTN_TRIGGER_HAPPY4, IN_BINDTYPE_PLAYER12, DKEY_R2 },
 +  { BTN_TRIGGER_HAPPY1, IN_BINDTYPE_PLAYER12, DKEY_SELECT },
 +  { BTN_TRIGGER_HAPPY6, IN_BINDTYPE_PLAYER12, DKEY_START },
++  { BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, SACTION_ENTER_MENU },
++  { BTN_TRIGGER_HAPPY6, IN_BINDTYPE_EMU, SACTION_ENTER_MENU },
 +  { 0, 0, 0 }
 +};
 +
@@ -51,6 +53,7 @@ index b0acb113..74002587 100644
 +  { BTN_NORTH,          PBTN_MA3 },
 +  { BTN_TL,             PBTN_L },
 +  { BTN_TR,             PBTN_R },
++  { BTN_TRIGGER_HAPPY3, PBTN_MENU },
 +};
 +
 +static const struct in_pdata in_rk2020_evdev_platform_data = {
@@ -61,7 +64,7 @@ index b0acb113..74002587 100644
 +};
 +#endif
  
-@@ -273,2 +326,8 @@ void plat_init(void)
+@@ -273,2 +329,8 @@ void plat_init(void)
  
 +#ifdef PLUMOS_RK2020
 +  if (in_evdev_init(&in_rk2020_evdev_platform_data) != 0) {

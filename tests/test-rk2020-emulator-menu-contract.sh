@@ -119,13 +119,19 @@ for binding in \
     grep -Fq "$binding" "$PCSX_PATCH" ||
         fail "PCSX-ReARMed RK2020 physical button binding missing: $binding"
 done
-if grep -Fq 'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU' "$PCSX_PATCH" ||
-        grep -Fq 'BTN_TRIGGER_HAPPY3, PBTN_MENU' "$PCSX_PATCH"; then
-    fail 'PCSX-ReARMed L2 must not also trigger the emulator menu'
-fi
+for binding in \
+    'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, SACTION_ENTER_MENU' \
+    'BTN_TRIGGER_HAPPY6, IN_BINDTYPE_EMU, SACTION_ENTER_MENU' \
+    'BTN_TRIGGER_HAPPY3, PBTN_MENU'; do
+    grep -Fq "$binding" "$PCSX_PATCH" ||
+        fail "PCSX-ReARMed L2+START menu contract missing: $binding"
+done
 for binding in \
     'RK2020 controller input is owned by evdev' \
-    'joycount = 0'; do
+    'joycount = 0' \
+    'KEYBITS_BIT(BTN_TRIGGER_HAPPY3)' \
+    'KEYBITS_BIT(BTN_TRIGGER_HAPPY6)' \
+    'result[IN_BINDTYPE_PLAYER12] &='; do
     grep -Fq "$binding" "$PCSX_PICOFE_PATCH" ||
         fail "PCSX-ReARMed single input path contract missing: $binding"
 done

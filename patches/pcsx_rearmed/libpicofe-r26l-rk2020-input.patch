@@ -31,3 +31,29 @@ index 93fe22d..c7cb1a3 100644
  				binds[offs] = def_binds[offs] = 0;
  			if (binds[offs]) {
  				if (t == IN_BINDTYPE_EMU)
+diff --git a/linux/in_evdev.c b/linux/in_evdev.c
+index e08bc984..bc08858c 100644
+--- a/linux/in_evdev.c
++++ b/linux/in_evdev.c
+@@ -356,0 +357,21 @@ static int in_evdev_update(void *drv_data, const int *binds, int *result)
++#ifdef PLUMOS_RK2020
++	/* RK2020 has no spare menu button.  L2 and START retain their normal
++	 * PlayStation functions when pressed alone; together they enter the menu. */
++	if (dev->kc_first <= BTN_TRIGGER_HAPPY3 &&
++	    dev->kc_last >= BTN_TRIGGER_HAPPY6) {
++		const int menu_mask =
++			binds[IN_BIND_OFFS(BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU)] &
++			binds[IN_BIND_OFFS(BTN_TRIGGER_HAPPY6, IN_BINDTYPE_EMU)];
++
++		if (KEYBITS_BIT(BTN_TRIGGER_HAPPY3) &&
++		    KEYBITS_BIT(BTN_TRIGGER_HAPPY6)) {
++			result[IN_BINDTYPE_EMU] |= menu_mask;
++			result[IN_BINDTYPE_PLAYER12] &=
++				~(binds[IN_BIND_OFFS(BTN_TRIGGER_HAPPY3, IN_BINDTYPE_PLAYER12)] |
++				  binds[IN_BIND_OFFS(BTN_TRIGGER_HAPPY6, IN_BINDTYPE_PLAYER12)]);
++		} else {
++			result[IN_BINDTYPE_EMU] &= ~menu_mask;
++		}
++	}
++#endif
++
