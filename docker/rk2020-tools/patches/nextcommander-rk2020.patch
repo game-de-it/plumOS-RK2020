@@ -24,7 +24,7 @@ index d16a23d..6455dc6 100644
 +# GKD RK2020 / plumOS
 +else ifneq (,$(findstring rk2020,$(PLATFORM)))
 +SDCARD_ROOT := /mnt/plumos-user
-+NEXTUI_SYSTEM_PATH := $(SDCARD_ROOT)/plumos/apps/nextcommander
++NEXTUI_SYSTEM_PATH := /mnt/plumos/apps/nextcommander
 +
 +CXXFLAGS += -O2 -pipe -fomit-frame-pointer
 +CXXFLAGS += -DPLUMOS_RK2020
