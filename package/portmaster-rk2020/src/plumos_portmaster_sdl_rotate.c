@@ -20,6 +20,9 @@
 #ifndef PLUMOS_SDL_LOGICAL_SIZE_ENV
 #define PLUMOS_SDL_LOGICAL_SIZE_ENV "PLUMOS_PORTMASTER_LOGICAL_SIZE"
 #endif
+#ifndef PLUMOS_SDL_CONTENT_OFFSET_X_ENV
+#define PLUMOS_SDL_CONTENT_OFFSET_X_ENV "PLUMOS_PORTMASTER_CONTENT_OFFSET_X"
+#endif
 
 /*
  * RK2020's DRM mode is the panel-native 320x480 mode even though the handheld
@@ -69,6 +72,8 @@ static SDL_bool (*real_render_is_clip_enabled)(SDL_Renderer *);
 static int (*real_render_set_clip_rect)(SDL_Renderer *, const SDL_Rect *);
 static int (*real_set_render_draw_color)(SDL_Renderer *, Uint8, Uint8, Uint8, Uint8);
 static int (*real_render_clear)(SDL_Renderer *);
+static int (*real_render_copy)(SDL_Renderer *, SDL_Texture *, const SDL_Rect *,
+                               const SDL_Rect *);
 static int (*real_render_copy_ex)(SDL_Renderer *, SDL_Texture *, const SDL_Rect *,
                                   const SDL_Rect *, double, const SDL_Point *,
                                   SDL_RendererFlip);
@@ -88,6 +93,19 @@ static int rotation_enabled(void) {
 static int autofit_enabled(void) {
     const char *value = getenv(PLUMOS_SDL_AUTOFIT_ENV);
     return value && strcmp(value, "1") == 0;
+}
+
+static int content_offset_x(void) {
+    const char *value = getenv(PLUMOS_SDL_CONTENT_OFFSET_X_ENV);
+    char *end;
+    long offset;
+
+    if (!value || !value[0])
+        return 0;
+    offset = strtol(value, &end, 10);
+    if (*end != '\0' || offset < -4096 || offset > 4096)
+        return 0;
+    return (int)offset;
 }
 
 static void configure_logical_geometry(int *width, int *height) {
@@ -310,6 +328,23 @@ SDL_Texture *SDL_GetRenderTarget(SDL_Renderer *renderer) {
     if (state && !internal_render && target == state->frame)
         return NULL;
     return target;
+}
+
+int SDL_RenderCopy(SDL_Renderer *renderer, SDL_Texture *texture,
+                   const SDL_Rect *source, const SDL_Rect *destination) {
+    SDL_Rect shifted;
+    int offset;
+
+    LOAD(render_copy, RenderCopy);
+    if (!real_render_copy)
+        return -1;
+    offset = content_offset_x();
+    if (!internal_render && autofit_enabled() && destination && offset) {
+        shifted = *destination;
+        shifted.x += offset;
+        destination = &shifted;
+    }
+    return real_render_copy(renderer, texture, source, destination);
 }
 
 void SDL_RenderPresent(SDL_Renderer *renderer) {
