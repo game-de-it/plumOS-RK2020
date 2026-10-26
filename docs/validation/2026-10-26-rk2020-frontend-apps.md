@@ -70,10 +70,10 @@ reports adapter version 55.
 | --- | --- | --- |
 | Scraping | Physical functional pass | The operator completed scraping successfully. |
 | File Manager | Physical functional pass | The corrected 480x320 layout keeps both panels and the footer on screen. The operator accepted display, navigation, and a real file copy; NextCommander then exited and FE restarted cleanly. |
-| Music Player | Route pass | DRM, controller input, RK817 ALSA output at 48 kHz stereo, and all media-root scans initialized. No music files are present, so decode/playback remains untested. |
+| Music Player | Physical functional pass | DRM, controller input, RK817 ALSA output at 48 kHz stereo, media discovery, representative playback, and clean return to FE are accepted by the operator. Commit `e6a9c9f` prevents the Music Player from treating L2 alone as exit, preserving the global L2 plus D-pad volume controls. |
 | RetroArch | Pass | The contentless menu opened DRM, RK817 ALSA, RK2020 input, and libmali, then returned to FE. Earlier physical testing accepted its menu and exit controls. |
 | Pyxel Setup | Status pass | Packaged Pyxel 2.9.3, Pygame 2.6.1, NumPy 2.4.6, and Pillow 12.3.0 import successfully. The destructive install action requires a second A press; installation was not run. An empty staging directory left by the interrupted earlier test was verified empty and removed. |
-| PortMaster | Pass | Adapter 55 prepared its complete reviewed library projection, the GUI bootstrap ran, cleanup removed all mounts/processes, and FE restarted. No port installation was performed. |
+| PortMaster | Physical GUI pass | The operator accepted the PortMaster application. Adapter 55 prepared its complete reviewed library projection, cleanup removed all mounts/processes, and FE restarted. Installed-port display fitting is tracked separately in `2026-10-27-rk2020-portmaster-game-fit.md`. |
 | Update PortMaster | Guard pass | The action requires a second A press within five seconds. The network update was intentionally not executed. |
 
 Internal Apps, UI Settings, System Settings, Network Settings, Help, and Power
@@ -90,10 +90,8 @@ reported hang has not recurred in the corrected single-application sequence.
 
 The following gates remain:
 
-- visually inspect Music Player on the physical panel for clipping, color, and
-  input response;
-- add a representative music file and confirm decode, playback, seeking, and
-  clean return to FE;
+- physically accept the shared PortMaster game-display fit after the direct
+  scanout check;
 - the forced-power-off FAT dirty bit was subsequently repaired and verified by
   the live-unmount procedure recorded in
   `2026-10-26-rk2020-live-fat-fsck.md`;
@@ -105,5 +103,6 @@ The following gates remain:
 The clipping diagnosis and deployment are recorded in
 `2026-10-27-rk2020-nextcommander-display.md`. The operator accepted File
 Manager display, controls, and file copying, and separately reported scraping
-as working. These two application gates are closed. Music playback, Pyxel
-installation, and PortMaster update remain independent.
+as working. The operator subsequently accepted Music Player operation and the
+PortMaster GUI. These application gates are closed. Port-game display fitting,
+Pyxel installation, and PortMaster update remain independent.

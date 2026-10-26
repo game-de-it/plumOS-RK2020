@@ -83,10 +83,12 @@
   complete at project scope. This closes the emulator gate while retaining the
   granular evidence limits and external-content dependencies above.
 - [ ] Complete physical frontend-application acceptance. File Manager,
-  Scraping, RetroArch, and PortMaster now pass; Music Player initializes
-  display, input, and RK817 audio but still needs representative music
-  playback. Pyxel installation and PortMaster update remain separate mutating
-  gates.
+  Scraping, RetroArch, Music Player, and the PortMaster GUI now pass. The
+  shared PortMaster game runner presents a 640x480 logical canvas and fits it
+  into the RK2020 landscape view without stretching; direct scanout confirms
+  the full 4:3 canvas for the installed Apotris port, while final physical
+  acceptance remains pending. Pyxel installation and PortMaster update remain
+  separate mutating gates.
 - [x] Unmount both live aliases of `PLUMOS_USER`, repair the forced-power-off
   FAT dirty bit, verify the unmounted filesystem clean, and restore FE/input.
 
