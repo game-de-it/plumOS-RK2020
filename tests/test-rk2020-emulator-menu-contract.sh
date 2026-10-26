@@ -17,6 +17,7 @@ SA_STOP="$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-stop"
 PICO8_WGET="$ROOT_DIR/package/standalone-rk2020/plumos/standalone/pico8/bin/wget"
 DRASTIC_RUNNER_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-readiness.patch"
 DRASTIC_ROTATION_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
+DRASTIC_MENU_PRESENT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-menu-present.patch"
 DRASTIC_INPUT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-input.patch"
 PPSSPP_CONTROLS="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/controls.ini"
 PPSSPP_CONFIG="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/ppsspp.ini"
@@ -195,6 +196,18 @@ grep -Fq 'DRASTIC_ROTATION_PATCH' "$SA_BUILD" ||
     fail 'DraStic build does not consume runner rotation patch'
 grep -Fq 'runner_rotation_patch_sha256' "$SA_BUILD" ||
     fail 'DraStic manifest does not record runner rotation patch'
+for contract in \
+    'draw_cached_foreground' \
+    'menu_active' \
+    'menu_present_at = SDL_GetTicks() + 16' \
+    'SDL_GL_SwapWindow(myrunner.sdl2.win)'; do
+    grep -Fq "$contract" "$DRASTIC_MENU_PRESENT_PATCH" ||
+        fail "DraStic RK2020 menu presentation patch missing: $contract"
+done
+grep -Fq 'DRASTIC_MENU_PRESENT_PATCH' "$SA_BUILD" ||
+    fail 'DraStic build does not consume runner menu presentation patch'
+grep -Fq 'runner_menu_present_patch_sha256' "$SA_BUILD" ||
+    fail 'DraStic manifest does not record runner menu presentation patch'
 grep -Fq 'readlink "/proc/${pid}/exe"' "$SA_STOP" ||
     fail 'standalone stop ownership check is missing'
 

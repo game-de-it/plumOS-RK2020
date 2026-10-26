@@ -1,0 +1,154 @@
+--- a/runner/runner.c
++++ b/runner/runner.c
+@@ -87,6 +87,68 @@
+ static volatile int runner_init_state = 0;
+ static runner_t myrunner = { 0 };
+ 
++static void draw_background(void)
++{
++    glActiveTexture(GL_TEXTURE0);
++    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
++    glBindTexture(GL_TEXTURE_2D, myrunner.gles.texture[TEXTURE_BG]);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
++    glTexImage2D(
++        GL_TEXTURE_2D,
++        0,
++        GL_RGBA,
++        myrunner.gles.bg.w,
++        myrunner.gles.bg.h,
++        0,
++        GL_RGBA,
++        GL_UNSIGNED_BYTE,
++        (void *)myrunner.gles.bg.pixels
++    );
++    glVertexAttribPointer(
++        myrunner.gles.vert.tex_pos,
++        3,
++        GL_FLOAT,
++        GL_FALSE,
++        5 * sizeof(GLfloat),
++        bg_vertices
++    );
++    glVertexAttribPointer(
++        myrunner.gles.vert.tex_coord,
++        2,
++        GL_FLOAT,
++        GL_FALSE,
++        5 * sizeof(GLfloat),
++        &bg_vertices[3]
++    );
++    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vert_indices);
++}
++
++static void draw_cached_foreground(int texture)
++{
++    glUniform1f(myrunner.gles.frag.alpha, 1.0f);
++    glDisable(GL_BLEND);
++    glActiveTexture(GL_TEXTURE0);
++    glBindTexture(GL_TEXTURE_2D, myrunner.gles.texture[texture]);
++    glVertexAttribPointer(
++        myrunner.gles.vert.tex_pos,
++        3,
++        GL_FLOAT,
++        GL_FALSE,
++        5 * sizeof(GLfloat),
++        fg_vertices
++    );
++    glVertexAttribPointer(
++        myrunner.gles.vert.tex_coord,
++        2,
++        GL_FLOAT,
++        GL_FALSE,
++        5 * sizeof(GLfloat),
++        &fg_vertices[3]
++    );
++    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vert_indices);
++}
++
+ static int init_shm(void)
+ {
+     trace("call %s()\n", __func__);
+@@ -184,6 +246,9 @@
+ {
+     int r = 0;
+     int cc = 0;
++    int menu_active = 0;
++    int menu_texture = TEXTURE_LCD0;
++    Uint32 menu_present_at = 0;
+     SDL_Rect rt = { 0 };
+     char cur_bg_path[MAX_PATH] = { 0 };
+ 
+@@ -205,7 +270,17 @@
+     running = 1;
+     while (running) {
+         if (myrunner.shm.buf->valid == 0) {
+-            usleep(10);
++            if (menu_active &&
++                ((Sint32)(SDL_GetTicks() - menu_present_at) >= 0))
++            {
++                SDL_GL_SwapWindow(myrunner.sdl2.win);
++                draw_background();
++                draw_cached_foreground(menu_texture);
++                menu_present_at = SDL_GetTicks() + 16;
++            }
++            else {
++                usleep(1000);
++            }
+             continue;
+         }
+ 
+@@ -279,6 +354,22 @@
+ 
+                 fg_vertices[15] = fg_vertices[10];
+                 fg_vertices[16] = fg_vertices[1];
++            }
++
++            if ((myrunner.shm.buf->srt.w == LAYOUT_BG_W) &&
++                (myrunner.shm.buf->srt.h == LAYOUT_BG_H) &&
++                (myrunner.shm.buf->drt.w == LAYOUT_BG_W) &&
++                (myrunner.shm.buf->drt.h == LAYOUT_BG_H))
++            {
++                menu_active = 1;
++                menu_texture = myrunner.shm.buf->tex;
++            }
++            else if (((myrunner.shm.buf->srt.w == NDS_W) &&
++                      (myrunner.shm.buf->srt.h == NDS_H)) ||
++                     ((myrunner.shm.buf->srt.w == NDS_Wx2) &&
++                      (myrunner.shm.buf->srt.h == NDS_Hx2)))
++            {
++                menu_active = 0;
+             }
+ 
+             if (((myrunner.shm.buf->layout == LAYOUT_MODE_N0) ||
+@@ -334,25 +425,11 @@
+                 }
+             }
+ 
+-            glActiveTexture(GL_TEXTURE0);
+-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+-            glBindTexture(GL_TEXTURE_2D, myrunner.gles.texture[TEXTURE_BG]);
+-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+-            glTexImage2D(
+-                GL_TEXTURE_2D,
+-                0,
+-                GL_RGBA,
+-                myrunner.gles.bg.w,
+-                myrunner.gles.bg.h,
+-                0,
+-                GL_RGBA,
+-                GL_UNSIGNED_BYTE,
+-                (void *)myrunner.gles.bg.pixels
+-            );
+-            glVertexAttribPointer(myrunner.gles.vert.tex_pos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), bg_vertices);
+-            glVertexAttribPointer(myrunner.gles.vert.tex_coord, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &bg_vertices[3]);
+-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, vert_indices);
++            draw_background();
++            if (menu_active) {
++                draw_cached_foreground(menu_texture);
++                menu_present_at = SDL_GetTicks() + 16;
++            }
+ 
+             break;
+         }

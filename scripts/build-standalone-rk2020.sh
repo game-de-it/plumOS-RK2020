@@ -32,6 +32,7 @@ DRASTIC_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-toolchain.patch"
 DRASTIC_INPUT_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-input.patch"
 DRASTIC_RUNNER_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-runner-readiness.patch"
 DRASTIC_ROTATION_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
+DRASTIC_MENU_PRESENT_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-menu-present.patch"
 DRASTIC_MMAP_COMPAT="$ROOT_DIR/package/standalone-rk2020/src/drastic-mmap-compat.c"
 PCSX_REPO="${PLUMOS_RK2020_PCSX_REPO:-https://github.com/notaz/pcsx_rearmed.git}"
 PCSX_REF="${PLUMOS_RK2020_PCSX_REF:-9f8b6f248e073f03c530efda7c4cc60a7e2ecafc}"
@@ -514,6 +515,8 @@ build_drastic() {
     >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_ROTATION_PATCH" \
     >>"$DRASTIC_LOG" 2>&1
+  git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_MENU_PRESENT_PATCH" \
+    >>"$DRASTIC_LOG" 2>&1
   make -C "$DRASTIC_SOURCE_DIR" -f Makefile.gkd_rk2020 -j"$JOBS" \
     TOOLCHAIN_BIN="$(dirname "$(command -v arm-linux-gnueabihf-gcc)")" \
     NDS_INCLUDE_ROOT=/usr/include \
@@ -624,6 +627,7 @@ build_drastic() {
   input_patch_sha256=$(sha256_file "$DRASTIC_INPUT_PATCH")
   runner_patch_sha256=$(sha256_file "$DRASTIC_RUNNER_PATCH")
   rotation_patch_sha256=$(sha256_file "$DRASTIC_ROTATION_PATCH")
+  menu_present_patch_sha256=$(sha256_file "$DRASTIC_MENU_PRESENT_PATCH")
   cat >"$DRASTIC_DST/build-manifest.json" <<EOF
 {
   "device": "rk2020",
@@ -647,6 +651,7 @@ build_drastic() {
   "input_patch_sha256": "$input_patch_sha256",
   "runner_readiness_patch_sha256": "$runner_patch_sha256",
   "runner_rotation_patch_sha256": "$rotation_patch_sha256",
+  "runner_menu_present_patch_sha256": "$menu_present_patch_sha256",
   "global_usr_overlay": false,
   "process_aslr": "disabled-only-for-drastic"
 }
