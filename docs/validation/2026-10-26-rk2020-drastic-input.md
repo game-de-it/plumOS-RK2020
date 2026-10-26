@@ -136,6 +136,8 @@ is therefore 427x320 (1.334), confirming the 4:3 viewport within one pixel.
 The evidence image is
 `captures/2026-10-26-rk2020-drastic-aspect-2b84b70.png`, SHA-256
 `36f6b3688484c845e0079b292fcb186669870a0bc48399e5b02912bc0c7b3032`.
+The operator then confirmed that the physical display was correct, accepting
+the RK2020 DraStic aspect-ratio gate.
 
 ## Host build and checks
 
@@ -303,6 +305,6 @@ bounded termination, and frontend restoration. The operator accepted stable
 menu navigation with both D-pad and analog input after the menu-present update.
 D-pad/game controls, dead-zone-corrected analog directions, `R2` screen swap,
 the remaining L2 combinations, and return to the frontend remain part of the
-physical-input gate. The queue-drained cursor release, 4:3 viewport, touch
-press, R precision movement, and return to normal controls through `L2 + X`
-require direct operator acceptance.
+physical-input gate. The queue-drained cursor release and 4:3 viewport are
+accepted. Smooth analog cursor motion, touch press, R precision movement, and
+return to normal controls through `L2 + X` remain direct operator gates.
