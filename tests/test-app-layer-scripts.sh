@@ -708,7 +708,7 @@ grep -Fq 'title_width > title_available' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 grep -Fq 'plumos_fbdev_draw_text_clipped(r, title_x, title_draw_y' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
-grep -Fq 'tile_width, tile_height' \
+grep -Fq '&grid_y, &tile_width, &tile_height,' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_fbdev_renderer.h"
 font_source="$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 sed -n '/static int choose_mali_font_path/,/static int choose_mali_fallback_font_path/p' \
@@ -984,6 +984,10 @@ grep -q 'ADAPTER_DIR}/lib/aarch64/libopusfile.so.0' \
     "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
 grep -q '^+NEXTUI_SYSTEM_PATH := /mnt/plumos/apps/nextcommander$' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
+grep -q 'setting_value_is_unavailable(value)' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+grep -q 'system_number_setting_runtime_available("system_contrast") ||' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q '^ZIP_VERSION="3.0-13+deb12u1"$' \
     "$ROOT_DIR/scripts/build-portmaster-rk2020.sh"
 "$ROOT_DIR/tests/test-portmaster-pgrep.sh"

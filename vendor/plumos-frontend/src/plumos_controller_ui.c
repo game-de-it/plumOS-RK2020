@@ -5514,11 +5514,18 @@ static int choose_mali_fallback_font_path(struct ui_state *ui, const char *prima
   return 0;
 }
 
+static int setting_value_is_unavailable(const char *value) {
+  return value && (strcmp(value, "N/A") == 0 ||
+                   strcmp(value, "Unavailable") == 0 ||
+                   strcmp(value, "unavailable") == 0);
+}
+
 static void add_setting_entry(struct ui_state *ui, const char *id, const char *name,
                               const char *value) {
   struct setting_entry *entry;
   char key[128];
-  if (ui->setting_count >= UI_MAX_SETTINGS) {
+  if (ui->setting_count >= UI_MAX_SETTINGS ||
+      setting_value_is_unavailable(value)) {
     return;
   }
   entry = &ui->setting_entries[ui->setting_count++];
@@ -6150,9 +6157,6 @@ static void add_system_settings_entries(struct ui_state *ui) {
   char system_version_path[PATH_MAX];
   char runtime_version[64];
   char system_version[64];
-  char contrast_value[32];
-  char hue_value[32];
-  char saturation_value[32];
   const char *system_root;
   const struct device_settings *device = &ui->device;
 
@@ -6177,15 +6181,11 @@ static void add_system_settings_entries(struct ui_state *ui) {
   format_runtime_number_setting_value("system_lumination", device->lumination,
                                       value, sizeof(value));
   add_setting_entry(ui, "system_lumination", "Lumination", value);
-  format_runtime_number_setting_value("system_contrast", device->contrast,
-                                      contrast_value, sizeof(contrast_value));
-  format_runtime_number_setting_value("system_hue", device->hue,
-                                      hue_value, sizeof(hue_value));
-  format_runtime_number_setting_value("system_saturation", device->saturation,
-                                      saturation_value, sizeof(saturation_value));
-  snprintf(value, sizeof(value), "C=%s T=%s S=%s",
-           contrast_value, hue_value, saturation_value);
-  add_setting_entry(ui, "system_display_color", "Display Color", value);
+  if (system_number_setting_runtime_available("system_contrast") ||
+      system_number_setting_runtime_available("system_hue") ||
+      system_number_setting_runtime_available("system_saturation")) {
+    add_setting_entry(ui, "system_display_color", "Display Color", "");
+  }
 
   add_setting_entry(ui, "system_time_settings", "Time Settings",
                     setting_choice_display_value("system_timezone", device->timezone));
@@ -6285,6 +6285,8 @@ static void add_system_information_entries(struct ui_state *ui) {
   char battery_status[32];
   char battery_temperature[32];
   char value[128];
+  int has_battery_capacity;
+  int has_battery_status;
 
   add_setting_entry(ui, "system_model", "Device Model", device->model);
   add_setting_entry(ui, "system_plumos_version", "plumOS", device->plumos_version);
@@ -6299,17 +6301,17 @@ static void add_system_information_entries(struct ui_state *ui) {
   add_setting_entry(ui, "system_memory", "Memory", device->memory_usage);
   add_setting_entry(ui, "system_firmware", "Base OS", device->firmware_version);
   if (runtime_device_is_rk2020()) {
-    if (!read_first_line_file("/sys/class/power_supply/battery/capacity",
-                              battery_capacity, sizeof(battery_capacity))) {
-      copy_string(battery_capacity, sizeof(battery_capacity), "N/A");
+    has_battery_capacity =
+        read_first_line_file("/sys/class/power_supply/battery/capacity",
+                             battery_capacity, sizeof(battery_capacity));
+    has_battery_status =
+        read_first_line_file("/sys/class/power_supply/battery/status",
+                             battery_status, sizeof(battery_status));
+    if (has_battery_capacity && has_battery_status) {
+      snprintf(value, sizeof(value), "%s%% / %s", battery_capacity,
+               battery_status);
+      add_setting_entry(ui, "system_battery", "Battery", value);
     }
-    if (!read_first_line_file("/sys/class/power_supply/battery/status",
-                              battery_status, sizeof(battery_status))) {
-      copy_string(battery_status, sizeof(battery_status), "N/A");
-    }
-    snprintf(value, sizeof(value), "%s%% / %s", battery_capacity,
-             battery_status);
-    add_setting_entry(ui, "system_battery", "Battery", value);
     if (read_first_line_file("/sys/class/power_supply/battery/temp",
                              battery_temperature,
                              sizeof(battery_temperature))) {
@@ -6317,11 +6319,9 @@ static void add_system_information_entries(struct ui_state *ui) {
       long absolute = raw < 0 ? -raw : raw;
       snprintf(value, sizeof(value), "%s%ld.%ld C", raw < 0 ? "-" : "",
                absolute / 10, absolute % 10);
-    } else {
-      copy_string(value, sizeof(value), "N/A");
+      add_setting_entry(ui, "system_battery_temperature",
+                        "Battery Temperature", value);
     }
-    add_setting_entry(ui, "system_battery_temperature",
-                      "Battery Temperature", value);
   }
 }
 
