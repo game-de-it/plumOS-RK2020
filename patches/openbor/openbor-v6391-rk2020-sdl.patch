@@ -27,11 +27,11 @@ index 9450fdb..be4d790 100644
 +	#define CONTROL_DEFAULT1_RIGHT      (JOY_LIST_FIRST + 10) /* D-pad, b9 */
 +	#define CONTROL_DEFAULT1_DOWN       (JOY_LIST_FIRST + 8)  /* D-pad, b7 */
 +	#define CONTROL_DEFAULT1_LEFT       (JOY_LIST_FIRST + 9)  /* D-pad, b8 */
-+	#define CONTROL_DEFAULT1_FIRE1      (JOY_LIST_FIRST + 2)  /* A, b1 */
-+	#define CONTROL_DEFAULT1_FIRE2      (JOY_LIST_FIRST + 1)  /* B, b0 */
-+	#define CONTROL_DEFAULT1_FIRE3      (JOY_LIST_FIRST + 3)  /* X, b2 */
-+	#define CONTROL_DEFAULT1_FIRE4      (JOY_LIST_FIRST + 4)  /* Y, b3 */
-+	#define CONTROL_DEFAULT1_FIRE5      (JOY_LIST_FIRST + 5)  /* L1, b4 */
++	#define CONTROL_DEFAULT1_FIRE1      (JOY_LIST_FIRST + 2)  /* Attack 1: Button 2 */
++	#define CONTROL_DEFAULT1_FIRE2      (JOY_LIST_FIRST + 3)  /* Attack 2: Button 3 */
++	#define CONTROL_DEFAULT1_FIRE3      (JOY_LIST_FIRST + 4)  /* Attack 3: Button 4 */
++	#define CONTROL_DEFAULT1_FIRE4      (JOY_LIST_FIRST + 5)  /* Attack 4: Button 5 */
++	#define CONTROL_DEFAULT1_FIRE5      (JOY_LIST_FIRST + 1)  /* Jump: Button 1 */
 +	#define CONTROL_DEFAULT1_FIRE6      (JOY_LIST_FIRST + 6)  /* R1, b5 */
 +	#define CONTROL_DEFAULT1_START      (JOY_LIST_FIRST + 16) /* START, b15 */
 +	#define CONTROL_DEFAULT1_SCREENSHOT (JOY_LIST_FIRST + 13) /* Function, b12 */
@@ -122,7 +122,7 @@ diff --git a/engine/openbor.c b/engine/openbor.c
 index 5aaa7e6..43fdca5 100644
 --- a/engine/openbor.c
 +++ b/engine/openbor.c
-@@ -2547,6 +2547,40 @@ void loadsettings()
+@@ -2547,6 +2547,56 @@ void loadsettings()
      {
          clearsettings();
      }
@@ -155,6 +155,22 @@ index 5aaa7e6..43fdca5 100644
 +            savedata.keys[0][SDID_SPECIAL] == JOY_LIST_FIRST + 10 &&
 +            savedata.keys[0][SDID_START] == JOY_LIST_FIRST + 20 &&
 +            savedata.keys[0][SDID_SCREENSHOT] == JOY_LIST_FIRST + 17)
++    {
++        clearbuttons(0);
++        savesettings();
++    }
++    else if(savedata.keys[0][SDID_MOVEUP] == JOY_LIST_FIRST + 7 &&
++            savedata.keys[0][SDID_MOVEDOWN] == JOY_LIST_FIRST + 8 &&
++            savedata.keys[0][SDID_MOVELEFT] == JOY_LIST_FIRST + 9 &&
++            savedata.keys[0][SDID_MOVERIGHT] == JOY_LIST_FIRST + 10 &&
++            savedata.keys[0][SDID_ATTACK] == JOY_LIST_FIRST + 2 &&
++            savedata.keys[0][SDID_ATTACK2] == JOY_LIST_FIRST + 1 &&
++            savedata.keys[0][SDID_ATTACK3] == JOY_LIST_FIRST + 3 &&
++            savedata.keys[0][SDID_ATTACK4] == JOY_LIST_FIRST + 4 &&
++            savedata.keys[0][SDID_JUMP] == JOY_LIST_FIRST + 5 &&
++            savedata.keys[0][SDID_SPECIAL] == JOY_LIST_FIRST + 6 &&
++            savedata.keys[0][SDID_START] == JOY_LIST_FIRST + 16 &&
++            savedata.keys[0][SDID_SCREENSHOT] == JOY_LIST_FIRST + 13)
 +    {
 +        clearbuttons(0);
 +        savesettings();

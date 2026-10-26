@@ -127,15 +127,22 @@ for binding in \
     'CONTROL_DEFAULT1_DOWN       (JOY_LIST_FIRST + 8)' \
     'CONTROL_DEFAULT1_LEFT       (JOY_LIST_FIRST + 9)' \
     'CONTROL_DEFAULT1_FIRE1      (JOY_LIST_FIRST + 2)' \
-    'CONTROL_DEFAULT1_FIRE2      (JOY_LIST_FIRST + 1)' \
-    'CONTROL_DEFAULT1_FIRE3      (JOY_LIST_FIRST + 3)' \
-    'CONTROL_DEFAULT1_FIRE4      (JOY_LIST_FIRST + 4)' \
-    'CONTROL_DEFAULT1_FIRE5      (JOY_LIST_FIRST + 5)' \
+    'CONTROL_DEFAULT1_FIRE2      (JOY_LIST_FIRST + 3)' \
+    'CONTROL_DEFAULT1_FIRE3      (JOY_LIST_FIRST + 4)' \
+    'CONTROL_DEFAULT1_FIRE4      (JOY_LIST_FIRST + 5)' \
+    'CONTROL_DEFAULT1_FIRE5      (JOY_LIST_FIRST + 1)' \
     'CONTROL_DEFAULT1_FIRE6      (JOY_LIST_FIRST + 6)' \
     'CONTROL_DEFAULT1_START      (JOY_LIST_FIRST + 16)' \
     'CONTROL_DEFAULT1_ESC        (JOY_LIST_FIRST + 11)'; do
     grep -Fq "$binding" "$OPENBOR_PATCH" ||
         fail "OpenBOR RK2020 controller contract missing: $binding"
+done
+for contract in \
+    'savedata.keys[0][SDID_ATTACK] == JOY_LIST_FIRST + 2' \
+    'savedata.keys[0][SDID_ATTACK2] == JOY_LIST_FIRST + 1' \
+    'savedata.keys[0][SDID_JUMP] == JOY_LIST_FIRST + 5'; do
+    grep -Fq "$contract" "$OPENBOR_PATCH" ||
+        fail "OpenBOR previous RK2020 defaults migration missing: $contract"
 done
 for contract in \
     'Make the measured ABS_X/ABS_Y stick mirror the physical D-pad' \
