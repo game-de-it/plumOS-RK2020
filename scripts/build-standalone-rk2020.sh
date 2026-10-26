@@ -69,6 +69,7 @@ MUPEN64PLUS_VIDEO_REPO="${PLUMOS_RK2020_MUPEN64PLUS_VIDEO_REPO:-https://github.c
 MUPEN64PLUS_VIDEO_REF="${PLUMOS_RK2020_MUPEN64PLUS_VIDEO_REF:-fcf00779f08a9503ef30d26422f6b0350684820d}"
 MUPEN64PLUS_SRAM_PATCH="$PATCH_DIR/mupen64plus/mupen64plus-core-2.6.0-sram-save-range.patch"
 MUPEN64PLUS_INPUT_PATCH="$PATCH_DIR/mupen64plus/mupen64plus-input-sdl-2.6.0-rk2020-dpad-mode.patch"
+MUPEN64PLUS_VIDEO_VSYNC_PATCH="$PATCH_DIR/mupen64plus/mupen64plus-video-rice-2.6.0-rk2020-vsync.patch"
 MUPEN64PLUS_HOTKEY_SOURCE="$ROOT_DIR/package/standalone-rk2020/src/plumos-mupen64plus-hotkey.c"
 MUPEN64PLUS_GL_ROTATE_SOURCE="$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 PICO8_SDL_ROTATE_SOURCE="$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_sdl_rotate.c"
@@ -866,7 +867,8 @@ build_mupen64plus() {
     require_command "$command"
   done
   for input in "$MUPEN64PLUS_HOTKEY_SOURCE" "$MUPEN64PLUS_GL_ROTATE_SOURCE" \
-    "$MUPEN64PLUS_SRAM_PATCH" "$MUPEN64PLUS_INPUT_PATCH"; do
+    "$MUPEN64PLUS_SRAM_PATCH" "$MUPEN64PLUS_INPUT_PATCH" \
+    "$MUPEN64PLUS_VIDEO_VSYNC_PATCH"; do
     [ -s "$input" ] || {
       printf 'error: Mupen64Plus RK2020 integration source is missing: %s\n' \
         "$input" >&2
@@ -902,6 +904,10 @@ build_mupen64plus() {
   git -C "$M64_INPUT_SRC" apply --check "$MUPEN64PLUS_INPUT_PATCH" \
     >>"$M64_LOG" 2>&1 || return 1
   git -C "$M64_INPUT_SRC" apply "$MUPEN64PLUS_INPUT_PATCH" \
+    >>"$M64_LOG" 2>&1 || return 1
+  git -C "$M64_VIDEO_SRC" apply --check "$MUPEN64PLUS_VIDEO_VSYNC_PATCH" \
+    >>"$M64_LOG" 2>&1 || return 1
+  git -C "$M64_VIDEO_SRC" apply "$MUPEN64PLUS_VIDEO_VSYNC_PATCH" \
     >>"$M64_LOG" 2>&1 || return 1
 
   rm -rf "$M64_STAGE" "$M64_DST"
@@ -1050,7 +1056,8 @@ EOF
   },
   "patches": {
     "mupen64plus-core-2.6.0-sram-save-range": "$(sha256_file "$MUPEN64PLUS_SRAM_PATCH")",
-    "mupen64plus-input-sdl-2.6.0-rk2020-dpad-mode": "$(sha256_file "$MUPEN64PLUS_INPUT_PATCH")"
+    "mupen64plus-input-sdl-2.6.0-rk2020-dpad-mode": "$(sha256_file "$MUPEN64PLUS_INPUT_PATCH")",
+    "mupen64plus-video-rice-2.6.0-rk2020-vsync": "$(sha256_file "$MUPEN64PLUS_VIDEO_VSYNC_PATCH")"
   },
   "binary_sha256": "$(sha256_file "$M64_BINARY")",
   "renderer": "rice-gles2-rk2020-final-present-ccw",

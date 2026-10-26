@@ -412,12 +412,26 @@ case "$id" in
       *) fail "unsupported Nintendo 64 content: $rom" 2 ;;
     esac
     m64_config="${XDG_CONFIG_HOME}/mupen64plus"
+    m64_config_file="${m64_config}/mupen64plus.cfg"
+    m64_vsync_marker="${HOME}/.rk2020-vsync-default-v1"
     m64_screenshots="${XDG_DATA_HOME}/screenshots"
     mupen_data_dir="${XDG_CACHE_HOME}/data.$$"
     m64_rotation="${workdir}/lib/libplumos-mupen64plus-gl-rotate.so"
     [ -f "$m64_rotation" ] ||
       fail "Mupen64Plus RK2020 display adapter is missing: $m64_rotation" 127
     mkdir -p "$m64_config" "$m64_screenshots" "$mupen_data_dir"
+    if [ ! -e "$m64_vsync_marker" ]; then
+      if [ -f "$m64_config_file" ] &&
+         grep -Fqx 'VerticalSync = False' "$m64_config_file"; then
+        m64_config_tmp="${m64_config_file}.tmp.$$"
+        sed 's/^VerticalSync = False$/VerticalSync = True/' \
+          "$m64_config_file" >"$m64_config_tmp" &&
+          mv -f "$m64_config_tmp" "$m64_config_file" ||
+          fail "failed to migrate Mupen64Plus VSync default" 78
+      fi
+      : >"$m64_vsync_marker" ||
+        fail "failed to record Mupen64Plus VSync migration" 78
+    fi
     cp -p "${workdir}/share/mupen64plus/"* "$mupen_data_dir/" ||
       fail "failed to stage Mupen64Plus runtime data" 78
     export PLUMOS_MUPEN64PLUS_GL_ROTATION=270

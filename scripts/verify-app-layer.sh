@@ -327,6 +327,12 @@ if jq -e '.emulators[] | select(.id == "mupen64plus" and .status == "built")' \
     done
     grep -Fq '[GO-Advance Gamepad]' \
         "$ROOT/standalone/mupen64plus/share/mupen64plus/InputAutoCfg.ini"
+    grep -Fq '.rk2020-vsync-default-v1' \
+        "$ROOT/bin/plumos-standalone-launch"
+    grep -Fq "sed 's/^VerticalSync = False$/VerticalSync = True/'" \
+        "$ROOT/bin/plumos-standalone-launch"
+    grep -q 'mupen64plus-video-rice-2.6.0-rk2020-vsync' \
+        "$ROOT/standalone/mupen64plus/build-manifest.json"
     grep -q 'rice-gles2-rk2020-final-present-ccw' \
         "$ROOT/standalone/mupen64plus/build-manifest.json"
 fi
