@@ -86,3 +86,45 @@ The corrected direct scanout is SHA-256
 It shows a correctly oriented 480x320 frame with readable horizontal text.
 The game remains running for physical D-pad, analog, ABXY, shoulder, START,
 and SELECT acceptance. The frontend is resumed automatically when it exits.
+
+## Common Jump and Attack defaults
+
+Commit `d62e69a` changes the common OpenBOR defaults at the engine level so
+every newly loaded PAK uses:
+
+```text
+Button 1: Jump
+Button 2: Attack 1
+Button 3: Attack 2
+Button 4: Attack 3
+Button 5: Attack 4
+Button 6: Special
+```
+
+The loader migrates the exact prior RK2020 default to this layout. A mapping
+that differs from that known default is retained, so an intentional per-game
+customization is not overwritten. The already saved Dragon Ball configuration
+contained the requested Button 1/2 assignment and remained unchanged.
+
+The targeted rebuild was deployed as a seven-file managed delta. Its staged,
+pre-update, and post-update verifications passed. Current hashes are:
+
+```text
+6ec80a3ac5ef4c65f17dcc8f65a725f6f71600c04edaae4137885ae11949e311  standalone/openbor/bin/OpenBOR
+e4dbca319cb11dab96ab56d67ac3b1a7fdc9a226d7a5884d9a1fcc8c4d4986e4  standalone/openbor/build-manifest.json
+85a7a549015c8633418d8997923ca8a512ffb68d5af9e17699ec6c810c3d3f09  components/standalone/checksums.sha256
+fbcdf9f3a36dd003fcc19fb48cb603fdae1c39b042ea218082dfc9d813e16e2d  components/standalone/manifest.json
+4f7e220b6adcb23eb7a408bb9f5b7c3ba9e3b52b2ef7194301f27baad7155941  manifest.json
+9ab8e1a8663b45284b9032babe1cb4fdd9a55c4019145be96c61b6e64c864676  checksums.sha256
+```
+
+The previous seven managed files are recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-openbor-buttons-d62e69a/before.tar
+SHA-256 5484c8733b27ae256e544d769a68cada0daa85b12e074f3e3b0087e76549745e
+```
+
+Dragon Ball was restarted with deployed PID 18813. The running executable
+hash matched, the saved key sequence confirmed Jump `601` (Button 1) and
+Attack 1 `602` (Button 2), and the recent kernel tail had no fault signature.

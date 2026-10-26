@@ -48,8 +48,10 @@
   its landscape frame directly into the portrait KMS target and treated its
   16 buttons as though two axes came first. Its live route now applies the
   RK2020 final quarter-turn, maps the measured D-pad/ABXY/shoulder/START/SELECT
-  indices, mirrors the analog stick onto directions, and persists settings;
-  direct physical control acceptance is pending.
+  indices, mirrors the analog stick onto directions, and persists settings.
+  All PAKs now default to Button 1 for Jump and Button 2 for Attack 1 while
+  preserving non-default user mappings; direct physical control acceptance
+  is pending.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
