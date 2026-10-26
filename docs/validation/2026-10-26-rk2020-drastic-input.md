@@ -7,12 +7,16 @@ Date: 2026-10-26
 The stock RK2020 controller has fewer dedicated buttons than the handhelds
 targeted by the original `steward-fu/nds` integration.  The existing RK2020
 build also inherited Pixel2 raw-input constants even though the RK2020 exposes
-its D-pad as `ABS_X` / `ABS_Y`.  Consequently DraStic reported no SDL joystick,
-the D-pad was not translated by the raw evdev path, and the handheld had no
-usable documented menu or screen-swap contract.
+one non-clickable analog stick as `ABS_X` / `ABS_Y` in addition to its digital
+D-pad. Consequently DraStic reported no SDL joystick, the analog stick was not
+translated by the raw evdev path, and the handheld had no usable documented
+menu or screen-swap contract.
 
 Commit `86345f1` adds an RK2020-specific integration patch and records its hash
-in the DraStic build manifest.
+in the DraStic build manifest. The first physical menu test then showed that
+the patch had incorrectly retained generic START/SELECT codes 315/314. Commit
+`492e7e2` corrects them to the observed RK2020 codes 709/704 and records that
+the single analog stick has no click input.
 
 ## Input contract
 
@@ -20,12 +24,13 @@ The source-built SDL2 integration now uses the observed RK2020 evdev contract:
 
 | Physical input | Raw event | DraStic action |
 | --- | --- | --- |
-| D-pad | `ABS_X` / `ABS_Y` | DS D-pad and menu navigation |
+| D-pad | 544/545/546/547 | DS D-pad and menu navigation |
+| Analog stick | `ABS_X` / `ABS_Y` | DS directions and menu navigation |
 | A/B/X/Y | 305/304/307/308 | DS face buttons |
 | L/R | 310/311 | DS shoulder buttons |
 | L2 | 706 | hotkey modifier; not sent as a DS button |
 | R2 | 707 | swap the two DS screens |
-| START/SELECT | 315/314 | DS START/SELECT |
+| START/SELECT | 709/704 | DS START/SELECT |
 
 The user-facing combinations are:
 
@@ -56,9 +61,9 @@ The following checks passed:
 Relevant generated hashes are:
 
 ```text
-b91cb7da38d35807eba44d76ecb203fa1e363a785426fd3d855cd01ef378f821  patches/drastic/steward-fu-nds-rk2020-input.patch
-e70cc6dbb783e2fa5827788d734b06bd246c06579ac5c0476604c8c00a2f020f  standalone/drastic/lib/libSDL2-2.0.so.0
-3193a1d113fdf073d6bac6aab5da033265ea35ce0f4eeae30120d5a411d67836  standalone/drastic/build-manifest.json
+b4e5f3d3d9a7edfa0c06884f50891661305c64a2b316cfa594ed7b8627526a32  patches/drastic/steward-fu-nds-rk2020-input.patch
+84de4b12810c5593831d1b90c36c594e2cdd89e530ec0f6dac8a8a6c2dfa9ec9  standalone/drastic/lib/libSDL2-2.0.so.0
+45c7a530985cd06be9eb07cd04a82258a91d6d5bd85f0e413c8106872e0a8c2a  standalone/drastic/build-manifest.json
 ```
 
 ## Live deployment and smoke test
@@ -68,24 +73,26 @@ root checks both around the update as applicable.  Deployment was limited to
 the two managed DraStic files and their five corresponding metadata files;
 reproducibly rebuilt but unrelated PCSX-ReARMed, PPSSPP, OpenBOR, and Mupen64
 differences were not deployed.  The final metadata identifies source
-`86345f1`.
+`492e7e2`.
 
 The previous seven managed files are recoverable from:
 
 ```text
-/mnt/plumos-user/Backups/rk2020-drastic-input-86345f1/before.tar
-SHA-256 ad8da3019960ee1d2859f3011108b7eded768158ca58e3a40540170b33d8e1ae
+/mnt/plumos-user/Backups/rk2020-drastic-input-492e7e2/before.tar
+SHA-256 a19a44b76dd9a845e38e194e3236a915877247f24526068079928ad5cb5512fe
 ```
 
 No reboot was needed.  A live smoke test launched the representative ROM
 `NDS/99のなみだ バンダイナムコゲームス.nds`, reached the
 runner's first-frame ready marker, and showed the new SDL2 integration mapped
 in the ARMHF DraStic process.  `plumos-standalone-stop drastic` terminated the
-core, no runner remained, and the frontend restarted as PID 16101.
+core, no runner remained, and the frontend restarted as PID 18951. The current
+kernel log had no panic, Oops, BUG, internal error, or trace end.
 
 ## Remaining physical gate
 
 The smoke test proves loading, first-frame presentation, managed-library use,
 bounded termination, and frontend restoration.  Direct operator input is
-still required to accept D-pad/game controls, `R2` screen swap, both menu
-combinations, menu navigation, and return to the frontend.
+still required to accept D-pad/game controls, analog directions, `R2` screen
+swap, corrected `L2 + START` and `L2 + SELECT` combinations, menu navigation,
+and return to the frontend.
