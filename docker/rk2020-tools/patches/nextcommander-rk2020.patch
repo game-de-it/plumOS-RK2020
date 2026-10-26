@@ -155,7 +155,7 @@ index 43d31fa..724d15a 100644
  }
  
  int Screen::init()
-@@ -75,13 +91,37 @@ int Screen::init()
+@@ -75,13 +91,39 @@ int Screen::init()
  #endif
  
  #ifdef USE_SDL2
@@ -175,8 +175,10 @@ index 43d31fa..724d15a 100644
 +    }
 +    plumos_fbdev_renderer_set_rotation(native, "ccw");
 +    native_renderer = native;
-+    setPhysicalResolution(640, 480);
-+    screen.surface = CreateRK2020Surface(640, 480);
++    const int logical_width = plumos_fbdev_logical_width(native);
++    const int logical_height = plumos_fbdev_logical_height(native);
++    setPhysicalResolution(logical_width, logical_height);
++    screen.surface = CreateRK2020Surface(logical_width, logical_height);
 +    if (screen.surface == nullptr) {
 +        SDL_Log("Failed to create software surface: %s", SDL_GetError());
 +        shutdown();
@@ -194,7 +196,7 @@ index 43d31fa..724d15a 100644
      if (window == nullptr) {
          SDL_Log("Failed to create window: %s", SDL_GetError());
          return 1;
-@@ -108,6 +148,7 @@ int Screen::init()
+@@ -108,6 +150,7 @@ int Screen::init()
      SDL_GetWindowSize(window, &window_w, &window_h);
      setPhysicalResolution(window_w, window_h);
      screen.surface = SDL_GetWindowSurface(window);
@@ -202,7 +204,7 @@ index 43d31fa..724d15a 100644
  #else
      surface = SetVideoMode(screen.actual_w, screen.actual_h, SCREEN_BPP,
          SDL_SWSURFACE | SDL_RESIZABLE);
-@@ -119,11 +160,71 @@ int Screen::init()
+@@ -119,11 +162,71 @@ int Screen::init()
      return 0;
  }
  

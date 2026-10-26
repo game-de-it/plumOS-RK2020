@@ -1020,6 +1020,12 @@ grep -q 'CXXFLAGS += -DCMDR_KEY_MENU=12' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'RK2020 D-pad is SDL joystick buttons 6-9' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
+grep -q 'const int logical_width = plumos_fbdev_logical_width(native);' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
+grep -q 'const int logical_height = plumos_fbdev_logical_height(native);' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
+! grep -q 'setPhysicalResolution(640, 480)' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q '"/bin/busybox", AsConstCStr(args)' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"
 grep -q 'i == inputs.size() - 1' \
