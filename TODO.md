@@ -37,7 +37,10 @@
   R precision, R2 screen swap, the remaining L2 combinations, and menu exit
   remain direct physical-input gates. The runaway cursor is fixed, but analog
   cursor motion still needs smoothing. Direct KMS capture and the subsequent
-  physical retest accept the centered 4:3 viewport.
+  physical retest accept the centered 4:3 viewport. PPSSPP's inherited `-2`
+  UI scale clipped pause-menu labels at 480x320; the managed `-6` correction
+  now fits all rows and actions in a direct KMS capture, with final physical
+  readability and control acceptance still pending.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
