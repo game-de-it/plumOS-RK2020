@@ -980,7 +980,7 @@ grep -q '^path_default_right=/roms$' \
     "$ROOT_DIR/scripts/build-nextcommander-rk2020.sh"
 grep -q 'lib/libretro/libvorbisfile.so.3' \
     "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
-grep -q 'adapter/lib/aarch64/libopusfile.so.0' \
+grep -q 'ADAPTER_DIR}/lib/aarch64/libopusfile.so.0' \
     "$ROOT_DIR/package/portmaster-rk2020/plumos/bin/plumos-portmaster-runtime"
 grep -q '^+NEXTUI_SYSTEM_PATH := /mnt/plumos/apps/nextcommander$' \
     "$ROOT_DIR/docker/rk2020-tools/patches/nextcommander-rk2020.patch"

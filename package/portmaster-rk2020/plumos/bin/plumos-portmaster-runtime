@@ -128,7 +128,8 @@ prepare() {
   link_one libmpg123.so.0 \
     "${NEXTCOMMANDER_LIB}/libmpg123.so.0"
   link_one libopusfile.so.0 \
-    "${PLUMOS_ROOT}/lib/libretro/libopusfile.so.0"
+    "${PLUMOS_ROOT}/lib/libretro/libopusfile.so.0" \
+    "${ADAPTER_DIR}/lib/aarch64/libopusfile.so.0"
   link_one libSDL2_ttf-2.0.so.0 \
     "${PLUMOS_ROOT}/apps/nextcommander/lib/libSDL2_ttf-2.0.so.0.2000.1"
   link_one libfreetype.so.6 \

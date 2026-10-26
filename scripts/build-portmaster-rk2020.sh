@@ -56,7 +56,7 @@ PIXMAN_RUNTIME_VERSION="0.42.2-1"
 SQUASHFS_TOOLS_VERSION="1:4.5.1-1"
 ZIP_VERSION="3.0-13+deb12u1"
 BASH_RUNTIME_VERSION="5.2.15-2+b13"
-ADAPTER_VERSION="54"
+ADAPTER_VERSION="55"
 
 usage() {
     cat <<EOF
@@ -793,6 +793,13 @@ for library in libSDL2_gfx-1.0.so.0; do
 done
 install -m 0644 "$sdl2_mixer_library" \
     "$stage_dir/plumos/apps/portmaster/adapter/lib/aarch64/libSDL2_mixer-2.0.so.0"
+opusfile_library="$(readlink -f /usr/lib/aarch64-linux-gnu/libopusfile.so.0)"
+[ -f "$opusfile_library" ] || {
+    printf 'error: PortMaster opusfile runtime library is missing\n' >&2
+    exit 1
+}
+install -m 0644 "$opusfile_library" \
+    "$stage_dir/plumos/apps/portmaster/adapter/lib/aarch64/libopusfile.so.0"
 install -m 0644 \
     "$stage_dir/plumos/apps/portmaster/upstream/PortMaster/runtimes/love_11.5/libs.aarch64/libmodplug.so.1" \
     "$stage_dir/plumos/apps/portmaster/adapter/lib/aarch64/libmodplug.so.1"
@@ -826,6 +833,8 @@ install -m 0644 /usr/share/doc/libsdl2-gfx-1.0-0/copyright \
     "$stage_dir/plumos/licenses/libsdl2-gfx-copyright.txt"
 install -m 0644 "$sdl2_mixer_src/LICENSE.txt" \
     "$stage_dir/plumos/licenses/sdl2-mixer-Zlib.txt"
+install -m 0644 /usr/share/doc/libopusfile0/copyright \
+    "$stage_dir/plumos/licenses/libopusfile-copyright.txt"
 mkdir -p \
     "$stage_dir/plumos/state/portmaster/config" \
     "$stage_dir/plumos/state/portmaster/libs" \
@@ -896,6 +905,7 @@ rsync -a "$stage_dir/plumos/" "$OUT_DIR/plumos/"
         -o -path 'licenses/libpixman-*' \
         -o -path 'licenses/libsdl2-gfx-*' \
         -o -path 'licenses/sdl2-mixer-*' \
+        -o -path 'licenses/libopusfile-*' \
         -o -path 'components/portmaster/manifest.json' \) \
         -print |
         sort |
