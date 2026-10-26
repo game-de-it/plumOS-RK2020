@@ -1,0 +1,178 @@
+diff --git a/sdl2/src/video/nds/nds_event.c b/sdl2/src/video/nds/nds_event.c
+index 7c58f8b..02f1747 100644
+--- a/sdl2/src/video/nds/nds_event.c
++++ b/sdl2/src/video/nds/nds_event.c
+@@ -790,20 +790,24 @@ static int handle_hotkey(void)
+     }
+ 
+     if (check_hotkey && hit_hotkey(KEY_BIT_UP)) {
++#if !defined(GKD_RK2020)
+         toggle_micphone();
++#endif
+         set_key_bit(KEY_BIT_UP, 0);
+     }
+ 
+     if (check_hotkey && hit_hotkey(KEY_BIT_DOWN)) {
++#if !defined(GKD_RK2020)
+         myhook.use_hinge ^= 1;
+         set_key_bit(KEY_BIT_HINGE, myhook.use_hinge);
++#endif
+         set_key_bit(KEY_BIT_DOWN, 0);
+     }
+ 
+     if (check_hotkey && hit_hotkey(KEY_BIT_LEFT)) {
+ #if defined(TRIMUI_SMART)
+         set_key_bit(KEY_BIT_SWAP, 1);
+-#else
++#elif !defined(GKD_RK2020)
+         if (myconfig.layout.mode.sel > 0) {
+             myconfig.layout.mode.sel -= 1;
+         }
+@@ -823,7 +827,7 @@ static int handle_hotkey(void)
+                 myevent.touch.slow_down = 0;
+             }
+         }
+-#else
++#elif !defined(GKD_RK2020)
+         if (myconfig.layout.mode.sel < myvideo.layout.max_mode) {
+             myconfig.layout.mode.sel += 1;
+         }
+@@ -1293,6 +1297,13 @@ static int get_input_key_code(int fd, struct input_event *e)
+             trace("got input event\n");
+             return 1;
+         }
++#if defined(GKD_RK2020)
++        if ((e->type == EV_ABS) &&
++            ((e->code == ABS_X) || (e->code == ABS_Y))) {
++            trace("got RK2020 dpad axis event\n");
++            return 1;
++        }
++#endif
+     }
+ 
+     trace("ignore input event\n");
+@@ -1645,6 +1656,62 @@ TEST(sdl2_event, handle_touch_event)
+ #endif
+ #endif
+ 
++#if defined(GKD_RK2020)
++static int handle_rk2020_dpad_axis(const struct input_event *e)
++{
++    static int horizontal = 0;
++    static int vertical = 0;
++    int next = 0;
++
++    if (!e || (e->type != EV_ABS)) {
++        return 0;
++    }
++
++    next = (e->value < 0) ? -1 : ((e->value > 0) ? 1 : 0);
++    if (e->code == ABS_X) {
++        if (next == horizontal) {
++            return 0;
++        }
++        if (horizontal < 0) {
++            update_key_bit(DEV_KEY_CODE_LEFT, 0);
++        }
++        else if (horizontal > 0) {
++            update_key_bit(DEV_KEY_CODE_RIGHT, 0);
++        }
++        horizontal = next;
++        if (horizontal < 0) {
++            update_key_bit(DEV_KEY_CODE_LEFT, 1);
++        }
++        else if (horizontal > 0) {
++            update_key_bit(DEV_KEY_CODE_RIGHT, 1);
++        }
++        return 1;
++    }
++
++    if (e->code == ABS_Y) {
++        if (next == vertical) {
++            return 0;
++        }
++        if (vertical < 0) {
++            update_key_bit(DEV_KEY_CODE_UP, 0);
++        }
++        else if (vertical > 0) {
++            update_key_bit(DEV_KEY_CODE_DOWN, 0);
++        }
++        vertical = next;
++        if (vertical < 0) {
++            update_key_bit(DEV_KEY_CODE_UP, 1);
++        }
++        else if (vertical > 0) {
++            update_key_bit(DEV_KEY_CODE_DOWN, 1);
++        }
++        return 1;
++    }
++
++    return 0;
++}
++#endif
++
+ int input_handler(void *data)
+ {
+     int rk = 0;
+@@ -1701,7 +1768,16 @@ int input_handler(void *data)
+ 
+         if (rk > 0) {
+             trace("code=%d, value=%d\n", ev.code, ev.value);
++#if defined(GKD_RK2020)
++            if (ev.type == EV_ABS) {
++                handle_rk2020_dpad_axis(&ev);
++            }
++            else {
++                update_key_bit(ev.code, ev.value);
++            }
++#else
+             update_key_bit(ev.code, ev.value);
++#endif
+         }
+ 
+ #if defined(MIYOO_FLIP)
+@@ -1746,6 +1822,9 @@ void init_event(void)
+ {
+     trace("call %s()\n", __func__);
+ 
++#if defined(GKD_RK2020)
++    myconfig.hotkey = HOTKEY_BIND_MENU;
++#endif
+     memset(&myevent, 0, sizeof(myevent));
+ 
+     myevent.mode = NDS_KEY_MODE;
+diff --git a/sdl2/src/video/nds/nds_event.h b/sdl2/src/video/nds/nds_event.h
+index 76c8079..046d77d 100644
+--- a/sdl2/src/video/nds/nds_event.h
++++ b/sdl2/src/video/nds/nds_event.h
+@@ -203,7 +203,29 @@
+ #define DEV_KEY_CODE_LOAD       318
+ #endif
+ 
+-#if defined(GKD_PIXEL2)
++#if defined(GKD_RK2020)
++/* RK2020 exposes its D-pad as ABS_X/ABS_Y, L2 as BTN_TRIGGER_HAPPY3,
++ * and R2 as BTN_TRIGGER_HAPPY4. L2 is the hotkey modifier rather than a DS
++ * input; R2 is reserved for the DraStic screen-swap action. */
++#define DEV_KEY_CODE_UP         544
++#define DEV_KEY_CODE_DOWN       545
++#define DEV_KEY_CODE_LEFT       546
++#define DEV_KEY_CODE_RIGHT      547
++#define DEV_KEY_CODE_A          305
++#define DEV_KEY_CODE_B          304
++#define DEV_KEY_CODE_X          307
++#define DEV_KEY_CODE_Y          308
++#define DEV_KEY_CODE_L1         310
++#define DEV_KEY_CODE_R1         311
++#define DEV_KEY_CODE_L2         -1
++#define DEV_KEY_CODE_R2         707
++#define DEV_KEY_CODE_START      315
++#define DEV_KEY_CODE_SELECT     314
++#define DEV_KEY_CODE_MENU       706
++#define DEV_KEY_CODE_POWER      -1
++#define DEV_KEY_CODE_VOL_UP     -1
++#define DEV_KEY_CODE_VOL_DOWN   -1
++#elif defined(GKD_PIXEL2)
+ #define DEV_KEY_CODE_UP         544
+ #define DEV_KEY_CODE_DOWN       545
+ #define DEV_KEY_CODE_LEFT       546

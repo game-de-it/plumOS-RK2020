@@ -17,6 +17,7 @@ SA_STOP="$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-stop"
 PICO8_WGET="$ROOT_DIR/package/standalone-rk2020/plumos/standalone/pico8/bin/wget"
 DRASTIC_RUNNER_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-readiness.patch"
 DRASTIC_ROTATION_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
+DRASTIC_INPUT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-input.patch"
 PPSSPP_CONTROLS="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/controls.ini"
 PPSSPP_CONFIG="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/ppsspp.ini"
 PPSSPP_CONTROLLER_PATCH="$ROOT_DIR/patches/ppsspp/ppsspp-1.20.4-rk2020-controller.patch"
@@ -161,6 +162,21 @@ if grep '^+' "$DRASTIC_RUNNER_PATCH" | grep -Fq 'pidof drastic'; then
 fi
 grep -Fq 'DRASTIC_RUNNER_PATCH' "$SA_BUILD" ||
     fail 'DraStic build does not consume runner readiness patch'
+for contract in \
+    '#define DEV_KEY_CODE_L2         -1' \
+    '#define DEV_KEY_CODE_R2         707' \
+    '#define DEV_KEY_CODE_MENU       706' \
+    'got RK2020 dpad axis event' \
+    'handle_rk2020_dpad_axis' \
+    'myconfig.hotkey = HOTKEY_BIND_MENU' \
+    '#elif !defined(GKD_RK2020)'; do
+    grep -Fq "$contract" "$DRASTIC_INPUT_PATCH" ||
+        fail "DraStic RK2020 input contract missing: $contract"
+done
+grep -Fq 'DRASTIC_INPUT_PATCH' "$SA_BUILD" ||
+    fail 'DraStic build does not consume RK2020 input patch'
+grep -Fq 'input_patch_sha256' "$SA_BUILD" ||
+    fail 'DraStic manifest does not record input patch'
 for contract in \
     '#define R_DISPLAY_W 320' \
     '#define R_DISPLAY_H 480' \

@@ -29,6 +29,7 @@ DRASTIC_RELEASE_URL="${PLUMOS_RK2020_DRASTIC_RELEASE_URL:-https://github.com/ste
 DRASTIC_RELEASE_SHA256="${PLUMOS_RK2020_DRASTIC_RELEASE_SHA256:-9e4ed98047dea0f014daea7c3530793f92f19d60073fceb9fd2a040696f66491}"
 DRASTIC_ARCHIVE="${PLUMOS_RK2020_DRASTIC_ARCHIVE:-$ROOT_DIR/output/downloads/drastic_miyoo-flip_20251104.zip}"
 DRASTIC_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-toolchain.patch"
+DRASTIC_INPUT_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-input.patch"
 DRASTIC_RUNNER_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-runner-readiness.patch"
 DRASTIC_ROTATION_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
 DRASTIC_MMAP_COMPAT="$ROOT_DIR/package/standalone-rk2020/src/drastic-mmap-compat.c"
@@ -507,6 +508,8 @@ build_drastic() {
     "$DRASTIC_SOURCE_DIR/assets/gkd_rk2020"
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_PATCH" \
     >>"$DRASTIC_LOG" 2>&1
+  git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_INPUT_PATCH" \
+    >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_RUNNER_PATCH" \
     >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_ROTATION_PATCH" \
@@ -618,6 +621,7 @@ build_drastic() {
   detour_sha256=$(sha256_file "$DRASTIC_DST/lib/libdtr.so")
   sdl2_sha256=$(sha256_file "$DRASTIC_DST/lib/libSDL2-2.0.so.0")
   compat_sha256=$(sha256_file "$DRASTIC_DST/lib/libdrastic_mmap_compat.so")
+  input_patch_sha256=$(sha256_file "$DRASTIC_INPUT_PATCH")
   runner_patch_sha256=$(sha256_file "$DRASTIC_RUNNER_PATCH")
   rotation_patch_sha256=$(sha256_file "$DRASTIC_ROTATION_PATCH")
   cat >"$DRASTIC_DST/build-manifest.json" <<EOF
@@ -640,6 +644,7 @@ build_drastic() {
     "libdrastic_mmap_compat.so": "$compat_sha256"
   },
   "runtime_contract": "package-local-armhf-gkd-rk2020",
+  "input_patch_sha256": "$input_patch_sha256",
   "runner_readiness_patch_sha256": "$runner_patch_sha256",
   "runner_rotation_patch_sha256": "$rotation_patch_sha256",
   "global_usr_overlay": false,
