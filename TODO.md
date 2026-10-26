@@ -24,6 +24,12 @@
   clean passes, two core-unload failures, and one missing proprietary PICO-8
   runtime. Fifteen catalog systems still lack representative content; manual
   gameplay, standalone final-scanout color, and the Amiga sample remain open.
+- [ ] Complete physical frontend-application acceptance. File Manager,
+  RetroArch, and PortMaster routes now pass; Music Player initializes display,
+  input, and RK817 audio but still needs representative music playback.
+  Scraping, Pyxel installation, and PortMaster update remain separate mutating
+  gates. Run an offline FAT filesystem check before release because the forced
+  power-off recorded an unclean user volume.
 
 ## Release gates
 
