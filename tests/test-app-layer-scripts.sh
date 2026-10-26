@@ -67,6 +67,8 @@ grep -q 'RUNTIME_LIB_DIR/libSDL2-2.0.so.0' \
 grep -q 'libSDL2-2\.0\.so\.0' "$ROOT_DIR/scripts/build-picoarch-rk2020.sh"
 grep -q 'picoarch-rk2020-host-input-poll\.patch' \
     "$ROOT_DIR/scripts/build-picoarch-rk2020.sh"
+grep -q '^+#define MENU_X2 0$' \
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch-rk2020-input-aspect.patch"
 grep -q 'physical=%ux%u logical=%ux%u ccw' \
     "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
 grep -q 'FBIOBLANK, FB_BLANK_UNBLANK' \
