@@ -75,6 +75,16 @@ calls DraStic's input-release path so neither a touch nor a game button can
 remain logically held across the mode change. Commit `7fa625f` implements this
 without changing the persistent user configuration.
 
+The first physical touch-mode test then found cursor travel noticeably laggy
+even though emulation remained at 100%. Inspection showed that the upstream
+1.0x pen-speed formula truncates to two DS coordinates per update (and one
+with R held), and the analog path intentionally exposes a held direction
+rather than analog magnitude. Commit `ca2d1c8` keeps the saved `PEN SPEED`
+multiplier effective but gives RK2020 five coordinates per update at 1.0x and
+two with R held. This changes only RK2020 touch mode; normal-mode R screen
+swap, emulation timing, presentation, and other devices retain their prior
+paths.
+
 This route deliberately bypasses DraStic's SDL joystick table.  The persistent
 user configuration remains untouched; on the test unit it still records menu
 fallback 1032 and no joystick screen-swap binding (65535).  The raw integration
@@ -116,6 +126,14 @@ The touch-mode update produced these additional/current hashes:
 b475bc3e169b71583ca97578cd2a08fb89772ce3e45997feb1f51a55e4502e27  patches/drastic/steward-fu-nds-rk2020-touch-mode.patch
 248ddbbe5eb7c093d57bb74df303566268ad1fed3714701a00cb1efd40c9c778  standalone/drastic/lib/libSDL2-2.0.so.0
 3d0d9d59f2dad25b35f234f659ed8bced3c89f4ce04ed2b89915880ff90a8a5f  standalone/drastic/build-manifest.json
+```
+
+The touch-speed update produced these current hashes:
+
+```text
+54d518552f3e07ecdea2c5a2db9333629adb73f7c33a22eb3536a5751b34c618  patches/drastic/steward-fu-nds-rk2020-touch-speed.patch
+2cd7018a08d76d42cbf229c4fcc97789f32caab83345af920bba7bc3b3c7d6fd  standalone/drastic/lib/libSDL2-2.0.so.0
+56986b784394ce47b89c7c438b484f67d1cd55ea2234bdfc73c33ec2b8af3fcc  standalone/drastic/build-manifest.json
 ```
 
 ## Live deployment and smoke test
@@ -184,6 +202,37 @@ and core PID 24674. The running ARMHF core mapped the new SDL2 integration with
 hash `248ddbbe...c778`, bounded stop removed both processes, and the frontend
 restarted as PID 24836. The kernel tail had no fault signature.
 
+The `ca2d1c8` touch-speed deployment again replaced only the SDL input
+integration, its build manifest, and five corresponding metadata files. A
+one-time full pre-deployment baseline verified all 636 standalone entries and
+all 11,284 root entries. The assembled host tree passed strict verification
+and the 169-license/110-core audit. The deployed hybrid metadata preserves the
+live hashes of unrelated standalone binaries and has these hashes:
+
+```text
+4bda3466a3b374091a82f160c1616bbf2495233223ad1e173fbe185e40830961  components/standalone/checksums.sha256
+776c0f5abf0e81438258c5211e00947b2091ffbe238677f889c29d219a194967  checksums.sha256
+```
+
+The previous seven managed files are recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-drastic-touch-speed-ca2d1c8/before.tar
+SHA-256 b10b93002b59afabb2fd52876ba1bcf48ea4efb033f5e79d2d4ec83e6b455a95
+```
+
+The live smoke test reached first frame with runner PID 1450 and core PID
+1467. The core mapped the expected `2cd7018a...d6fd` SDL2 library, bounded
+stop removed both processes, the frontend restarted as PID 1693, and the
+recent kernel tail contained no fault signature. The seven-file targeted
+check passed after FE restoration.
+
+Commit `8f05e60` adds `verify-rk2020-managed-delta.sh`. Live iterations now
+hash only the explicitly changed files plus the component-to-root metadata
+chain. Full 636/11,284-file verification and license audit remain image,
+release, and periodic-baseline gates rather than requirements for every live
+delta.
+
 ## Remaining physical gate
 
 The smoke test proves loading, first-frame presentation, managed-library use,
@@ -191,6 +240,6 @@ bounded termination, and frontend restoration. The operator accepted stable
 menu navigation with both D-pad and analog input after the menu-present update.
 D-pad/game controls, dead-zone-corrected analog directions, `R2` screen swap,
 the remaining L2 combinations, and return to the frontend remain part of the
-physical-input gate. The visible cursor, movement, touch press, slow movement,
-and return to normal controls through the new `L2 + X` touch mode also require
-direct operator acceptance.
+physical-input gate. The faster visible cursor, touch press, R precision
+movement, and return to normal controls through `L2 + X` require direct
+operator acceptance.

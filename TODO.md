@@ -28,9 +28,11 @@
   smoke test. Its display runner now keeps both 640x480 menu buffers current
   using the XU20-proven timed presentation fix; deterministic D-pad/analog
   menu navigation is accepted. `L2 + X` now toggles a stylus mode with
-  analog/D-pad movement, A touch, and R fine movement; that touch contract, R2
-  screen swap, the remaining L2 combinations, and menu exit remain a direct
-  physical-input gate.
+  analog/D-pad movement, A touch, and R fine movement. The RK2020-specific
+  cursor step was raised from 2 to 5 coordinates per update, with R retaining
+  a 2-coordinate precision step; cursor speed/precision, R2 screen swap, the
+  remaining L2 combinations, and menu exit remain a direct physical-input
+  gate.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
