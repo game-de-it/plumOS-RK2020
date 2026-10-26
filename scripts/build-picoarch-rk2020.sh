@@ -161,7 +161,7 @@ cat > "$COMPONENT_DIR/manifest.json" <<EOF
   "sdl12_compat_repo": "$SDL12_REPO",
   "sdl12_compat_ref": "$SDL12_REF",
   "sdl2_runtime": "picoarch/lib/libSDL2-2.0.so.0",
-  "render_contract": "RK2020 fbdev RGB565-to-BGRA8888 presenter with SDL12 dummy surface",
+  "render_contract": "RK2020 fbdev pwrite RGB565-to-BGRA8888 presenter with SDL12 dummy surface",
   "input_contract": "RK2020 evdev dpad, ABXY east-confirm, shoulders, start/select, menu",
   "audio_contract": "plumOS ALSA plumos_output",
   "core_route": "cores/*_libretro.so"

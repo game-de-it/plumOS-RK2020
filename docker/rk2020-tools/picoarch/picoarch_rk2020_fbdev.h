@@ -11,11 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include <sys/mman.h>
 #include <unistd.h>
 
 static int rk2020_fb_fd = -1;
-static uint8_t *rk2020_fb_map;
+static uint8_t *rk2020_fb_pixels;
 static size_t rk2020_fb_size;
 static struct fb_fix_screeninfo rk2020_fb_fix;
 static struct fb_var_screeninfo rk2020_fb_var;
@@ -84,6 +83,29 @@ static int rk2020_fb_activate_scanout(uint32_t yoffset, const char *reason)
 	return 0;
 }
 
+static int rk2020_fb_write_region(const uint8_t *pixels, size_t size,
+				  off_t offset)
+{
+	size_t written = 0;
+
+	while (written < size) {
+		ssize_t result = pwrite(rk2020_fb_fd, pixels + written,
+					 size - written, offset + (off_t)written);
+
+		if (result < 0 && errno == EINTR)
+			continue;
+		if (result <= 0) {
+			fprintf(stderr,
+				"RK2020 PicoArch framebuffer write failed: offset=%lld written=%zu/%zu error=%s\n",
+				(long long)offset, written, size,
+				result < 0 ? strerror(errno) : "short write");
+			return -1;
+		}
+		written += (size_t)result;
+	}
+	return 0;
+}
+
 static void rk2020_fb_present_pixels(const uint16_t *pixels)
 {
 	unsigned dst_y;
@@ -92,10 +114,10 @@ static void rk2020_fb_present_pixels(const uint16_t *pixels)
 	uint8_t *draw_base;
 	int reactivate;
 
-	if (!rk2020_fb_map || !pixels)
+	if (!rk2020_fb_pixels || !pixels)
 		return;
 	reactivate = rk2020_fb_take_scanout_reactivate();
-	draw_base = rk2020_fb_map +
+	draw_base = rk2020_fb_pixels +
 		(size_t)rk2020_fb_draw_yoffset * rk2020_fb_fix.line_length;
 	/* RK2020 exposes the landscape LCD as a physical 320x480 framebuffer.
 	 * Present the logical 480x320 PicoArch surface counter-clockwise, matching
@@ -116,6 +138,12 @@ static void rk2020_fb_present_pixels(const uint16_t *pixels)
 			dst[dst_x] = 0xff000000u | ((r << 3 | r >> 2) << 16) |
 			         ((g << 2 | g >> 4) << 8) | (b << 3 | b >> 2);
 		}
+	}
+	if (rk2020_fb_write_region(draw_base,
+	    (size_t)rk2020_fb_fix.line_length * rk2020_fb_var.yres,
+	    (off_t)rk2020_fb_draw_yoffset * rk2020_fb_fix.line_length) < 0) {
+		rk2020_fb_scanout_reactivate = 1;
+		return;
 	}
 	if (rk2020_fb_double_buffer) {
 		struct fb_var_screeninfo next = rk2020_fb_var;
@@ -208,11 +236,13 @@ static int rk2020_fb_init(void)
 	                    (rk2020_fb_var.yoffset + rk2020_fb_var.yres)) {
 		return -1;
 	}
-	rk2020_fb_map = mmap(NULL, rk2020_fb_size, PROT_READ | PROT_WRITE,
-	                   MAP_SHARED, rk2020_fb_fd, 0);
-	if (rk2020_fb_map == MAP_FAILED) {
-		rk2020_fb_map = NULL;
-		fprintf(stderr, "RK2020 PicoArch framebuffer mmap failed: %s\n",
+	/* The stock 4.4.189 Rockchip fbdev mmap path can dereference a NULL GEM
+	 * page when a second client maps /dev/fb0 while the frontend owns its
+	 * original mapping. Keep a userspace scanout buffer and use fb_write via
+	 * pwrite instead; this path is safe with the frontend mapping still open. */
+	rk2020_fb_pixels = calloc(1, rk2020_fb_size);
+	if (!rk2020_fb_pixels) {
+		fprintf(stderr, "RK2020 PicoArch framebuffer allocation failed: %s\n",
 			strerror(errno));
 		return -1;
 	}
@@ -256,7 +286,7 @@ static void rk2020_fb_present(const SDL_Surface *surface)
 	unsigned y;
 	int frame;
 
-	if (!rk2020_fb_map || !surface || !rk2020_fb_thread_started)
+	if (!rk2020_fb_pixels || !surface || !rk2020_fb_thread_started)
 		return;
 	pthread_mutex_lock(&rk2020_fb_mutex);
 	frame = rk2020_fb_active == 0 ? 1 : 0;
@@ -287,13 +317,11 @@ static void rk2020_fb_finish(void)
 		sigaction(SIGCONT, &rk2020_fb_previous_sigcont, NULL);
 		rk2020_fb_sigcont_installed = 0;
 	}
-	if (rk2020_fb_map && rk2020_fb_map != MAP_FAILED) {
-		munmap(rk2020_fb_map, rk2020_fb_size);
-	}
+	free(rk2020_fb_pixels);
 	if (rk2020_fb_fd >= 0) {
 		close(rk2020_fb_fd);
 	}
-	rk2020_fb_map = NULL;
+	rk2020_fb_pixels = NULL;
 	rk2020_fb_fd = -1;
 	free(rk2020_fb_frames[0]);
 	free(rk2020_fb_frames[1]);

@@ -75,6 +75,15 @@ grep -q 'FBIOPAN_DISPLAY' \
     "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
 grep -q 'sigaction(SIGCONT' \
     "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
+grep -q 'pwrite(rk2020_fb_fd' \
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
+grep -q 'RK2020 PicoArch framebuffer write failed' \
+    "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"
+if grep -Eq '(^|[^[:alnum:]_])(mmap|munmap)\(' \
+        "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_fbdev.h"; then
+    printf 'PicoArch RK2020 framebuffer presenter must not mmap fb0\n' >&2
+    exit 1
+fi
 grep -q 'getenv("PLUMOS_PICOARCH_RGB565_BYTESWAP")' \
     "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch-rk2020-pixel-format.patch"
 grep -q '(pixel << 8) | (pixel >> 8)' \
