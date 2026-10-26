@@ -25,6 +25,12 @@ binary contains only the system-layer path. Its latest device log opens the
 RK2020 controller and resource directory without the previous font-open
 error.
 
+Commit `9990891` corrects the later physical clipping report. The RK2020
+renderer exposes a 480x320 logical surface after panel rotation, but
+NextCommander had hard-coded a 640x480 software surface. The right 160 columns
+and lower 160 rows were therefore outside the scanout. NextCommander now sizes
+its software surface from the renderer's logical width and height.
+
 Commit `6c66a08` bundles `libopusfile.so.0` with the PortMaster adapter,
 registers its copyright, adds the adapter fallback to the isolated runtime,
 and advances the adapter contract to version 55. On the device, runtime
@@ -62,8 +68,8 @@ reports adapter version 55.
 
 | Frontend entry | Result | Evidence and boundary |
 | --- | --- | --- |
-| Scraping | Route pass | Scraping screen loaded 26 targets and 27 discovered ROMs. A full artwork write was not started. |
-| File Manager | Pass | NextCommander opened DRM and the RK2020 controller, loaded the system resource path without a font error, exited cleanly, and returned to FE. |
+| Scraping | Physical functional pass | The operator completed scraping successfully. |
+| File Manager | Physical functional pass | The corrected 480x320 layout keeps both panels and the footer on screen. The operator accepted display, navigation, and a real file copy; NextCommander then exited and FE restarted cleanly. |
 | Music Player | Route pass | DRM, controller input, RK817 ALSA output at 48 kHz stereo, and all media-root scans initialized. No music files are present, so decode/playback remains untested. |
 | RetroArch | Pass | The contentless menu opened DRM, RK817 ALSA, RK2020 input, and libmali, then returned to FE. Earlier physical testing accepted its menu and exit controls. |
 | Pyxel Setup | Status pass | Packaged Pyxel 2.9.3, Pygame 2.6.1, NumPy 2.4.6, and Pillow 12.3.0 import successfully. The destructive install action requires a second A press; installation was not run. An empty staging directory left by the interrupted earlier test was verified empty and removed. |
@@ -84,13 +90,20 @@ reported hang has not recurred in the corrected single-application sequence.
 
 The following gates remain:
 
-- visually inspect File Manager, Music Player, RetroArch, and PortMaster on the
-  physical panel for clipping, color, and input response;
+- visually inspect Music Player on the physical panel for clipping, color, and
+  input response;
 - add a representative music file and confirm decode, playback, seeking, and
   clean return to FE;
-- optionally run one bounded scrape and verify downloaded artwork;
 - the forced-power-off FAT dirty bit was subsequently repaired and verified by
   the live-unmount procedure recorded in
   `2026-10-26-rk2020-live-fat-fsck.md`;
 - keep Pyxel environment installation and PortMaster network update as
   separately authorized, potentially mutating tests.
+
+## 2026-10-27 physical follow-up
+
+The clipping diagnosis and deployment are recorded in
+`2026-10-27-rk2020-nextcommander-display.md`. The operator accepted File
+Manager display, controls, and file copying, and separately reported scraping
+as working. These two application gates are closed. Music playback, Pyxel
+installation, and PortMaster update remain independent.

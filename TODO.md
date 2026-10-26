@@ -83,9 +83,9 @@
   complete at project scope. This closes the emulator gate while retaining the
   granular evidence limits and external-content dependencies above.
 - [ ] Complete physical frontend-application acceptance. File Manager,
-  RetroArch, and PortMaster routes now pass; Music Player initializes display,
-  input, and RK817 audio but still needs representative music playback.
-  Scraping, Pyxel installation, and PortMaster update remain separate mutating
+  Scraping, RetroArch, and PortMaster now pass; Music Player initializes
+  display, input, and RK817 audio but still needs representative music
+  playback. Pyxel installation and PortMaster update remain separate mutating
   gates.
 - [x] Unmount both live aliases of `PLUMOS_USER`, repair the forced-power-off
   FAT dirty bit, verify the unmounted filesystem clean, and restore FE/input.
