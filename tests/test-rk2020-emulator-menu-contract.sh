@@ -19,6 +19,7 @@ DRASTIC_RUNNER_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-rea
 DRASTIC_ROTATION_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
 DRASTIC_MENU_PRESENT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-menu-present.patch"
 DRASTIC_INPUT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-input.patch"
+DRASTIC_TOUCH_MODE_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-touch-mode.patch"
 PPSSPP_CONTROLS="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/controls.ini"
 PPSSPP_CONFIG="$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/ppsspp/PSP/SYSTEM/ppsspp.ini"
 PPSSPP_CONTROLLER_PATCH="$ROOT_DIR/patches/ppsspp/ppsspp-1.20.4-rk2020-controller.patch"
@@ -184,6 +185,18 @@ grep -Fq 'DRASTIC_INPUT_PATCH' "$SA_BUILD" ||
     fail 'DraStic build does not consume RK2020 input patch'
 grep -Fq 'input_patch_sha256' "$SA_BUILD" ||
     fail 'DraStic manifest does not record input patch'
+for contract in \
+    'hit_hotkey(KEY_BIT_X)' \
+    'NDS_TOUCH_MODE : NDS_KEY_MODE' \
+    'release_key();' \
+    'RK2020 input mode=%s'; do
+    grep -Fq "$contract" "$DRASTIC_TOUCH_MODE_PATCH" ||
+        fail "DraStic RK2020 touch-mode contract missing: $contract"
+done
+grep -Fq 'DRASTIC_TOUCH_MODE_PATCH' "$SA_BUILD" ||
+    fail 'DraStic build does not consume RK2020 touch-mode patch'
+grep -Fq 'touch_mode_patch_sha256' "$SA_BUILD" ||
+    fail 'DraStic manifest does not record touch-mode patch'
 for contract in \
     '#define R_DISPLAY_W 320' \
     '#define R_DISPLAY_H 480' \

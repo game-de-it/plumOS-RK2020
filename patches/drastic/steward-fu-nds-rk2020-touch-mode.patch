@@ -1,0 +1,18 @@
+--- a/sdl2/src/video/nds/nds_event.c
++++ b/sdl2/src/video/nds/nds_event.c
+@@ -859,7 +859,14 @@
+     }
+ 
+     if (check_hotkey && hit_hotkey(KEY_BIT_X)) {
+-#if defined(MIYOO_MINI) || defined(MIYOO_FLIP) || defined(TRIMUI_BRICK) || defined(GKD_PIXEL2) || defined(GKD_MINIPLUS) || defined(TRIMUI_SMART)
++#if defined(GKD_RK2020)
++        myevent.mode = (myevent.mode == NDS_KEY_MODE) ?
++            NDS_TOUCH_MODE : NDS_KEY_MODE;
++        release_key();
++        myevent.touch.slow_down = 0;
++        trace("RK2020 input mode=%s\n",
++            (myevent.mode == NDS_TOUCH_MODE) ? "touch" : "keys");
++#elif defined(MIYOO_MINI) || defined(MIYOO_FLIP) || defined(TRIMUI_BRICK) || defined(GKD_PIXEL2) || defined(GKD_MINIPLUS) || defined(TRIMUI_SMART)
+         //enter_sdl2_menu(MENU_TYPE_SHOW_HOTKEY);
+ #endif
+ 
