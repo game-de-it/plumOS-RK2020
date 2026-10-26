@@ -30,9 +30,12 @@
   menu navigation is accepted. `L2 + X` now toggles a stylus mode with
   analog/D-pad movement, A touch, and R fine movement. The RK2020-specific
   cursor step was raised from 2 to 5 coordinates per update, with R retaining
-  a 2-coordinate precision step; cursor speed/precision, R2 screen swap, the
-  remaining L2 combinations, and menu exit remain a direct physical-input
-  gate.
+  a 2-coordinate precision step. The raw event path now drains batches of 64
+  events at 1 ms intervals so the analog-release event cannot sit behind an
+  ABS/SYN backlog. DraStic now renders its rotated 4:3 surface in a centered
+  320x427 viewport instead of stretching it across 320x480. Cursor release,
+  aspect ratio, R precision, R2 screen swap, the remaining L2 combinations,
+  and menu exit remain a direct physical-input gate.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.

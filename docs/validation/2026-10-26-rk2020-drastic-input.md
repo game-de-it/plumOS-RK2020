@@ -85,6 +85,15 @@ two with R held. This changes only RK2020 touch mode; normal-mode R screen
 swap, emulation timing, presentation, and other devices retain their prior
 paths.
 
+The next physical test distinguished speed from latency: briefly nudging the
+stick continued moving the cursor for about one second and covered roughly
+half the screen. The RK2020 raw-input thread read only one event every 10 ms,
+including ignored `EV_SYN` records. A burst of analog reports therefore left
+the neutral/release report queued behind older values. Commit `7efaf7c` drains
+up to 64 records per pass in arrival order and polls at 1 ms. It runs hotkey
+handling after each meaningful record, so button chords retain their event
+ordering while a stick release becomes current immediately.
+
 This route deliberately bypasses DraStic's SDL joystick table.  The persistent
 user configuration remains untouched; on the test unit it still records menu
 fallback 1032 and no joystick screen-swap binding (65535).  The raw integration
@@ -99,6 +108,18 @@ and redraws that complete frame every 16 ms. This keeps both swapchain buffers
 at the same cursor position without inventing input repeats or changing the
 input mapping. Returning to a gameplay-sized surface disables the timed
 presentation loop.
+
+## RK2020 aspect contract
+
+The RK2020 runner rotates a logical 640x480 surface onto a native portrait
+320x480 framebuffer. Filling the complete framebuffer gives unequal scale
+factors after rotation and stretches the effective landscape output to
+480x320. Commit `2b84b70` instead uses a centered 320x427 portrait viewport,
+which becomes approximately 427x320 after rotation and preserves the source
+4:3 ratio to within one physical pixel. The remaining 26/27 pixel margins
+become left/right black bars on the handheld. Both swapchain paths clear the
+complete buffer before redrawing so those bars cannot retain old menu or game
+pixels.
 
 ## Host build and checks
 
@@ -233,6 +254,32 @@ chain. Full 636/11,284-file verification and license audit remain image,
 release, and periodic-baseline gates rather than requirements for every live
 delta.
 
+The input-drain and aspect update was deployed as an eight-file managed delta;
+no full-tree hash pass was repeated. The targeted pre/post checks both passed.
+Current hashes are:
+
+```text
+9e2af87f1c6538490afc0f3362fd3861425dcd28b3978a9438d39f0d534eebc8  patches/drastic/steward-fu-nds-rk2020-input-drain.patch
+7435bf6762c9487aa148a1bda951323cf3feac9fa068fb22cb55e9bd1a4002bb  patches/drastic/steward-fu-nds-rk2020-runner-aspect.patch
+de77075c0c0800df7fd7b698d12769bd1b520d1ed9d2f28193fe21fbb9fc0150  standalone/drastic/lib/libSDL2-2.0.so.0
+ab1e0fd2e7f6203296e74146ef6dd10198122023eaf00ab4122a892c8383dd4d  standalone/drastic/bin/runner
+08a9addd929c91e0b11eaf6c732dfdae44a821087089a093b1b79013124b9978  standalone/drastic/build-manifest.json
+b609d355fa3024394de94008d38817ad66e401721129be81434617e4bc108ffc  components/standalone/checksums.sha256
+0e19442886e3f4ab6b00c1cdc516c6f1a17af39e8bb1611314e337f14630b032  checksums.sha256
+```
+
+The previous eight managed files are recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-drastic-latency-aspect-2b84b70/before.tar
+SHA-256 8aa81a5452e2e9d24d4516d91149b2db267151a2acd606fec96d7f2d360f37ce
+```
+
+The live smoke route reached first frame with runner PID 4038 and core PID
+4053. The running processes mapped the expected runner and SDL2 hashes, and
+the recent kernel tail contained no fault signature. The game was left running
+for direct cursor-release and aspect-ratio acceptance.
+
 ## Remaining physical gate
 
 The smoke test proves loading, first-frame presentation, managed-library use,
@@ -240,6 +287,6 @@ bounded termination, and frontend restoration. The operator accepted stable
 menu navigation with both D-pad and analog input after the menu-present update.
 D-pad/game controls, dead-zone-corrected analog directions, `R2` screen swap,
 the remaining L2 combinations, and return to the frontend remain part of the
-physical-input gate. The faster visible cursor, touch press, R precision
-movement, and return to normal controls through `L2 + X` require direct
-operator acceptance.
+physical-input gate. The queue-drained cursor release, 4:3 viewport, touch
+press, R precision movement, and return to normal controls through `L2 + X`
+require direct operator acceptance.
