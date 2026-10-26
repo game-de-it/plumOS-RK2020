@@ -44,7 +44,12 @@
   controller mapping omitted the measured `ABS_X`/`ABS_Y` axes even though
   the saved controls already reference SDL controller axes. The live binary
   now maps them as `leftx:a0,lefty:a1`; direct Ridge Racer gameplay confirms
-  that the physical analog stick works in PPSSPP.
+  that the physical analog stick works in PPSSPP. OpenBOR previously rendered
+  its landscape frame directly into the portrait KMS target and treated its
+  16 buttons as though two axes came first. Its live route now applies the
+  RK2020 final quarter-turn, maps the measured D-pad/ABXY/shoulder/START/SELECT
+  indices, mirrors the analog stick onto directions, and persists settings;
+  direct physical control acceptance is pending.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
