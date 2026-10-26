@@ -16,7 +16,13 @@ Commit `86345f1` adds an RK2020-specific integration patch and records its hash
 in the DraStic build manifest. The first physical menu test then showed that
 the patch had incorrectly retained generic START/SELECT codes 315/314. Commit
 `492e7e2` corrects them to the observed RK2020 codes 709/704 and records that
-the single analog stick has no click input.
+the single analog stick has no click input. The next physical test opened the
+menu but showed delayed and apparently random cursor movement from both the
+D-pad and stick. Live `EVIOCGABS` inspection measured a nominal range of
+-900..899 but a released state of X=-9 and Y=+120. The original sign-only
+conversion therefore held DOWN whenever Y rested at +120 and fought the
+digital D-pad. Commit `c7bf94c` adds press/release hysteresis at 450/250 so the
+neutral drift cannot produce a direction.
 
 ## Input contract
 
@@ -43,6 +49,12 @@ The user-facing combinations are:
 The DraStic integration consumes those combinations without also changing its
 microphone, hinge, or layout state.
 
+The analog stick is converted to digital directions only after crossing
+plus/minus 450. Once held, it stays held until the axis returns within
+plus/minus 250. Separate press and release thresholds prevent jitter around a
+single boundary while leaving half of the measured travel available on each
+side.
+
 This route deliberately bypasses DraStic's SDL joystick table.  The persistent
 user configuration remains untouched; on the test unit it still records menu
 fallback 1032 and no joystick screen-swap binding (65535).  The raw integration
@@ -61,9 +73,9 @@ The following checks passed:
 Relevant generated hashes are:
 
 ```text
-b4e5f3d3d9a7edfa0c06884f50891661305c64a2b316cfa594ed7b8627526a32  patches/drastic/steward-fu-nds-rk2020-input.patch
-84de4b12810c5593831d1b90c36c594e2cdd89e530ec0f6dac8a8a6c2dfa9ec9  standalone/drastic/lib/libSDL2-2.0.so.0
-45c7a530985cd06be9eb07cd04a82258a91d6d5bd85f0e413c8106872e0a8c2a  standalone/drastic/build-manifest.json
+d6c41a0e88ac7e72d34b98bf0e50b155ca0f7a4b15eedd30f8ada49b6931a7fb  patches/drastic/steward-fu-nds-rk2020-input.patch
+e31d39f3ac15c12008d58699162e24a6ac82ff70610582906c64f16f2a7b7d80  standalone/drastic/lib/libSDL2-2.0.so.0
+3fc5bd69e8447d6954c003d4053bbba489c38f50765f79efb3544ba81c18df7b  standalone/drastic/build-manifest.json
 ```
 
 ## Live deployment and smoke test
@@ -73,26 +85,26 @@ root checks both around the update as applicable.  Deployment was limited to
 the two managed DraStic files and their five corresponding metadata files;
 reproducibly rebuilt but unrelated PCSX-ReARMed, PPSSPP, OpenBOR, and Mupen64
 differences were not deployed.  The final metadata identifies source
-`492e7e2`.
+`c7bf94c`.
 
 The previous seven managed files are recoverable from:
 
 ```text
-/mnt/plumos-user/Backups/rk2020-drastic-input-492e7e2/before.tar
-SHA-256 a19a44b76dd9a845e38e194e3236a915877247f24526068079928ad5cb5512fe
+/mnt/plumos-user/Backups/rk2020-drastic-input-c7bf94c/before.tar
+SHA-256 f4dd90490aa73903de3e209b893677964917d4589093a29df52e1807712b0605
 ```
 
 No reboot was needed.  A live smoke test launched the representative ROM
 `NDS/99のなみだ バンダイナムコゲームス.nds`, reached the
 runner's first-frame ready marker, and showed the new SDL2 integration mapped
 in the ARMHF DraStic process.  `plumos-standalone-stop drastic` terminated the
-core, no runner remained, and the frontend restarted as PID 18951. The current
+core, no runner remained, and the frontend restarted as PID 20727. The current
 kernel log had no panic, Oops, BUG, internal error, or trace end.
 
 ## Remaining physical gate
 
 The smoke test proves loading, first-frame presentation, managed-library use,
 bounded termination, and frontend restoration.  Direct operator input is
-still required to accept D-pad/game controls, analog directions, `R2` screen
-swap, corrected `L2 + START` and `L2 + SELECT` combinations, menu navigation,
-and return to the frontend.
+still required to accept D-pad/game controls, dead-zone-corrected analog
+directions, `R2` screen swap, corrected `L2 + START` and `L2 + SELECT`
+combinations, deterministic menu navigation, and return to the frontend.
