@@ -21,9 +21,14 @@
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [ ] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70
-  clean passes, two core-unload failures, and one missing proprietary PICO-8
-  runtime. Fifteen catalog systems still lack representative content; manual
-  gameplay, standalone final-scanout color, and the Amiga sample remain open.
+  clean passes, one Game & Watch harness-exit failure later superseded by a
+  normal physical FE exit, one TI-83 route blocked by missing calculator BIOS,
+  and one missing proprietary PICO-8 runtime. Fifteen catalog systems still
+  lack representative content; manual gameplay, standalone final-scanout
+  color, and the Amiga sample remain open. TI-83 now rejects launch before
+  taking the display when none of `ti83se.rom`, `ti83plus.rom`, or `ti83.rom`
+  is present and reports the missing BIOS legibly in FE; gameplay remains open
+  until user-supplied calculator firmware is installed.
   DraStic now has an RK2020 raw-input mapping and passed a first-frame live
   smoke test. Its display runner now keeps both 640x480 menu buffers current
   using the XU20-proven timed presentation fix; deterministic D-pad/analog

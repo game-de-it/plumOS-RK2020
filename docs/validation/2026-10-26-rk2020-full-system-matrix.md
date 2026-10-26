@@ -115,3 +115,18 @@ frontend owning `/dev/fb0`; the frontend catalog reports CPS2/FBA2012 and Atari
 
 ROM-derived screenshots and contact sheets are deliberately excluded from Git;
 the analyzer and this evidence record are versioned instead.
+
+## 2026-10-27 physical follow-up
+
+Later physical testing supersedes two interpretations from the automated
+matrix. Game & Watch exited normally back to FE, so its `double free` remains
+specific to the bounded screenshot harness/core-unload path rather than the
+normal user exit path.
+
+The TI-83 screenshot was not calculator content. It was Numero's 640x480,
+small-font missing-firmware screen requesting `ti83se.rom`, `ti83plus.rom`, or
+`ti83.rom`. No matching filename or known firmware MD5 was present in either
+the source ROM-set BIOS tree or the live device BIOS tree. TI-83 therefore
+remains firmware-blocked and must not be counted as a gameplay pass. Commit
+`b5733de` prevents that unreadable core screen from taking over the display and
+reports the missing BIOS through FE instead.
