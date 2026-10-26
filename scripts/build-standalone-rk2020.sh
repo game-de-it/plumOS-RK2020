@@ -472,7 +472,7 @@ build_pcsx_rearmed() {
     "sdl12_kms_rotation": "$sdl12_patch_sha256"
   },
   "renderer": "sdl12-compat-kmsdrm-gles2-rk2020-ccw",
-  "display": "480x320-logical-4:3-on-320x480-physical",
+  "display": "gameplay-4:3-menu-480x320-3:2-on-320x480-physical",
   "frame_pacing": "sdl-kmsdrm-present-vsync",
   "audio": "alsa-plumos-output-44100-to-48000",
   "input": "rk2020-evdev-dpad-face-shoulder-start-select-l2-start-menu-single-path",

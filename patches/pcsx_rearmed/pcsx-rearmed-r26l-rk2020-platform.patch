@@ -13,11 +13,13 @@ index 4fd071a..b0acb11 100644
    { SDLK_WORLD_2, PBTN_MA2 },
    { SDLK_WORLD_3, PBTN_MA3 },
  #ifdef PLUMOS_RK2020
-@@ -244,6 +244,14 @@ void plat_init(void)
+@@ -244,6 +244,16 @@ void plat_init(void)
    if (ret != 0)
      exit(1);
  
 +#ifdef PLUMOS_RK2020
++  g_menuscreen_w = g_menuscreen_pp = 480;
++  g_menuscreen_h = 320;
 +  plat_target.vout_method = 0;
 +  if (plat_sdl_change_video_mode(g_menuscreen_w, g_menuscreen_h, 1) != 0) {
 +    fprintf(stderr, "RK2020 PCSX SDL presenter initialization failed\n");
@@ -28,7 +30,7 @@ index 4fd071a..b0acb11 100644
    ver = SDL_Linked_Version();
    sdl12_compat = ver->patch >= 50;
    printf("SDL %u.%u.%u compat=%d\n", ver->major, ver->minor, ver->patch, sdl12_compat);
-@@ -421,6 +429,9 @@ static void gl_resize(void)
+@@ -421,6 +431,9 @@ static void gl_resize(void)
  
  static void overlay_or_gl_check_enable(void)
  {
@@ -38,7 +40,7 @@ index 4fd071a..b0acb11 100644
    int ovl_on = plat_target.vout_method == vout_mode_overlay ||
      plat_target.vout_method == vout_mode_overlay2x;
    int gl_on = plat_target.vout_method == vout_mode_gl;
-@@ -582,6 +593,9 @@ static void *setup_blit_callbacks(int w, int h)
+@@ -582,6 +595,9 @@ static void *setup_blit_callbacks(int w, int h)
  static void change_mode(int w, int h)
  {
    int set_w = w, set_h = h, had_overlay = 0, had_gl = 0;

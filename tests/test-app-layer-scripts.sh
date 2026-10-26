@@ -769,6 +769,8 @@ grep -q 'renderer.*sdl12-compat-kmsdrm-gles2-rk2020-ccw' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'frame_pacing.*sdl-kmsdrm-present-vsync' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+grep -q 'display.*gameplay-4:3-menu-480x320-3:2-on-320x480-physical' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'PLUMOS_PCSX_RK2020_ROTATE=1' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'SDL12COMPAT_SYNC_TO_VBLANK=1' \
@@ -868,6 +870,12 @@ grep -q '^Gpu3 = builtin_gpu$' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
 grep -q 'destination.w = output_width \* 4 / 3' \
     "$ROOT_DIR/patches/pcsx_rearmed/sdl12-compat-rk2020-kms-rotation.patch"
+grep -q 'menu_ui ? "3:2-ui" : "4:3-content"' \
+    "$ROOT_DIR/patches/pcsx_rearmed/sdl12-compat-rk2020-kms-rotation.patch"
+grep -q 'g_menuscreen_w = g_menuscreen_pp = 480' \
+    "$ROOT_DIR/patches/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-platform.patch"
+grep -q 'g_menuscreen_h = 320' \
+    "$ROOT_DIR/patches/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-platform.patch"
 grep -q 'BTN_TRIGGER_HAPPY6.*DKEY_START' \
     "$ROOT_DIR/patches/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-evdev-menu.patch"
 grep -q 'BTN_TRIGGER_HAPPY1.*DKEY_SELECT' \

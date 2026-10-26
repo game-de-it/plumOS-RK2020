@@ -2,7 +2,7 @@ diff --git a/src/SDL12_compat.c b/src/SDL12_compat.c
 index 286eefd..ba4b70f 100644
 --- a/src/SDL12_compat.c
 +++ b/src/SDL12_compat.c
-@@ -6406,6 +6406,14 @@ static SDL_bool ShouldUseOpenGL(void)
+@@ -6406,6 +6406,15 @@ static SDL_bool ShouldUseOpenGL(void)
      return SDL_FALSE;
  }
  
@@ -12,12 +12,13 @@ index 286eefd..ba4b70f 100644
 +    return SDL12Compat_GetHintBoolean("PLUMOS_PCSX_RK2020_ROTATE", SDL_FALSE);
 +}
 +
-+static SDL_bool RK2020RotationLogged = SDL_FALSE;
++static int RK2020RotationLastWidth;
++static int RK2020RotationLastHeight;
 +
  static SDL12_Surface *
  SetVideoModeImpl(int width, int height, int bpp, Uint32 flags12)
  {
-@@ -6790,7 +6798,10 @@ SetVideoModeImpl(int width, int height, int bpp, Uint32 flags12)
+@@ -6790,7 +6799,10 @@ SetVideoModeImpl(int width, int height, int bpp, Uint32 flags12)
              return EndVidModeCreate();
          }
  
@@ -29,7 +30,7 @@ index 286eefd..ba4b70f 100644
  
          /* we need to make sure we're at the back of the Event Watch queue */	
          SDL20_DelEventWatch(EventFilter20to12, NULL);
-@@ -7256,7 +7267,27 @@ PresentScreen(void)
+@@ -7256,7 +7268,37 @@ PresentScreen(void)
      }
  
      SDL20_RenderClear(renderer);
@@ -37,20 +38,30 @@ index 286eefd..ba4b70f 100644
 +    if (RK2020RotateKMSOutput()) {
 +        int output_width = 0;
 +        int output_height = 0;
++        SDL_bool menu_ui;
 +        SDL_Rect destination;
 +
 +        SDL20_GetRendererOutputSize(renderer, &output_width, &output_height);
-+        destination.w = output_width * 4 / 3;
-+        destination.h = output_width;
++        menu_ui = VideoSurface12->w * 2 == VideoSurface12->h * 3;
++        if (menu_ui) {
++            destination.w = output_height;
++            destination.h = output_width;
++        } else {
++            destination.w = output_width * 4 / 3;
++            destination.h = output_width;
++        }
 +        destination.x = (output_width - destination.w) / 2;
 +        destination.y = (output_height - destination.h) / 2;
 +        SDL20_RenderCopyEx(renderer, VideoTexture20, NULL, &destination,
 +                           270.0, NULL, SDL_FLIP_NONE);
-+        if (!RK2020RotationLogged) {
-+            SDL20_Log("[plumOS] PCSX-ReARMed KMS rotation: source=%dx%d output=%dx%d aspect=4:3 angle=270",
++        if (RK2020RotationLastWidth != VideoSurface12->w ||
++            RK2020RotationLastHeight != VideoSurface12->h) {
++            SDL20_Log("[plumOS] PCSX-ReARMed KMS rotation: source=%dx%d output=%dx%d aspect=%s angle=270",
 +                      VideoSurface12->w, VideoSurface12->h,
-+                      output_width, output_height);
-+            RK2020RotationLogged = SDL_TRUE;
++                      output_width, output_height,
++                      menu_ui ? "3:2-ui" : "4:3-content");
++            RK2020RotationLastWidth = VideoSurface12->w;
++            RK2020RotationLastHeight = VideoSurface12->h;
 +        }
 +    } else {
 +        SDL20_RenderCopy(renderer, VideoTexture20, NULL, NULL);
