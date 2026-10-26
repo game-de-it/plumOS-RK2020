@@ -779,6 +779,10 @@ grep -q 'visible_bytes = (size_t)rk2020_pcsx_fb_fix.line_length \* virtual_rows'
     "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
 ! grep -q 'rk2020_pcsx_fb_size = rk2020_pcsx_fb_fix.smem_len' \
     "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
+grep -q 'content_width = dst_width \* 4U / 3U' \
+    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
+grep -q 'aspect=4:3' \
+    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
 grep -q 'mkdir -p /dev/shm' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'bin/runner' \
@@ -860,7 +864,7 @@ grep -q 'LOAD_NEXT(sdl_gl_get_proc_address, "SDL_GL_GetProcAddress")' \
     "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 grep -q '^Gpu3 = builtin_gpu$' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
-grep -q 'logical=480x320 ccw' \
+grep -q 'logical=480x320 aspect=4:3 ccw' \
     "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
 if grep -ERiq 'V9[0]S|M[F]|Miy[o]o|ROCKNIX' \
     "$ROOT_DIR/patches/pcsx_rearmed" \

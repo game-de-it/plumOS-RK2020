@@ -106,6 +106,8 @@ static void rk2020_pcsx_fb_present_pixels(const struct rk2020_pcsx_frame *frame)
 	unsigned dst_y;
 	unsigned dst_width = rk2020_pcsx_fb_var.xres;
 	unsigned dst_height = rk2020_pcsx_fb_var.yres;
+	unsigned content_width = dst_width * 4U / 3U;
+	unsigned content_left = (dst_height - content_width) / 2U;
 	uint8_t *draw_base;
 
 	if (!rk2020_pcsx_fb_map || !frame || !frame->pixels ||
@@ -117,17 +119,23 @@ static void rk2020_pcsx_fb_present_pixels(const struct rk2020_pcsx_frame *frame)
 	/*
 	 * RK2020 exposes its landscape 480x320 LCD as a 320x480 framebuffer.
 	 * This is the same counter-clockwise logical rotation used by the plumOS
-	 * frontend and RetroArch.  Scaling in logical coordinates also gives PSX
-	 * video its intended 4:3 display aspect instead of its raw pixel aspect.
+	 * frontend and RetroArch.  The LCD is 3:2 in landscape, so pillarbox the
+	 * PSX image to a 4:3 logical viewport instead of stretching it to 480x320.
 	 */
 	for (dst_y = 0; dst_y < dst_height; dst_y++) {
 		unsigned logical_x = dst_height - 1U - dst_y;
-		unsigned src_x = logical_x * frame->width / dst_height;
 		uint32_t *dst = (uint32_t *)(draw_base +
 			(size_t)dst_y * rk2020_pcsx_fb_fix.line_length +
 			(size_t)rk2020_pcsx_fb_var.xoffset * sizeof(*dst));
+		unsigned src_x;
 		unsigned dst_x;
 
+		if (logical_x < content_left ||
+		    logical_x >= content_left + content_width) {
+			memset(dst, 0, dst_width * sizeof(*dst));
+			continue;
+		}
+		src_x = (logical_x - content_left) * frame->width / content_width;
 		for (dst_x = 0; dst_x < dst_width; dst_x++) {
 			unsigned src_y = dst_x * frame->height / dst_width;
 			uint16_t pixel = frame->pixels[(size_t)src_y * frame->pitch + src_x];
@@ -253,7 +261,7 @@ static int rk2020_pcsx_fb_init(void)
 		return -1;
 	rk2020_pcsx_fb_thread_started = 1;
 	fprintf(stderr,
-		"RK2020 PCSX framebuffer presenter: physical=%ux%u virtual=%ux%u stride=%u map=%zu smem=%u logical=480x320 ccw double_buffer=%d\n",
+		"RK2020 PCSX framebuffer presenter: physical=%ux%u virtual=%ux%u stride=%u map=%zu smem=%u logical=480x320 aspect=4:3 ccw double_buffer=%d\n",
 		rk2020_pcsx_fb_var.xres, rk2020_pcsx_fb_var.yres,
 		rk2020_pcsx_fb_var.xres_virtual, rk2020_pcsx_fb_var.yres_virtual,
 		rk2020_pcsx_fb_fix.line_length, rk2020_pcsx_fb_size,
