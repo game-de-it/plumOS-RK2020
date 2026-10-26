@@ -139,5 +139,6 @@ audio, save, or exit checks.
 The user later supplied a licensed PICO-8 0.2.7 AArch64 runtime. The managed
 `standalone:pico8` route launched `51752.p8`, loaded both plumOS adapters, and
 produced an upright centered 4:3 direct KMS scanout. Programmatic stop returned
-cleanly to FE. This removes the missing-runtime blocker, while physical control,
-audible-output, color, and hotkey-exit acceptance remain open.
+cleanly to FE. The subsequent physical test accepted screen display and game
+controls. This removes the missing-runtime blocker; audible-output and
+hotkey-exit acceptance remain open.

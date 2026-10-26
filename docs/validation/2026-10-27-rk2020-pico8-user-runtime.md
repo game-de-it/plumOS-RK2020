@@ -69,6 +69,11 @@ and it remained alive. Temporary capture files were removed from `/tmp`.
 
 The supplied runtime is therefore compatible with the existing RK2020 PICO-8
 route. Runtime discovery, AArch64 execution, dependencies, adapters, rotation,
-aspect ratio, controlled stop, and FE restoration pass. Physical controls,
-audible output, perceived color, and the handheld hotkey exit still require a
-short operator test and are not inferred from this automated run.
+aspect ratio, controlled stop, and FE restoration pass.
+
+## Physical acceptance follow-up
+
+The operator subsequently reported that both the screen and controls work
+correctly during PICO-8 gameplay. This accepts the physical display and control
+gates without inferring unreported behavior. Audible output and the handheld
+hotkey exit remain separate open checks.
