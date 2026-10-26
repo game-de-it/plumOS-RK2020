@@ -1,0 +1,48 @@
+--- a/runner/runner.h
++++ b/runner/runner.h
+@@ -42,6 +42,18 @@
+ #define R_DISPLAY_H R_LCD_H
+ #endif
+ 
++#if defined(GKD_RK2020)
++#define R_VIEWPORT_X 0
++#define R_VIEWPORT_Y 26
++#define R_VIEWPORT_W 320
++#define R_VIEWPORT_H 427
++#else
++#define R_VIEWPORT_X 0
++#define R_VIEWPORT_Y 0
++#define R_VIEWPORT_W R_DISPLAY_W
++#define R_VIEWPORT_H R_DISPLAY_H
++#endif
++
+ #define SHM_NAME "NDS_SHM"
+ 
+ typedef enum {
+--- a/runner/runner.c
++++ b/runner/runner.c
+@@ -223,7 +223,7 @@
+     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+   
+-    glViewport(0, 0, R_DISPLAY_W, R_DISPLAY_H);
++    glViewport(R_VIEWPORT_X, R_VIEWPORT_Y, R_VIEWPORT_W, R_VIEWPORT_H);
+     glClear(GL_COLOR_BUFFER_BIT);
+     glVertexAttribPointer(myrunner.gles.vert.tex_pos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), fg_vertices);
+     glVertexAttribPointer(myrunner.gles.vert.tex_coord, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &fg_vertices[3]);
+@@ -274,6 +274,7 @@
+                 ((Sint32)(SDL_GetTicks() - menu_present_at) >= 0))
+             {
+                 SDL_GL_SwapWindow(myrunner.sdl2.win);
++                glClear(GL_COLOR_BUFFER_BIT);
+                 draw_background();
+                 draw_cached_foreground(menu_texture);
+                 menu_present_at = SDL_GetTicks() + 16;
+@@ -414,6 +415,7 @@
+             frame_cnt += 1;
+             trace("recv SHM_CMD_FLIP\n");
+             SDL_GL_SwapWindow(myrunner.sdl2.win);
++            glClear(GL_COLOR_BUFFER_BIT);
+             if (frame_cnt == 1) {
+                 ready_path = getenv("NDS_RUNNER_READY_FILE");
+                 if (ready_path && ready_path[0] == '/') {

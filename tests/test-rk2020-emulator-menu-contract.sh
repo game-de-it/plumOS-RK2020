@@ -18,6 +18,7 @@ PICO8_WGET="$ROOT_DIR/package/standalone-rk2020/plumos/standalone/pico8/bin/wget
 DRASTIC_RUNNER_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-readiness.patch"
 DRASTIC_ROTATION_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
 DRASTIC_MENU_PRESENT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-menu-present.patch"
+DRASTIC_RUNNER_ASPECT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-runner-aspect.patch"
 DRASTIC_INPUT_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-input.patch"
 DRASTIC_TOUCH_MODE_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-touch-mode.patch"
 DRASTIC_TOUCH_SPEED_PATCH="$ROOT_DIR/patches/drastic/steward-fu-nds-rk2020-touch-speed.patch"
@@ -248,6 +249,18 @@ grep -Fq 'DRASTIC_MENU_PRESENT_PATCH' "$SA_BUILD" ||
     fail 'DraStic build does not consume runner menu presentation patch'
 grep -Fq 'runner_menu_present_patch_sha256' "$SA_BUILD" ||
     fail 'DraStic manifest does not record runner menu presentation patch'
+for contract in \
+    '#define R_VIEWPORT_Y 26' \
+    '#define R_VIEWPORT_H 427' \
+    'glViewport(R_VIEWPORT_X, R_VIEWPORT_Y, R_VIEWPORT_W, R_VIEWPORT_H)' \
+    'glClear(GL_COLOR_BUFFER_BIT);'; do
+    grep -Fq "$contract" "$DRASTIC_RUNNER_ASPECT_PATCH" ||
+        fail "DraStic RK2020 aspect contract missing: $contract"
+done
+grep -Fq 'DRASTIC_RUNNER_ASPECT_PATCH' "$SA_BUILD" ||
+    fail 'DraStic build does not consume runner aspect patch'
+grep -Fq 'runner_aspect_patch_sha256' "$SA_BUILD" ||
+    fail 'DraStic manifest does not record runner aspect patch'
 grep -Fq 'readlink "/proc/${pid}/exe"' "$SA_STOP" ||
     fail 'standalone stop ownership check is missing'
 
