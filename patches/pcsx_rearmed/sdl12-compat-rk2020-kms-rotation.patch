@@ -1,0 +1,73 @@
+diff --git a/src/SDL12_compat.c b/src/SDL12_compat.c
+index 286eefd..ba4b70f 100644
+--- a/src/SDL12_compat.c
++++ b/src/SDL12_compat.c
+@@ -6406,6 +6406,14 @@ static SDL_bool ShouldUseOpenGL(void)
+     return SDL_FALSE;
+ }
+ 
++static SDL_bool
++RK2020RotateKMSOutput(void)
++{
++    return SDL12Compat_GetHintBoolean("PLUMOS_PCSX_RK2020_ROTATE", SDL_FALSE);
++}
++
++static SDL_bool RK2020RotationLogged = SDL_FALSE;
++
+ static SDL12_Surface *
+ SetVideoModeImpl(int width, int height, int bpp, Uint32 flags12)
+ {
+@@ -6790,7 +6798,10 @@ SetVideoModeImpl(int width, int height, int bpp, Uint32 flags12)
+             return EndVidModeCreate();
+         }
+ 
+-        SDL20_RenderSetLogicalSize(VideoRenderer20, width, height);
++        if (RK2020RotateKMSOutput())
++            SDL20_RenderSetLogicalSize(VideoRenderer20, 0, 0);
++        else
++            SDL20_RenderSetLogicalSize(VideoRenderer20, width, height);
+ 
+         /* we need to make sure we're at the back of the Event Watch queue */	
+         SDL20_DelEventWatch(EventFilter20to12, NULL);
+@@ -7256,7 +7267,27 @@ PresentScreen(void)
+     }
+ 
+     SDL20_RenderClear(renderer);
+-    SDL20_RenderCopy(renderer, VideoTexture20, NULL, NULL);
++    if (RK2020RotateKMSOutput()) {
++        int output_width = 0;
++        int output_height = 0;
++        SDL_Rect destination;
++
++        SDL20_GetRendererOutputSize(renderer, &output_width, &output_height);
++        destination.w = output_width * 4 / 3;
++        destination.h = output_width;
++        destination.x = (output_width - destination.w) / 2;
++        destination.y = (output_height - destination.h) / 2;
++        SDL20_RenderCopyEx(renderer, VideoTexture20, NULL, &destination,
++                           270.0, NULL, SDL_FLIP_NONE);
++        if (!RK2020RotationLogged) {
++            SDL20_Log("[plumOS] PCSX-ReARMed KMS rotation: source=%dx%d output=%dx%d aspect=4:3 angle=270",
++                      VideoSurface12->w, VideoSurface12->h,
++                      output_width, output_height);
++            RK2020RotationLogged = SDL_TRUE;
++        }
++    } else {
++        SDL20_RenderCopy(renderer, VideoTexture20, NULL, NULL);
++    }
+ 
+     /* Render any pending YUV overlay over the surface texture. */
+     overlay = QueuedDisplayOverlays.next;
+diff --git a/src/SDL20_syms.h b/src/SDL20_syms.h
+index c791cdf..14737e4 100644
+--- a/src/SDL20_syms.h
++++ b/src/SDL20_syms.h
+@@ -332,6 +332,8 @@ SDL20_SYM(void,RenderGetLogicalSize,(SDL_Renderer *a, int *b, int *c),(a,b,c),)
+ SDL20_SYM(int,SetRenderDrawColor,(SDL_Renderer *a, Uint8 b, Uint8 c, Uint8 d, Uint8 e),(a,b,c,d,e),return)
+ SDL20_SYM(int,RenderClear,(SDL_Renderer *a),(a),return)
+ SDL20_SYM(int,RenderCopy,(SDL_Renderer *a, SDL_Texture *b, const SDL_Rect *c, const SDL_Rect *d),(a,b,c,d),return)
++SDL20_SYM(int,GetRendererOutputSize,(SDL_Renderer *a, int *b, int *c),(a,b,c),return)
++SDL20_SYM(int,RenderCopyEx,(SDL_Renderer *a, SDL_Texture *b, const SDL_Rect *c, const SDL_Rect *d, const double e, const SDL_Point *f, const SDL_RendererFlip g),(a,b,c,d,e,f,g),return)
+ SDL20_SYM(void,DestroyTexture,(SDL_Texture *a),(a),)
+ SDL20_SYM(void,DestroyRenderer,(SDL_Renderer *a),(a),)
+ SDL20_SYM(void,RenderPresent,(SDL_Renderer *a),(a),)

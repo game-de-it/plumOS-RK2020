@@ -386,19 +386,15 @@ case "$id" in
     # glibc-2.36-compatible copy required by Debian's SDL2 build, so expose it
     # only to this package-local sdl12-compat chain.
     pcsx_pthread="${PLUMOS_ROOT}/emulator/lib/libpthread.so.0"
-    pcsx_rotation="${workdir}/lib/libplumos-pcsx-sdl-rotate.so"
     [ -f "$pcsx_pthread" ] ||
       fail "PCSX-ReARMed SDL2 pthread compatibility runtime missing" 127
-    [ -f "$pcsx_rotation" ] ||
-      fail "PCSX-ReARMed RK2020 display adapter missing" 127
     export LD_LIBRARY_PATH="${workdir}/lib:${PLUMOS_ROOT}/emulator/lib:${LD_LIBRARY_PATH}"
-    export PLUMOS_PCSX_SDL_ROTATION=270
+    export PLUMOS_PCSX_RK2020_ROTATE=1
     export SDL_VIDEODRIVER=kmsdrm
     export SDL_RENDER_DRIVER=opengles2
     export SDL_AUDIODRIVER=alsa
     export SDL_NOMOUSE=1
     export SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
-    export LD_PRELOAD="${pcsx_rotation}${LD_PRELOAD:+:$LD_PRELOAD}"
     export PLUMOS_PCSX_AUDIO_INPUT_RATE=44100
     export PLUMOS_PCSX_REQUIRE_ALSA=1
     set -- -cdfile "$rom" "$@"

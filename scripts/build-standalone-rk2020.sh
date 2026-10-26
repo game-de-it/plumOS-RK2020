@@ -44,11 +44,11 @@ PCSX_REF="${PLUMOS_RK2020_PCSX_REF:-9f8b6f248e073f03c530efda7c4cc60a7e2ecafc}"
 PCSX_PICOFE_REF="${PLUMOS_RK2020_PCSX_PICOFE_REF:-dd11f2d723162eb1cf8e6db9f40de7db0d0b6bba}"
 PCSX_SDL12_REPO="${PLUMOS_RK2020_PCSX_SDL12_REPO:-https://github.com/libsdl-org/sdl12-compat.git}"
 PCSX_SDL12_REF="${PLUMOS_RK2020_PCSX_SDL12_REF:-fc2ec0c128197f1f5050e48359bc41e618f3abfb}"
+PCSX_SDL12_PATCH="$PATCH_DIR/pcsx_rearmed/sdl12-compat-rk2020-kms-rotation.patch"
 PCSX_INPUT_AUDIO_PATCH="$PATCH_DIR/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-input-audio.patch"
 PCSX_PLATFORM_PATCH="$PATCH_DIR/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-platform.patch"
 PCSX_EVDEV_MENU_PATCH="$PATCH_DIR/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-evdev-menu.patch"
 PCSX_PICOFE_PATCH="$PATCH_DIR/pcsx_rearmed/libpicofe-r26l-rk2020-input.patch"
-PCSX_SDL_ROTATE_SOURCE="$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_sdl_rotate.c"
 PPSSPP_REPO="${PLUMOS_RK2020_PPSSPP_REPO:-https://github.com/hrydgard/ppsspp.git}"
 PPSSPP_REF="${PLUMOS_RK2020_PPSSPP_REF:-v1.20.4}"
 PPSSPP_COMMIT="${PLUMOS_RK2020_PPSSPP_COMMIT:-fa50bb1976065c4f8b1b47af227d367fe9771555}"
@@ -303,7 +303,7 @@ build_pcsx_rearmed() {
     "$PCSX_PLATFORM_PATCH" \
     "$PCSX_EVDEV_MENU_PATCH" \
     "$PCSX_PICOFE_PATCH" \
-    "$PCSX_SDL_ROTATE_SOURCE"; do
+    "$PCSX_SDL12_PATCH"; do
     [ -s "$input" ] || {
       printf 'error: PCSX-ReARMed RK2020 input is missing: %s\n' "$input" >&2
       return 1
@@ -351,6 +351,9 @@ build_pcsx_rearmed() {
     printf 'error: unexpected sdl12-compat source ref\n' >&2
     return 1
   }
+  git -C "$sdl_src" apply --check "$PCSX_SDL12_PATCH" \
+    >>"$PCSX_LOG" 2>&1
+  git -C "$sdl_src" apply "$PCSX_SDL12_PATCH" >>"$PCSX_LOG" 2>&1
   rm -rf "$PCSX_SDL_BUILD" "$PCSX_SDL_PREFIX"
   cmake -S "$sdl_src" -B "$PCSX_SDL_BUILD" -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
@@ -404,15 +407,6 @@ build_pcsx_rearmed() {
   install -m 0755 "$PCSX_BINARY" "$PCSX_DST/bin/pcsx"
   "$STRIP" "$PCSX_DST/bin/pcsx" >/dev/null 2>&1 || true
   install -m 0644 "$PCSX_SDL_LIBRARY" "$PCSX_DST/lib/libSDL-1.2.so.0"
-  cc -O2 -fPIC -Wall -Wextra -Werror -shared -I/usr/include/SDL2 \
-    -DPLUMOS_SDL_ROTATION_ENV='"PLUMOS_PCSX_SDL_ROTATION"' \
-    -DPLUMOS_SDL_ROTATION_LABEL='"PCSX-ReARMed"' \
-    -DPLUMOS_SDL_ASPECT_4_3=1 \
-    -Wl,-z,defs -Wl,-soname,libplumos-pcsx-sdl-rotate.so \
-    -o "$PCSX_DST/lib/libplumos-pcsx-sdl-rotate.so" \
-    "$PCSX_SDL_ROTATE_SOURCE" -ldl
-  file "$PCSX_DST/lib/libplumos-pcsx-sdl-rotate.so" | \
-    grep -q 'ELF 64-bit.*ARM aarch64' || return 1
   install -m 0644 "$src/frontend/pandora/skin/font.png" \
     "$PCSX_DST/skin/font.png"
   install -m 0644 "$src/frontend/pandora/skin/font.png" \
@@ -431,7 +425,6 @@ build_pcsx_rearmed() {
     "$PLUMOS_DIR/licenses/sdl12-compat-LICENSE.txt"
   copy_runtime_deps "$PCSX_DST/bin/pcsx"
   copy_runtime_deps "$PCSX_DST/lib/libSDL-1.2.so.0"
-  copy_runtime_deps "$PCSX_DST/lib/libplumos-pcsx-sdl-rotate.so"
   PCSX_SDL2_LIBRARY=$(readlink -f /usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0)
   [ -f "$PCSX_SDL2_LIBRARY" ] || {
     printf 'error: PCSX-ReARMed SDL2 runtime is unavailable\n' >&2
@@ -452,8 +445,7 @@ build_pcsx_rearmed() {
   platform_sha256=$(sha256_file "$PCSX_PLATFORM_PATCH")
   evdev_menu_sha256=$(sha256_file "$PCSX_EVDEV_MENU_PATCH")
   picofe_sha256=$(sha256_file "$PCSX_PICOFE_PATCH")
-  sdl_rotate_sha256=$(sha256_file "$PCSX_DST/lib/libplumos-pcsx-sdl-rotate.so")
-  sdl_rotate_source_sha256=$(sha256_file "$PCSX_SDL_ROTATE_SOURCE")
+  sdl12_patch_sha256=$(sha256_file "$PCSX_SDL12_PATCH")
   cat >"$PCSX_DST/build-manifest.json" <<EOF
 {
   "device": "rk2020",
@@ -477,13 +469,12 @@ build_pcsx_rearmed() {
     "platform": "$platform_sha256",
     "evdev_menu": "$evdev_menu_sha256",
     "libpicofe_input": "$picofe_sha256",
-    "sdl_rotation_adapter": "$sdl_rotate_sha256",
-    "sdl_rotation_adapter_source": "$sdl_rotate_source_sha256"
+    "sdl12_kms_rotation": "$sdl12_patch_sha256"
   },
   "renderer": "sdl12-compat-kmsdrm-gles2-rk2020-ccw",
   "display": "480x320-logical-4:3-on-320x480-physical",
   "audio": "alsa-plumos-output-44100-to-48000",
-  "input": "rk2020-evdev-function-menu-and-sdl-fallback",
+  "input": "rk2020-evdev-dpad-face-shoulder-start-select-single-path",
   "factory_config": "factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
 }
 EOF
