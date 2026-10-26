@@ -1447,52 +1447,6 @@ static int add_core_profile(struct core_system_def *system, const char *profile)
   return 1;
 }
 
-static int picoarch_companion_core_allowed(const char *system_id, const char *core_id) {
-  /* N64 hardware-render cores are not supported by the RK2020 PicoArch host. */
-  if (system_id && strcmp(system_id, "n64") == 0) {
-    return 0;
-  }
-  /* No Saturn core reaches a usable launch path through PicoArch on RK2020. */
-  if (system_id && strcmp(system_id, "saturn") == 0) {
-    return 0;
-  }
-  return picoarch_core_id_allowed(core_id);
-}
-
-static void add_picoarch_companion_profiles(struct core_system_def *system) {
-  size_t original_count;
-  size_t i;
-
-  if (!system) {
-    return;
-  }
-  original_count = system->launch_profile_count;
-  for (i = 0; i < original_count && system->launch_profile_count < MAX_CORE_PROFILES; i++) {
-    const char *profile = system->launch_profiles[i];
-    const char *core_id;
-    char pico_profile[128];
-
-    if (strncmp(profile, "retroarch:", 10) != 0) {
-      continue;
-    }
-    core_id = profile + 10;
-    if (!core_id[0]) {
-      continue;
-    }
-    if (!picoarch_companion_core_allowed(system->id, core_id)) {
-      continue;
-    }
-    if (snprintf(pico_profile, sizeof(pico_profile), "picoarch:%s", core_id) >=
-        (int)sizeof(pico_profile)) {
-      continue;
-    }
-    if (!launch_profile_allowed_on_rk2020(pico_profile)) {
-      continue;
-    }
-    add_core_profile(system, pico_profile);
-  }
-}
-
 static int resolve_device_launch_profile(const struct core_system_def *system, const char *profile,
                                          char *out, size_t out_size) {
   (void)system;
@@ -1602,7 +1556,6 @@ static int load_core_system_def(const char *path, const char *system_id,
     if (system.default_launch_profile[0]) {
       add_core_profile(&system, system.default_launch_profile);
     }
-    add_picoarch_companion_profiles(&system);
     if (!system.display_name[0]) {
       copy_string(system.display_name, sizeof(system.display_name), system.id);
     }

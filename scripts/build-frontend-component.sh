@@ -74,6 +74,25 @@ gcc "${common[@]}" "$SOURCE_DIR/plumos_library_scan.c" \
     -o "$BIN_DIR/plumos-library-scan"
 gcc "${common[@]}" "$SOURCE_DIR/plumos_text_ui.c" \
     -o "$BIN_DIR/plumos-text-ui"
+gb_profiles="$({
+    PLUMOS_ROOT="$PLUMOS_DIR" PLUMOS_SDCARD_ROOT=/tmp \
+        "$BIN_DIR/plumos-text-ui" core system gb
+} 2>&1)"
+grep -Fq 'picoarch:gambatte ' <<<"$gb_profiles"
+if grep -Eq 'picoarch:(mgba|mgba_modern|tgbdual)([[:space:]]|$)' <<<"$gb_profiles"; then
+    printf 'error: frontend generated an undeclared PicoArch companion profile\n' >&2
+    exit 1
+fi
+gba_profiles="$({
+    PLUMOS_ROOT="$PLUMOS_DIR" PLUMOS_SDCARD_ROOT=/tmp \
+        "$BIN_DIR/plumos-text-ui" core system gba
+} 2>&1)"
+grep -Fq 'picoarch:mgba ' <<<"$gba_profiles"
+if grep -Eq 'picoarch:(mgba_modern|mednafen_gba|meteor|vba_next)([[:space:]]|$)' \
+        <<<"$gba_profiles"; then
+    printf 'error: frontend generated an undeclared PicoArch companion profile\n' >&2
+    exit 1
+fi
 gcc "${common[@]}" "$SOURCE_DIR/plumos_frontend.c" \
     -o "$BIN_DIR/plumos-frontend-diagnostics"
 gcc "${common[@]}" $drm_cflags "$SOURCE_DIR/plumos_rk2020_hardware_keys.c" \

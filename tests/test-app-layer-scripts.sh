@@ -67,6 +67,13 @@ grep -q 'RUNTIME_LIB_DIR/libSDL2-2.0.so.0' \
 grep -q 'libSDL2-2\.0\.so\.0' "$ROOT_DIR/scripts/build-picoarch-rk2020.sh"
 grep -q 'picoarch-rk2020-host-input-poll\.patch' \
     "$ROOT_DIR/scripts/build-picoarch-rk2020.sh"
+grep -q 'frontend generated an undeclared PicoArch companion profile' \
+    "$ROOT_DIR/scripts/build-frontend-component.sh"
+if grep -q 'add_picoarch_companion_profiles' \
+        "$ROOT_DIR/vendor/plumos-frontend/src/plumos_text_ui.c"; then
+    printf 'RK2020 frontend must not synthesize undeclared PicoArch profiles\n' >&2
+    exit 1
+fi
 grep -q '^+#define MENU_X2 0$' \
     "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch-rk2020-input-aspect.patch"
 grep -q 'physical=%ux%u logical=%ux%u ccw' \
