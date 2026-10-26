@@ -765,9 +765,13 @@ grep -q 'PCSX_REF=.*9f8b6f248e073f03c530efda7c4cc60a7e2ecafc' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
 grep -q 'PCSX_SDL12_REF=.*fc2ec0c128197f1f5050e48359bc41e618f3abfb' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
-grep -q 'renderer.*builtin-neon-threaded-rk2020-fbdev-ccw' \
+grep -q 'renderer.*sdl12-compat-kmsdrm-gles2-rk2020-ccw' \
     "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
-grep -q 'SDL_VIDEODRIVER=dummy' \
+grep -q 'PLUMOS_PCSX_SDL_ROTATION=270' \
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
+grep -q 'SDL_VIDEODRIVER=kmsdrm' \
+    "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
+grep -q 'libplumos-pcsx-sdl-rotate.so' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PLUMOS_PCSX_REQUIRE_ALSA=1' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
@@ -775,14 +779,10 @@ grep -q 'emulator/lib/libpthread.so.0' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PCSX-ReARMed SDL2 pthread compatibility runtime missing' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
-grep -q 'visible_bytes = (size_t)rk2020_pcsx_fb_fix.line_length \* virtual_rows' \
-    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
-! grep -q 'rk2020_pcsx_fb_size = rk2020_pcsx_fb_fix.smem_len' \
-    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
-grep -q 'content_width = dst_width \* 4U / 3U' \
-    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
-grep -q 'aspect=4:3' \
-    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
+grep -q 'PLUMOS_SDL_ASPECT_4_3=1' \
+    "$ROOT_DIR/scripts/build-standalone-rk2020.sh"
+! grep -q 'pcsx_rk2020_fbdev' \
+    "$ROOT_DIR/patches/pcsx_rearmed/pcsx-rearmed-r26l-rk2020-platform.patch"
 grep -q 'mkdir -p /dev/shm' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'bin/runner' \
@@ -864,11 +864,10 @@ grep -q 'LOAD_NEXT(sdl_gl_get_proc_address, "SDL_GL_GetProcAddress")' \
     "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_gl_rotate.c"
 grep -q '^Gpu3 = builtin_gpu$' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
-grep -q 'logical=480x320 aspect=4:3 ccw' \
-    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
+grep -q 'content_height = output_width \* 4 / 3' \
+    "$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_sdl_rotate.c"
 if grep -ERiq 'V9[0]S|M[F]|Miy[o]o|ROCKNIX' \
-    "$ROOT_DIR/patches/pcsx_rearmed" \
-    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"; then
+    "$ROOT_DIR/patches/pcsx_rearmed"; then
     printf 'error: foreign identity in RK2020 PCSX-ReARMed implementation\n' >&2
     exit 1
 fi

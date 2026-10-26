@@ -15,6 +15,10 @@
 #define PLUMOS_SDL_ROTATION_LABEL "PortMaster"
 #endif
 
+#ifndef PLUMOS_SDL_ASPECT_4_3
+#define PLUMOS_SDL_ASPECT_4_3 0
+#endif
+
 /*
  * RK2020's DRM mode is the panel-native 320x480 mode even though the handheld
  * is used as a 480x320 landscape device.  PortMaster games using SDL_Renderer
@@ -312,10 +316,19 @@ void SDL_RenderPresent(SDL_Renderer *renderer) {
     real_set_render_draw_color(renderer, 0, 0, 0, 255);
     real_render_clear(renderer);
 
-    destination.x = (output_width - output_height) / 2;
-    destination.y = (output_height - output_width) / 2;
-    destination.w = output_height;
-    destination.h = output_width;
+    if (PLUMOS_SDL_ASPECT_4_3) {
+        int content_height = output_width * 4 / 3;
+
+        destination.x = 0;
+        destination.y = (output_height - content_height) / 2;
+        destination.w = output_width;
+        destination.h = content_height;
+    } else {
+        destination.x = (output_width - output_height) / 2;
+        destination.y = (output_height - output_width) / 2;
+        destination.w = output_height;
+        destination.h = output_width;
+    }
     real_render_copy_ex(renderer, state->frame, NULL, &destination, 270.0, NULL,
                         SDL_FLIP_NONE);
     real_render_present(renderer);

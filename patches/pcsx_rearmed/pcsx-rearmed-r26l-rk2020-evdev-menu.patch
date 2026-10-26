@@ -2,12 +2,15 @@ diff --git a/frontend/plat_sdl.c b/frontend/plat_sdl.c
 index b0acb113..74002587 100644
 --- a/frontend/plat_sdl.c
 +++ b/frontend/plat_sdl.c
-@@ -31,2 +31,4 @@
- #ifdef PLUMOS_RK2020
+@@ -28,5 +28,60 @@
+ #include "plat.h"
+ #include "revision.h"
+ 
++#ifdef PLUMOS_RK2020
 +#include <linux/input.h>
 +#include "libpicofe/linux/in_evdev.h"
- #include "pcsx_rk2020_fbdev.h"
-@@ -35,2 +37,52 @@
++#endif
++
  #include "libpicofe/plat_sdl.c"
 +
 +#ifdef PLUMOS_RK2020
@@ -60,7 +63,7 @@ index b0acb113..74002587 100644
 +};
 +#endif
  
-@@ -278,2 +330,8 @@ void plat_init(void)
+@@ -273,2 +328,8 @@ void plat_init(void)
  
 +#ifdef PLUMOS_RK2020
 +  if (in_evdev_init(&in_rk2020_evdev_platform_data) != 0) {

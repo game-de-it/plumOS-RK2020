@@ -304,7 +304,7 @@ if jq -e '.emulators[] | select(.id == "pcsx_rearmed" and .status == "built")' \
         "$ROOT/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
     grep -q '^thread_rendering = 1$' \
         "$ROOT/factory-defaults/standalone/pcsx_rearmed/pcsx.cfg"
-    grep -q '"renderer": "builtin-neon-threaded-rk2020-fbdev-ccw"' \
+    grep -q '"renderer": "sdl12-compat-kmsdrm-gles2-rk2020-ccw"' \
         "$ROOT/standalone/pcsx_rearmed/build-manifest.json"
 fi
 if jq -e '.emulators[] | select(.id == "mupen64plus" and .status == "built")' \
