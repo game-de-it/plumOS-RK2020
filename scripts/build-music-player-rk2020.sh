@@ -177,7 +177,7 @@ decoder=miniaudio mp3/flac/wav
 display=RK2020 DRM page flip
 audio=ALSA plumos_output
 music_roots=/mnt/plumos-user/music,/mnt/plumos-user/roms/music
-controls=D-pad select/seek, A play, B/Function exit, X/Y track, Select EQ, L/R volume
+controls=D-pad select/seek, A play, B exit, X/Y track, Select EQ, L/R volume, Function+D-pad system hotkeys
 EOF
 (
     cd "$TARGET_DIR/plumos"

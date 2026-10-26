@@ -1080,7 +1080,13 @@ grep -q 'case BTN_SOUTH:' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'case BTN_TRIGGER_HAPPY3:' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
-grep -q 'B/FUNCTION Exit' \
+grep -q 'function_modifier_held = ev->value != 0' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
+grep -q 'function_modifier_held &&' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
+grep -q 'B Exit   Left/Right 5s' \
+    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
+! grep -q 'B/FUNCTION Exit' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'SND_PCM_NONBLOCK' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
@@ -1088,6 +1094,8 @@ grep -q 'rc == -EPIPE || rc == -ESTRPIPE' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q '/mnt/plumos-user/Music' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
+grep -q 'Function+D-pad system hotkeys' \
+    "$ROOT_DIR/scripts/build-music-player-rk2020.sh"
 git apply --numstat \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch" \
     >/dev/null
