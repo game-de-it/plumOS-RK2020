@@ -77,12 +77,46 @@ fi
 
 CONFIG="$PLUMOS_ROOT/config/standalone/picoarch.env"
 [ ! -r "$CONFIG" ] || . "$CONFIG"
-case "${CORE_ID##*/}" in
-  gambatte|gambatte_libretro.so|genesis_plus_gx|genesis_plus_gx_libretro.so)
-    rgb565_byteswap_default=1
-    ;;
-  *) rgb565_byteswap_default=0 ;;
+RGB565_BYTE_ORDER_TABLE="$PLUMOS_ROOT/share/picoarch/rgb565-byte-order.tsv"
+RGB565_ROUTE_OVERRIDE_TABLE="$PLUMOS_ROOT/share/picoarch/rgb565-route-overrides.tsv"
+[ -r "$RGB565_BYTE_ORDER_TABLE" ] || fail "RGB565 byte-order table missing"
+[ -r "$RGB565_ROUTE_OVERRIDE_TABLE" ] || fail "RGB565 route override table missing"
+core_key="${CORE_ID##*/}"
+core_key="${core_key%_libretro.so}"
+rgb565_classification="$(awk -F '\t' -v core="$core_key" '
+  /^#/ { next }
+  $1 == core { count++; format=$2; order=$3; evidence=$5 }
+  END {
+    if (count == 1) printf "%s:%s:%s\n", format, order, evidence
+    else exit 1
+  }
+' "$RGB565_BYTE_ORDER_TABLE" 2>/dev/null || true)"
+[ -n "$rgb565_classification" ] || fail "unclassified PicoArch core: $core_key"
+rgb565_route_classification="$(awk -F '\t' -v system="$SYSTEM_ID" -v core="$core_key" '
+  /^#/ { next }
+  $1 == system && $2 == core {
+    count++; format=$3; order=$4; evidence=$6
+  }
+  END {
+    if (count == 1) printf "%s:%s:%s\n", format, order, evidence
+    else if (count > 1) exit 1
+  }
+' "$RGB565_ROUTE_OVERRIDE_TABLE" 2>/dev/null || true)"
+rgb565_classification_scope=core-default
+if [ -n "$rgb565_route_classification" ]; then
+  rgb565_classification="$rgb565_route_classification"
+  rgb565_classification_scope=system-override
+fi
+picoarch_pixel_format="${rgb565_classification%%:*}"
+rgb565_remainder="${rgb565_classification#*:}"
+rgb565_byte_order="${rgb565_remainder%%:*}"
+rgb565_evidence="${rgb565_remainder#*:}"
+case "$picoarch_pixel_format:$rgb565_byte_order" in
+  rgb565:native|rgb565:byteswap|xrgb8888:native) ;;
+  *) fail "invalid RGB565 byte-order classification: $core_key" ;;
 esac
+rgb565_byteswap_default=0
+[ "$rgb565_byte_order" != byteswap ] || rgb565_byteswap_default=1
 PLUMOS_PICOARCH_RGB565_BYTESWAP="${PLUMOS_PICOARCH_RGB565_BYTESWAP:-$rgb565_byteswap_default}"
 case "$PLUMOS_PICOARCH_RGB565_BYTESWAP" in
   0|1) ;;
@@ -147,6 +181,9 @@ printf 'system=%s core=%s content=%s content_type=%s effect=%s libretro_runtime=
   "$SYSTEM_ID" "$CORE_PATH" "$ROM_PATH" "$content_type" "$EFFECT" \
   "$LIBRETRO_RUNTIME_DIR" >> "$log_file"
 printf 'rgb565_byteswap=%s\n' "$PLUMOS_PICOARCH_RGB565_BYTESWAP" >> "$log_file"
+printf 'pixel_format=%s byte_order=%s classification_scope=%s evidence=%s\n' \
+  "$picoarch_pixel_format" "$rgb565_byte_order" \
+  "$rgb565_classification_scope" "$rgb565_evidence" >> "$log_file"
 printf 'audio_device=%s alsa_config=%s %s\n' "$AUDIODEV" "$ALSA_CONFIG_PATH" \
   "$(printf '%s' "$audio_status" | tr '\n' ' ')" >> "$log_file"
 

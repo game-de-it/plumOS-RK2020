@@ -132,7 +132,8 @@ cmake --build "$SDL12_SRC/build-rk2020" -j"$JOBS"
 
 rm -rf "$OUT_ROOT"
 mkdir -p "$PLUMOS_DIR/picoarch/bin" "$PLUMOS_DIR/picoarch/lib" \
-  "$PLUMOS_DIR/bin" "$PLUMOS_DIR/config/standalone" "$PLUMOS_DIR/licenses" \
+  "$PLUMOS_DIR/bin" "$PLUMOS_DIR/config/standalone" \
+  "$PLUMOS_DIR/share/picoarch" "$PLUMOS_DIR/licenses" \
   "$COMPONENT_DIR"
 install -m 0755 "$SRC/picoarch" "$PLUMOS_DIR/picoarch/bin/picoarch"
 install -m 0644 "$SDL12_SRC/build-rk2020/libSDL-1.2.so.1.2.72" \
@@ -147,6 +148,10 @@ install -m 0755 "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-la
 install -m 0755 "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-stop" "$PLUMOS_DIR/bin/"
 install -m 0644 "$ROOT_DIR/package/picoarch-rk2020/plumos/config/standalone/picoarch.env" \
   "$PLUMOS_DIR/config/standalone/"
+install -m 0644 "$ROOT_DIR/package/picoarch-rk2020/plumos/share/picoarch/rgb565-byte-order.tsv" \
+  "$PLUMOS_DIR/share/picoarch/"
+install -m 0644 "$ROOT_DIR/package/picoarch-rk2020/plumos/share/picoarch/rgb565-route-overrides.tsv" \
+  "$PLUMOS_DIR/share/picoarch/"
 install -m 0644 "$SRC/LICENSE" "$PLUMOS_DIR/licenses/picoarch-LICENSE"
 install -m 0644 "$SDL12_SRC/LICENSE.txt" "$PLUMOS_DIR/licenses/picoarch-sdl12-compat-LICENSE.txt"
 
@@ -162,6 +167,7 @@ cat > "$COMPONENT_DIR/manifest.json" <<EOF
   "sdl12_compat_ref": "$SDL12_REF",
   "sdl2_runtime": "picoarch/lib/libSDL2-2.0.so.0",
   "render_contract": "RK2020 fbdev pwrite RGB565-to-BGRA8888 presenter with SDL12 dummy surface",
+  "rgb565_classification": "share/picoarch/rgb565-byte-order.tsv plus system-scoped PicoDrive overrides",
   "input_contract": "RK2020 evdev dpad, ABXY east-confirm, shoulders, start/select, menu",
   "audio_contract": "plumOS ALSA plumos_output",
   "core_route": "cores/*_libretro.so"
@@ -170,7 +176,7 @@ EOF
 
 (
   cd "$PLUMOS_DIR"
-  find bin picoarch config/standalone licenses components/picoarch -type f \
+  find bin picoarch config/standalone share/picoarch licenses components/picoarch -type f \
     ! -path 'components/picoarch/checksums.sha256' \
     -print |
     sort |

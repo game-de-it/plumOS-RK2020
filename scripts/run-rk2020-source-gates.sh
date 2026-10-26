@@ -13,6 +13,7 @@ shell_tests=(
     tests/test-stock-capture-scripts.sh
     tests/test-implementation-audit.sh
     tests/test-rk2020-emulator-menu-contract.sh
+    tests/test-rk2020-picoarch-rgb565-matrix.sh
     tests/test-rk2020-pico8-wget.sh
     tests/test-rk2020-gw-core-geometry.sh
     tests/test-rk2020-license-bundle.sh

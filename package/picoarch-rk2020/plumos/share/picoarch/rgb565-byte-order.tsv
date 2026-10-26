@@ -1,0 +1,23 @@
+# core_id	pixel_format	byte_order	route_scope	evidence
+chimerasnes	rgb565	native	frontend	bubble-ra-snes-anchor-90f
+fceumm	xrgb8888	native	frontend	bubble-set-pixel-format-1
+gambatte	rgb565	byteswap	frontend	rk2020-physical-gambatte-inherited
+gearboy	rgb565	byteswap	frontend	bubble-ra-gambatte-anchor-90f
+gearsystem	rgb565	byteswap	frontend	bubble-ra-genesis-plus-gx-anchor-90f
+genesis_plus_gx	rgb565	byteswap	frontend	rk2020-physical-genesis-plus-gx
+gpsp	rgb565	native	frontend	bubble-ra-gpsp-90f
+mednafen_pce_fast	rgb565	native	frontend	bubble-ra-mednafen-pce-fast-720f
+mednafen_supafaust	rgb565	byteswap	frontend	bubble-ra-snes-anchor-90f
+mednafen_supergrafx	rgb565	byteswap	frontend	bubble-ra-mednafen-pce-fast-anchor-720f
+mgba	rgb565	native	frontend	bubble-ra-gpsp-anchor-90f
+nekop2	rgb565	native	frontend	source-native-endian-rgb565
+nestopia	xrgb8888	native	frontend	bubble-set-pixel-format-1
+np2kai	rgb565	native	frontend	source-native-endian-rgb565-default
+picodrive	rgb565	native	frontend	bubble-system-scoped-picodrive-180f
+quicknes	rgb565	native	frontend	bubble-ra-quicknes-90f
+snes9x	rgb565	native	frontend	bubble-ra-snes9x-90f
+snes9x2002	rgb565	native	frontend	bubble-ra-snes9x-anchor-90f
+snes9x2005	rgb565	native	frontend	bubble-ra-snes9x-anchor-90f
+snes9x2005_plus	rgb565	native	frontend	bubble-ra-snes9x-anchor-90f
+snes9x2010	rgb565	native	frontend	bubble-ra-snes9x-anchor-90f
+vbam	rgb565	byteswap	frontend	bubble-ra-gambatte-anchor-90f

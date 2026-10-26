@@ -93,7 +93,9 @@ grep -q '(pixel << 8) | (pixel >> 8)' \
 git apply --numstat \
     "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch-rk2020-pixel-format.patch" \
     >/dev/null
-grep -q 'gambatte|gambatte_libretro.so|genesis_plus_gx|genesis_plus_gx_libretro.so)' \
+grep -q 'rgb565-byte-order.tsv' \
+    "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
+grep -q 'rgb565-route-overrides.tsv' \
     "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
 grep -q 'rgb565_byteswap=%s' \
     "$ROOT_DIR/package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch"
