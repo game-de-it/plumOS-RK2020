@@ -348,7 +348,8 @@ for contract in \
     'GO-Advance Gamepad,a:b1,b:b0,x:b2,y:b3' \
     'back:b10,guide:b12,start:b15' \
     'dpup:b6,dpdown:b7,dpleft:b8,dpright:b9' \
-    'leftshoulder:b4,rightshoulder:b5,lefttrigger:b11,righttrigger:b14'; do
+    'leftshoulder:b4,rightshoulder:b5,lefttrigger:b11,righttrigger:b14' \
+    'leftx:a0,lefty:a1'; do
     grep -Fq "$contract" "$PPSSPP_CONTROLLER_PATCH" ||
         fail "PPSSPP RK2020 controller mapping missing: $contract"
 done
