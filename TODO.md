@@ -25,8 +25,10 @@
   runtime. Fifteen catalog systems still lack representative content; manual
   gameplay, standalone final-scanout color, and the Amiga sample remain open.
   DraStic now has an RK2020 raw-input mapping and passed a first-frame live
-  smoke test; its D-pad, R2 screen swap, L2 menu combinations, and menu exit
-  remain a direct physical-input gate.
+  smoke test. Its display runner now keeps both 640x480 menu buffers current
+  using the XU20-proven timed presentation fix; deterministic D-pad/analog
+  menu navigation, R2 screen swap, L2 menu combinations, and menu exit remain
+  a direct physical-input gate.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
