@@ -132,6 +132,10 @@ jq -e '.systems[] | select(.id == "pcfx") |
     "$ROOT_DIR/package/frontend-rk2020/systems.json" >/dev/null
 grep -q 'retroarch_archive=result-extracted system=gameandwatch format=mgw' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
+grep -q 'TI-83 BIOS missing; add ti83se.rom' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
+grep -q 'TI-83 BIOS missing: add ti83se.rom to BIOS' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'mgba_modern_libretro.so' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'state_root="$state_root/mgba-modern"' \

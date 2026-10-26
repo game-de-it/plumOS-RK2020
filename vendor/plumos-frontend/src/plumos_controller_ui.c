@@ -12079,6 +12079,31 @@ static int write_power_overlay_selection(struct ui_state *ui, const char *action
   return 1;
 }
 
+static int ti83_firmware_present(const struct ui_state *ui) {
+  static const char *const names[] = {"ti83se.rom", "ti83plus.rom", "ti83.rom"};
+  const char *override = getenv("PLUMOS_BIOS_ROOT");
+  char bios_root[PATH_MAX];
+  char path[PATH_MAX];
+  size_t i;
+
+  if (!ui) {
+    return 0;
+  }
+  if (override && override[0]) {
+    if (!copy_string(bios_root, sizeof(bios_root), override)) {
+      return 0;
+    }
+  } else if (!join_path(bios_root, sizeof(bios_root), ui->sdcard_root, "bios")) {
+    return 0;
+  }
+  for (i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+    if (join_path(path, sizeof(path), bios_root, names[i]) && file_exists(path)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int launch_rom_entry(struct ui_state *ui, const struct rom_entry *entry) {
   char text_ui[PATH_MAX];
   char log_dir[PATH_MAX];
@@ -12099,6 +12124,10 @@ static int launch_rom_entry(struct ui_state *ui, const struct rom_entry *entry) 
   system_id = entry->system_id[0] ? entry->system_id : ui->current_system_id;
   if (!valid_system_id(system_id)) {
     set_status(ui, "launch system id is invalid");
+    return 0;
+  }
+  if (strcmp(system_id, "ti83") == 0 && !ti83_firmware_present(ui)) {
+    set_status(ui, "TI-83 BIOS missing: add ti83se.rom to BIOS");
     return 0;
   }
   if (filesystem_is_read_only(ui->plumos_root)) {

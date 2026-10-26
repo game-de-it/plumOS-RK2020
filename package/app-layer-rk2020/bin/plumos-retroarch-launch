@@ -108,6 +108,24 @@ done
 [ "$rom_allowed" = 1 ] || exit 2
 [ -f "$core" ] && [ -f "$rom" ] || exit 1
 
+bios_root=${PLUMOS_BIOS_ROOT:-$sdcard_root/bios}
+case "$system_id:${core##*/}" in
+    ti83:numero_libretro.so)
+        ti83_bios_present=0
+        for ti83_bios in ti83se.rom ti83plus.rom ti83.rom; do
+            if [ -f "$bios_root/$ti83_bios" ]; then
+                ti83_bios_present=1
+                break
+            fi
+        done
+        if [ "$ti83_bios_present" != 1 ]; then
+            printf 'plumos-retroarch-launch: TI-83 BIOS missing; add ti83se.rom, ti83plus.rom, or ti83.rom to %s\n' \
+                "$bios_root" >&2
+            exit 78
+        fi
+        ;;
+esac
+
 config="$root/config/retroarch/retroarch.cfg"
 factory="$root/factory-defaults/retroarch/retroarch.cfg"
 core_options="$root/config/retroarch/retroarch-core-options.cfg"
@@ -372,7 +390,7 @@ fi
             printf 'savestates_in_content_dir = "false"\n'
             ;;
     esac
-    printf 'system_directory = "%s"\n' "${PLUMOS_BIOS_ROOT:-/mnt/plumos-user/bios}"
+    printf 'system_directory = "%s"\n' "$bios_root"
     printf 'core_options_path = "%s"\n' "$core_options"
 } >"$append"
 
