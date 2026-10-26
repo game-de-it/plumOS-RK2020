@@ -5,5 +5,6 @@
 
 bool rk2020_get_perf_interface(void *data);
 bool rk2020_get_vfs_interface(void *data, const char *core_path);
+void rk2020_poll_gamepad(int *buttons);
 
 #endif

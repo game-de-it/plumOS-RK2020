@@ -70,12 +70,25 @@ for token in \
     'core_input_begin_frame();' \
     'core_input_finish_frame();' \
     'if (input_polled_this_frame)' \
+    'rk2020_poll_gamepad(&actions[IN_BINDTYPE_PLAYER12])' \
     'RETRO_DEVICE_ID_JOYPAD_L2' \
     'RETRO_DEVICE_ID_JOYPAD_START' \
     'actions[IN_BINDTYPE_EMU] |= 1U << EACTION_MENU' \
     'Core omitted input_poll_cb; enabling frontend fallback polling'; do
     grep -Fq "$token" "$PICO_POLL_PATCH" ||
         fail "PicoArch host input fallback missing: $token"
+done
+for token in \
+    'open("/dev/input/event2", O_RDONLY | O_NONBLOCK | O_CLOEXEC)' \
+    'EVIOCGKEY(sizeof(keybits))' \
+    'BTN_TRIGGER_HAPPY1, RETRO_DEVICE_ID_JOYPAD_SELECT' \
+    'BTN_TRIGGER_HAPPY3, RETRO_DEVICE_ID_JOYPAD_L2' \
+    'BTN_TRIGGER_HAPPY4, RETRO_DEVICE_ID_JOYPAD_R2' \
+    'BTN_TRIGGER_HAPPY6, RETRO_DEVICE_ID_JOYPAD_START' \
+    'EVIOCGABS(ABS_X)' \
+    'EVIOCGABS(ABS_Y)'; do
+    grep -Fq "$token" "$ROOT_DIR/docker/rk2020-tools/picoarch/picoarch_rk2020_host.c" ||
+        fail "PicoArch direct RK2020 gamepad path missing: $token"
 done
 grep -Fq 'picoarch-rk2020-host-input-poll.patch' \
     "$ROOT_DIR/scripts/build-picoarch-rk2020.sh" ||
