@@ -112,6 +112,20 @@ for binding in \
         fail "PCSX-ReARMed physical D-pad contract missing: $binding"
 done
 for binding in \
+    'BTN_SOUTH,          IN_BINDTYPE_PLAYER12, DKEY_CROSS' \
+    'BTN_EAST,           IN_BINDTYPE_PLAYER12, DKEY_CIRCLE' \
+    'BTN_NORTH,          IN_BINDTYPE_PLAYER12, DKEY_TRIANGLE' \
+    'BTN_WEST,           IN_BINDTYPE_PLAYER12, DKEY_SQUARE' \
+    'BTN_SOUTH,          PBTN_MOK' \
+    'BTN_EAST,           PBTN_MBACK'; do
+    grep -Fq "$binding" "$PCSX_PATCH" ||
+        fail "PCSX-ReARMed saved global ABXY default missing: $binding"
+done
+if grep -Fq 'BTN_SOUTH,          IN_BINDTYPE_PLAYER12, DKEY_CIRCLE' "$PCSX_PATCH" ||
+        grep -Fq 'BTN_EAST,           IN_BINDTYPE_PLAYER12, DKEY_CROSS' "$PCSX_PATCH"; then
+    fail 'PCSX-ReARMed retained the pre-calibration A/B mapping'
+fi
+for binding in \
     'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_PLAYER12, DKEY_L2' \
     'BTN_TRIGGER_HAPPY4, IN_BINDTYPE_PLAYER12, DKEY_R2' \
     'BTN_TRIGGER_HAPPY1, IN_BINDTYPE_PLAYER12, DKEY_SELECT' \
