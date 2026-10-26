@@ -34,8 +34,10 @@
   events at 1 ms intervals so the analog-release event cannot sit behind an
   ABS/SYN backlog. DraStic now renders its rotated 4:3 surface in a centered
   320x427 viewport instead of stretching it across 320x480. Cursor release,
-  aspect ratio, R precision, R2 screen swap, the remaining L2 combinations,
-  and menu exit remain a direct physical-input gate.
+  R precision, R2 screen swap, the remaining L2 combinations, and menu exit
+  remain direct physical-input gates. The runaway cursor is fixed, but analog
+  cursor motion still needs smoothing; direct KMS capture confirms the 4:3
+  viewport even though it was initially perceived as full-screen.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.

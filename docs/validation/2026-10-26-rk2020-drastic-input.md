@@ -94,6 +94,11 @@ up to 64 records per pass in arrival order and polls at 1 ms. It runs hotkey
 handling after each meaningful record, so button chords retain their event
 ordering while a stick release becomes current immediately.
 
+The operator retest confirmed a substantial improvement and no longer saw a
+brief stick nudge produce a half-screen delayed jump. Analog cursor travel is
+still visibly stepped rather than smooth, so smoothing remains open separately
+from the resolved input-queue latency.
+
 This route deliberately bypasses DraStic's SDL joystick table.  The persistent
 user configuration remains untouched; on the test unit it still records menu
 fallback 1032 and no joystick screen-swap binding (65535).  The raw integration
@@ -120,6 +125,17 @@ which becomes approximately 427x320 after rotation and preserves the source
 become left/right black bars on the handheld. Both swapchain paths clear the
 complete buffer before redrawing so those bars cannot retain old menu or game
 pixels.
+
+After the operator still perceived a full-screen image, the active KMS
+framebuffer was captured directly rather than relying on `/dev/fb0` (which is
+black while the DRM runner owns scanout). CRTC 60 was scanning framebuffer 70
+as XR24 at 320x480 with a 1280-byte pitch. After rotating the capture into the
+handheld's physical landscape orientation, columns 0--25 and 453--479 were
+black while game content occupied columns 26--452. The measured content area
+is therefore 427x320 (1.334), confirming the 4:3 viewport within one pixel.
+The evidence image is
+`captures/2026-10-26-rk2020-drastic-aspect-2b84b70.png`, SHA-256
+`36f6b3688484c845e0079b292fcb186669870a0bc48399e5b02912bc0c7b3032`.
 
 ## Host build and checks
 
