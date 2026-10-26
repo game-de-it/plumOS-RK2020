@@ -56,7 +56,12 @@
   a stable 29.6 display-list frames/second, but both it and Super Mario 64 had
   uneven scrolling with Rice VSync disabled. The VSync-on default and one-time
   existing-state migration are deployed; Super Mario 64 pacing is physically
-  accepted.
+  accepted. PicoArch now has an exhaustive 22-core RGB565/XRGB8888 byte-order
+  table plus five system-scoped PicoDrive routes. Seven core defaults and the
+  Game Gear PicoDrive route receive the known byte swap automatically; catalog
+  drift fails the source gate. Genesis Plus GX retains its RK2020 physical
+  acceptance, while this predictive correction does not claim physical color
+  acceptance for every game or palette.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
