@@ -89,7 +89,8 @@ The following gates remain:
 - add a representative music file and confirm decode, playback, seeking, and
   clean return to FE;
 - optionally run one bounded scrape and verify downloaded artwork;
-- run an offline FAT filesystem check because the forced power-off previously
-  produced an unclean-volume kernel warning;
+- the forced-power-off FAT dirty bit was subsequently repaired and verified by
+  the live-unmount procedure recorded in
+  `2026-10-26-rk2020-live-fat-fsck.md`;
 - keep Pyxel environment installation and PortMaster network update as
   separately authorized, potentially mutating tests.
