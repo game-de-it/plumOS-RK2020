@@ -10,6 +10,7 @@ for script in \
     scripts/build-standalone-rk2020.sh \
     scripts/build-app-layer.sh \
     scripts/verify-app-layer.sh \
+    scripts/verify-rk2020-managed-delta.sh \
     package/app-layer-rk2020/bin/plumos-retroarch-config-merge \
     package/app-layer-rk2020/bin/plumos-np2kai-config-repair \
     package/app-layer-rk2020/bin/plumos-retroarch-launch \
@@ -32,6 +33,8 @@ for script in \
     package/app-layer-rk2020/bin/plumos-thumbnail-scraper; do
     bash -n "$ROOT_DIR/$script"
 done
+test -x "$ROOT_DIR/tests/test-rk2020-managed-delta.sh"
+"$ROOT_DIR/tests/test-rk2020-managed-delta.sh"
 test -x "$ROOT_DIR/tests/test-retroarch-config-merge.sh"
 test -x "$ROOT_DIR/tests/test-np2kai-config-repair.sh"
 test -x "$ROOT_DIR/tests/test-mame2003-xtreme-config-repair.sh"
