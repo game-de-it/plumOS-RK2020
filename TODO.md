@@ -51,7 +51,10 @@
   indices, mirrors the analog stick onto directions, and persists settings.
   All PAKs now default to Button 1 for Jump and Button 2 for Attack 1 while
   preserving non-default user mappings; direct physical control acceptance
-  is pending.
+  is pending. Mupen64Plus standalone has physically accepted orientation and
+  controls; holding Function/L2 for 1500 ms exits cleanly. AeroGauge produced
+  a stable 29.6 display-list frames/second, but a known 60-frame title is still
+  needed to distinguish title cadence from a route-wide performance cap.
 - [ ] Complete physical frontend-application acceptance. File Manager,
   RetroArch, and PortMaster routes now pass; Music Player initializes display,
   input, and RK817 audio but still needs representative music playback.
