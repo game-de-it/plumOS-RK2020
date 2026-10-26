@@ -51,11 +51,23 @@ index 7c58f8b..02f1747 100644
      }
  
      trace("ignore input event\n");
-@@ -1645,6 +1656,62 @@ TEST(sdl2_event, handle_touch_event)
+@@ -1645,6 +1656,75 @@ TEST(sdl2_event, handle_touch_event)
  #endif
  #endif
  
 +#if defined(GKD_RK2020)
++#define RK2020_AXIS_PRESS_THRESHOLD   450
++#define RK2020_AXIS_RELEASE_THRESHOLD 250
++
++static int rk2020_axis_direction(int value, int current)
++{
++    if ((current < 0) && (value < -RK2020_AXIS_RELEASE_THRESHOLD)) return -1;
++    if ((current > 0) && (value > RK2020_AXIS_RELEASE_THRESHOLD)) return 1;
++    if (value <= -RK2020_AXIS_PRESS_THRESHOLD) return -1;
++    if (value >= RK2020_AXIS_PRESS_THRESHOLD) return 1;
++    return 0;
++}
++
 +static int handle_rk2020_stick_axis(const struct input_event *e)
 +{
 +    static int horizontal = 0;
@@ -66,7 +78,8 @@ index 7c58f8b..02f1747 100644
 +        return 0;
 +    }
 +
-+    next = (e->value < 0) ? -1 : ((e->value > 0) ? 1 : 0);
++    next = rk2020_axis_direction(e->value,
++        (e->code == ABS_X) ? horizontal : vertical);
 +    if (e->code == ABS_X) {
 +        if (next == horizontal) {
 +            return 0;
@@ -114,7 +127,7 @@ index 7c58f8b..02f1747 100644
  int input_handler(void *data)
  {
      int rk = 0;
-@@ -1701,7 +1768,16 @@ int input_handler(void *data)
+@@ -1701,7 +1781,16 @@ int input_handler(void *data)
  
          if (rk > 0) {
              trace("code=%d, value=%d\n", ev.code, ev.value);
@@ -131,7 +144,7 @@ index 7c58f8b..02f1747 100644
          }
  
  #if defined(MIYOO_FLIP)
-@@ -1746,6 +1822,9 @@ void init_event(void)
+@@ -1745,6 +1834,9 @@ void init_event(void)
  {
      trace("call %s()\n", __func__);
  

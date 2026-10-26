@@ -171,6 +171,9 @@ for contract in \
     'got RK2020 analog stick axis event' \
     'handle_rk2020_stick_axis' \
     'one non-clickable analog stick as ABS_X/ABS_Y' \
+    '#define RK2020_AXIS_PRESS_THRESHOLD   450' \
+    '#define RK2020_AXIS_RELEASE_THRESHOLD 250' \
+    'next = rk2020_axis_direction(e->value,' \
     'myconfig.hotkey = HOTKEY_BIND_MENU' \
     '#elif !defined(GKD_RK2020)'; do
     grep -Fq "$contract" "$DRASTIC_INPUT_PATCH" ||
