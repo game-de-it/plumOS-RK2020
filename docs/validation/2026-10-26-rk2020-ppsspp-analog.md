@@ -59,7 +59,7 @@ The previous seven managed files are recoverable from:
 SHA-256 4398cbb797494b9b4425b4346c0714b6edfbf675c51e9acf407ac8d31d518a66
 ```
 
-## Runtime and remaining physical gate
+## Runtime and physical acceptance
 
 The deployed binary started Ridge Racer as PID 15820. Its running executable
 hash matched the rebuilt artifact, it opened `/dev/input/event2`, and the
@@ -68,7 +68,7 @@ or segfault signature. The frontend is intentionally stopped while the game
 owns display/input; the diagnostic wrapper resumes frontend PID 10227 when
 PPSSPP exits.
 
-The game is left running for direct stick confirmation. Host and runtime
-evidence prove delivery of the corrected binary and mapping, but do not by
-themselves prove the physical stick moves the vehicle; that remains the only
-acceptance gate for this change.
+The operator then tested the running Ridge Racer session and confirmed that
+the physical analog stick works. This closes the PPSSPP analog-input gate;
+the broader all-buttons and all-emulator physical-input matrix remains tracked
+separately.
