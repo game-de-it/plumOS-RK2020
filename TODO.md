@@ -25,7 +25,9 @@
   normal physical FE exit, one TI-83 route blocked by missing calculator BIOS,
   and one missing proprietary PICO-8 runtime. Fifteen catalog systems still
   lack representative content; manual gameplay, standalone final-scanout
-  color, and the Amiga sample remain open. TI-83 now rejects launch before
+  color, and remaining per-route checks stay open. A second Amiga title was
+  physically viewed with normal color, closing the earlier HAM-sample color
+  ambiguity. TI-83 remains in the frontend catalog but now rejects launch before
   taking the display when none of `ti83se.rom`, `ti83plus.rom`, or `ti83.rom`
   is present and reports the missing BIOS legibly in FE; gameplay remains open
   until user-supplied calculator firmware is installed.

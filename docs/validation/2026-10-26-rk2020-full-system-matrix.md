@@ -130,3 +130,8 @@ the source ROM-set BIOS tree or the live device BIOS tree. TI-83 therefore
 remains firmware-blocked and must not be counted as a gameplay pass. Commit
 `b5733de` prevents that unreadable core screen from taking over the display and
 reports the missing BIOS through FE instead.
+
+A different Amiga game was then viewed on the physical RK2020 and its color was
+normal. This closes the color-specific ambiguity raised by the unusually blue
+HAM sample; it does not by itself replace unrelated Amiga gameplay, input,
+audio, save, or exit checks.

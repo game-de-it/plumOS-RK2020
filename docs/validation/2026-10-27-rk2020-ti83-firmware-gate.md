@@ -41,6 +41,8 @@ TI-83 BIOS missing: add ti83se.rom to BIOS
 
 This does not claim TI-83 compatibility. Gameplay, controls, display and clean
 exit remain open until user-supplied firmware is placed in the BIOS directory.
+TI-83 remains enabled and visible in the frontend catalog so it can be tested
+without another catalog update once that firmware is supplied.
 
 ## Verification
 
