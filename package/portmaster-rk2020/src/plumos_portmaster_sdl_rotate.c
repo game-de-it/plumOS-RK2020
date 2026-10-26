@@ -14,6 +14,12 @@
 #ifndef PLUMOS_SDL_ROTATION_LABEL
 #define PLUMOS_SDL_ROTATION_LABEL "PortMaster"
 #endif
+#ifndef PLUMOS_SDL_AUTOFIT_ENV
+#define PLUMOS_SDL_AUTOFIT_ENV "PLUMOS_PORTMASTER_AUTOFIT"
+#endif
+#ifndef PLUMOS_SDL_LOGICAL_SIZE_ENV
+#define PLUMOS_SDL_LOGICAL_SIZE_ENV "PLUMOS_PORTMASTER_LOGICAL_SIZE"
+#endif
 
 /*
  * RK2020's DRM mode is the panel-native 320x480 mode even though the handheld
@@ -32,6 +38,8 @@
 struct renderer_state {
     SDL_Renderer *renderer;
     SDL_Texture *frame;
+    int logical_width;
+    int logical_height;
     int active;
 };
 
@@ -39,6 +47,7 @@ static struct renderer_state states[MAX_RENDERERS];
 static int internal_render;
 
 static SDL_Renderer *(*real_create_renderer)(SDL_Window *, int, Uint32);
+static SDL_Window *(*real_create_window)(const char *, int, int, int, int, Uint32);
 static const char *(*real_get_error)(void);
 static void (*real_get_window_size)(SDL_Window *, int *, int *);
 static int (*real_get_current_display_mode)(int, SDL_DisplayMode *);
@@ -76,11 +85,63 @@ static int rotation_enabled(void) {
     return value && strcmp(value, "270") == 0;
 }
 
+static int autofit_enabled(void) {
+    const char *value = getenv(PLUMOS_SDL_AUTOFIT_ENV);
+    return value && strcmp(value, "1") == 0;
+}
+
+static void configure_logical_geometry(int *width, int *height) {
+    const char *value = getenv(PLUMOS_SDL_LOGICAL_SIZE_ENV);
+    char *separator;
+    char *end;
+    long parsed_width;
+    long parsed_height;
+
+    *width = 480;
+    *height = 320;
+    if (!value || !value[0])
+        return;
+    parsed_width = strtol(value, &separator, 10);
+    if (separator == value || (*separator != 'x' && *separator != 'X'))
+        return;
+    parsed_height = strtol(separator + 1, &end, 10);
+    if (*end != '\0' || parsed_width < 1 || parsed_height < 1 ||
+        parsed_width > 4096 || parsed_height > 4096)
+        return;
+    *width = (int)parsed_width;
+    *height = (int)parsed_height;
+}
+
+static void remember_requested_geometry(int width, int height) {
+    char value[32];
+
+    if (!rotation_enabled() || !autofit_enabled() || width < 1 || height < 1 ||
+        width > 4096 || height > 4096)
+        return;
+    snprintf(value, sizeof(value), "%dx%d", width, height);
+    if (setenv(PLUMOS_SDL_LOGICAL_SIZE_ENV, value, 1) == 0)
+        fprintf(stderr, "[plumOS] %s SDL fit: requested=%s\n",
+                PLUMOS_SDL_ROTATION_LABEL, value);
+}
+
+SDL_Window *SDL_CreateWindow(const char *title, int x, int y, int width,
+                             int height, Uint32 flags) {
+    LOAD(create_window, CreateWindow);
+    if (!real_create_window)
+        return NULL;
+    remember_requested_geometry(width, height);
+    return real_create_window(title, x, y, width, height, flags);
+}
+
 static void apply_logical_display_mode(SDL_DisplayMode *mode) {
+    int width;
+    int height;
+
     if (!rotation_enabled() || !mode)
         return;
-    mode->w = 480;
-    mode->h = 320;
+    configure_logical_geometry(&width, &height);
+    mode->w = width;
+    mode->h = height;
 }
 
 static const char *sdl_error(void) {
@@ -109,15 +170,19 @@ static struct renderer_state *allocate_state(void) {
 }
 
 void SDL_GetWindowSize(SDL_Window *window, int *width, int *height) {
+    int logical_width;
+    int logical_height;
+
     LOAD(get_window_size, GetWindowSize);
     if (real_get_window_size)
         real_get_window_size(window, width, height);
     if (!rotation_enabled())
         return;
+    configure_logical_geometry(&logical_width, &logical_height);
     if (width)
-        *width = 480;
+        *width = logical_width;
     if (height)
-        *height = 320;
+        *height = logical_height;
 }
 
 int SDL_GetCurrentDisplayMode(int display_index, SDL_DisplayMode *mode) {
@@ -142,6 +207,8 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags) {
     SDL_Renderer *renderer;
     SDL_Texture *frame;
     struct renderer_state *state;
+    int logical_width;
+    int logical_height;
 
     LOAD(create_renderer, CreateRenderer);
     if (!real_create_renderer)
@@ -163,8 +230,10 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags) {
                 PLUMOS_SDL_ROTATION_LABEL);
         return renderer;
     }
+    configure_logical_geometry(&logical_width, &logical_height);
     frame = real_create_texture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                                SDL_TEXTUREACCESS_TARGET, 480, 320);
+                                SDL_TEXTUREACCESS_TARGET,
+                                logical_width, logical_height);
     if (!frame) {
         fprintf(stderr, "[plumOS] %s SDL rotation: target unavailable: %s\n",
                 PLUMOS_SDL_ROTATION_LABEL, sdl_error());
@@ -181,9 +250,12 @@ SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags) {
 
     state->renderer = renderer;
     state->frame = frame;
+    state->logical_width = logical_width;
+    state->logical_height = logical_height;
     state->active = 1;
-    fprintf(stderr, "[plumOS] %s SDL rotation: 480x320 -> 320x480 @ 270\n",
-            PLUMOS_SDL_ROTATION_LABEL);
+    fprintf(stderr,
+            "[plumOS] %s SDL rotation: logical=%dx%d -> 320x480 @ 270\n",
+            PLUMOS_SDL_ROTATION_LABEL, logical_width, logical_height);
     return renderer;
 }
 
@@ -242,6 +314,11 @@ void SDL_RenderPresent(SDL_Renderer *renderer) {
     int logical_height = 0;
     int output_width = 0;
     int output_height = 0;
+    int fitted_width;
+    int fitted_height;
+    float fit_scale;
+    float width_scale;
+    float height_scale;
     float scale_x = 1.0f;
     float scale_y = 1.0f;
     SDL_bool clip_enabled = SDL_FALSE;
@@ -312,10 +389,19 @@ void SDL_RenderPresent(SDL_Renderer *renderer) {
     real_set_render_draw_color(renderer, 0, 0, 0, 255);
     real_render_clear(renderer);
 
-    destination.x = (output_width - output_height) / 2;
-    destination.y = (output_height - output_width) / 2;
-    destination.w = output_height;
-    destination.h = output_width;
+    width_scale = 480.0f / (float)state->logical_width;
+    height_scale = 320.0f / (float)state->logical_height;
+    fit_scale = width_scale < height_scale ? width_scale : height_scale;
+    fitted_width = (int)((float)state->logical_width * fit_scale + 0.5f);
+    fitted_height = (int)((float)state->logical_height * fit_scale + 0.5f);
+    if (fitted_width < 1) fitted_width = 1;
+    if (fitted_height < 1) fitted_height = 1;
+    if (fitted_width > 480) fitted_width = 480;
+    if (fitted_height > 320) fitted_height = 320;
+    destination.x = (output_width - fitted_width) / 2;
+    destination.y = (output_height - fitted_height) / 2;
+    destination.w = fitted_width;
+    destination.h = fitted_height;
     real_render_copy_ex(renderer, state->frame, NULL, &destination, 270.0, NULL,
                         SDL_FLIP_NONE);
     real_render_present(renderer);
