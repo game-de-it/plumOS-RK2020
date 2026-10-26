@@ -126,11 +126,19 @@ static void remember_requested_geometry(int width, int height) {
 
 SDL_Window *SDL_CreateWindow(const char *title, int x, int y, int width,
                              int height, Uint32 flags) {
+    int physical_width = width;
+    int physical_height = height;
+
     LOAD(create_window, CreateWindow);
     if (!real_create_window)
         return NULL;
     remember_requested_geometry(width, height);
-    return real_create_window(title, x, y, width, height, flags);
+    if (rotation_enabled() && autofit_enabled()) {
+        physical_width = 480;
+        physical_height = 320;
+    }
+    return real_create_window(title, x, y, physical_width, physical_height,
+                              flags);
 }
 
 static void apply_logical_display_mode(SDL_DisplayMode *mode) {
