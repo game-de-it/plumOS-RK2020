@@ -78,7 +78,9 @@ fi
 CONFIG="$PLUMOS_ROOT/config/standalone/picoarch.env"
 [ ! -r "$CONFIG" ] || . "$CONFIG"
 case "${CORE_ID##*/}" in
-  gambatte|gambatte_libretro.so) rgb565_byteswap_default=1 ;;
+  gambatte|gambatte_libretro.so|genesis_plus_gx|genesis_plus_gx_libretro.so)
+    rgb565_byteswap_default=1
+    ;;
   *) rgb565_byteswap_default=0 ;;
 esac
 PLUMOS_PICOARCH_RGB565_BYTESWAP="${PLUMOS_PICOARCH_RGB565_BYTESWAP:-$rgb565_byteswap_default}"

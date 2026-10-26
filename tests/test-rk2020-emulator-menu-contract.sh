@@ -59,15 +59,20 @@ grep -Fq 'PLUMOS_INPUT_B_UDEV_BTN:-0' "$RA_LAUNCHER" ||
     fail 'RetroArch launch append config does not enforce SELECT+B menu'
 
 for binding in \
-    'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, EACTION_MENU' \
     'BTN_TRIGGER_HAPPY3, PBTN_MENU'; do
     grep -Fq "$binding" "$PICO_PATCH" ||
         fail "PicoArch FUNCTION menu binding missing: $binding"
 done
+if grep -Fq 'BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, EACTION_MENU' "$PICO_PATCH"; then
+    fail 'PicoArch must preserve standalone L2 input during gameplay'
+fi
 for token in \
     'core_input_begin_frame();' \
     'core_input_finish_frame();' \
     'if (input_polled_this_frame)' \
+    'RETRO_DEVICE_ID_JOYPAD_L2' \
+    'RETRO_DEVICE_ID_JOYPAD_START' \
+    'actions[IN_BINDTYPE_EMU] |= 1U << EACTION_MENU' \
     'Core omitted input_poll_cb; enabling frontend fallback polling'; do
     grep -Fq "$token" "$PICO_POLL_PATCH" ||
         fail "PicoArch host input fallback missing: $token"

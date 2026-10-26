@@ -26,7 +26,7 @@ index bc57f3c..cb25b1e 100644
  #include "main.h"
  #include "util.h"
  
-@@ -70,4 +72,56 @@ static const struct in_pdata in_sdl_platform_data = {
+@@ -70,4 +72,55 @@ static const struct in_pdata in_sdl_platform_data = {
  	.modmap_size  = array_size(in_sdl_mod_keymap),
  };
  
@@ -49,7 +49,6 @@ index bc57f3c..cb25b1e 100644
 +	{ BTN_TR2,    IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_R2 },
 +	{ BTN_SELECT, IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_SELECT },
 +	{ BTN_START,  IN_BINDTYPE_PLAYER12, RETRO_DEVICE_ID_JOYPAD_START },
-+	{ BTN_TRIGGER_HAPPY3, IN_BINDTYPE_EMU, EACTION_MENU },
 +	{ 0, 0, 0 }
 +};
 +

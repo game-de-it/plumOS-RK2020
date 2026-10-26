@@ -8,11 +8,22 @@ diff --git a/core.c b/core.c
 +static bool input_fallback_reported;
 +
  static void pa_input_poll(void) {
-@@ -663 +666,2 @@ static void pa_input_poll(void) {
+@@ -663 +666,13 @@ static void pa_input_poll(void) {
 -	in_update(actions);
 +	input_polled_this_frame = true;
 +	in_update(actions);
-@@ -674,3 +678,18 @@ static void pa_input_poll(void) {
++	/* Preserve L2 for cores; only L2+START opens the frontend menu. */
++	if ((actions[IN_BINDTYPE_PLAYER12] &
++	    ((1U << RETRO_DEVICE_ID_JOYPAD_L2) |
++	     (1U << RETRO_DEVICE_ID_JOYPAD_START))) ==
++	    ((1U << RETRO_DEVICE_ID_JOYPAD_L2) |
++	     (1U << RETRO_DEVICE_ID_JOYPAD_START))) {
++		actions[IN_BINDTYPE_EMU] |= 1U << EACTION_MENU;
++		actions[IN_BINDTYPE_PLAYER12] &=
++		    ~((1U << RETRO_DEVICE_ID_JOYPAD_L2) |
++		      (1U << RETRO_DEVICE_ID_JOYPAD_START));
++	}
+@@ -674,3 +689,18 @@ static void pa_input_poll(void) {
  }
  
 +void core_input_begin_frame(void) {
