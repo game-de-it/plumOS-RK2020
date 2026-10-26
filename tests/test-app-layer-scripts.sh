@@ -775,6 +775,10 @@ grep -q 'emulator/lib/libpthread.so.0' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'PCSX-ReARMed SDL2 pthread compatibility runtime missing' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
+grep -q 'visible_bytes = (size_t)rk2020_pcsx_fb_fix.line_length \* virtual_rows' \
+    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
+! grep -q 'rk2020_pcsx_fb_size = rk2020_pcsx_fb_fix.smem_len' \
+    "$ROOT_DIR/package/standalone-rk2020/src/pcsx-rk2020-fbdev.h"
 grep -q 'mkdir -p /dev/shm' \
     "$ROOT_DIR/package/standalone-rk2020/plumos/bin/plumos-standalone-launch"
 grep -q 'bin/runner' \

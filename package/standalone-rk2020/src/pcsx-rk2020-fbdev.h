@@ -188,6 +188,8 @@ static void *rk2020_pcsx_fb_present_thread(void *unused)
 static int rk2020_pcsx_fb_init(void)
 {
 	size_t frame_bytes;
+	size_t visible_bytes;
+	uint32_t virtual_rows;
 	int index;
 
 	rk2020_pcsx_fb_fd = open("/dev/fb0", O_RDWR);
@@ -208,13 +210,25 @@ static int rk2020_pcsx_fb_init(void)
 			rk2020_pcsx_fb_fix.line_length);
 		return -1;
 	}
-	rk2020_pcsx_fb_size = rk2020_pcsx_fb_fix.smem_len
-		? rk2020_pcsx_fb_fix.smem_len
-		: (size_t)rk2020_pcsx_fb_fix.line_length *
-		  rk2020_pcsx_fb_var.yres_virtual;
-	if (rk2020_pcsx_fb_size < (size_t)rk2020_pcsx_fb_fix.line_length *
-	    (rk2020_pcsx_fb_var.yoffset + rk2020_pcsx_fb_var.yres))
+	/*
+	 * Rockchip's DRM fbdev emulation may advertise the whole GEM allocation in
+	 * smem_len even though only the active virtual framebuffer is mappable.
+	 * Mapping smem_len made the RK2020 kernel reject mmap with EINVAL and, on
+	 * one run, report a bad page map while tearing the failed mapping down.
+	 * Limit the mapping to the rows that the presenter can actually address.
+	 */
+	virtual_rows = rk2020_pcsx_fb_var.yres_virtual;
+	if (virtual_rows < rk2020_pcsx_fb_var.yoffset + rk2020_pcsx_fb_var.yres)
+		virtual_rows = rk2020_pcsx_fb_var.yoffset + rk2020_pcsx_fb_var.yres;
+	visible_bytes = (size_t)rk2020_pcsx_fb_fix.line_length * virtual_rows;
+	if (rk2020_pcsx_fb_fix.smem_len != 0 &&
+	    visible_bytes > rk2020_pcsx_fb_fix.smem_len) {
+		fprintf(stderr,
+			"RK2020 PCSX framebuffer storage mismatch: visible=%zu smem=%u\n",
+			visible_bytes, rk2020_pcsx_fb_fix.smem_len);
 		return -1;
+	}
+	rk2020_pcsx_fb_size = visible_bytes;
 	rk2020_pcsx_fb_map = mmap(NULL, rk2020_pcsx_fb_size,
 		PROT_READ | PROT_WRITE, MAP_SHARED, rk2020_pcsx_fb_fd, 0);
 	if (rk2020_pcsx_fb_map == MAP_FAILED) {
@@ -239,8 +253,11 @@ static int rk2020_pcsx_fb_init(void)
 		return -1;
 	rk2020_pcsx_fb_thread_started = 1;
 	fprintf(stderr,
-		"RK2020 PCSX framebuffer presenter: physical=%ux%u logical=480x320 ccw double_buffer=%d\n",
+		"RK2020 PCSX framebuffer presenter: physical=%ux%u virtual=%ux%u stride=%u map=%zu smem=%u logical=480x320 ccw double_buffer=%d\n",
 		rk2020_pcsx_fb_var.xres, rk2020_pcsx_fb_var.yres,
+		rk2020_pcsx_fb_var.xres_virtual, rk2020_pcsx_fb_var.yres_virtual,
+		rk2020_pcsx_fb_fix.line_length, rk2020_pcsx_fb_size,
+		rk2020_pcsx_fb_fix.smem_len,
 		rk2020_pcsx_fb_double_buffer);
 	return 0;
 }
