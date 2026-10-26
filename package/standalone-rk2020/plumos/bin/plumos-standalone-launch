@@ -326,6 +326,7 @@ case "$id" in
   openbor)
     exe="${EMU_ROOT}/openbor/bin/OpenBOR"
     workdir="${PLUMOS_RUNTIME_ROOT}/standalone/openbor-work.$$"
+    openbor_rotation="${EMU_ROOT}/openbor/lib/libplumos-openbor-sdl-rotate.so"
     pak=${1:-}
     [ -n "$pak" ] || fail "missing OpenBOR PAK path" 2
     [ -f "$pak" ] || fail "missing OpenBOR PAK: $pak" 2
@@ -333,6 +334,17 @@ case "$id" in
     mkdir -p "$workdir/Paks" "${XDG_DATA_HOME}/Saves" "${XDG_DATA_HOME}/Logs" \
       "${XDG_DATA_HOME}/ScreenShots"
     ln -s "$pak" "$workdir/Paks/${pak##*/}"
+    for openbor_data in Saves Logs ScreenShots; do
+      ln -s "${XDG_DATA_HOME}/${openbor_data}" "$workdir/${openbor_data}" ||
+        fail "failed to link OpenBOR ${openbor_data}" 78
+    done
+    [ -f "$openbor_rotation" ] ||
+      fail "OpenBOR RK2020 display adapter is missing: $openbor_rotation" 127
+    export PLUMOS_OPENBOR_SDL_ROTATION=270
+    export SDL_RENDER_DRIVER=opengles2
+    export SDL_NOMOUSE=1
+    export SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
+    export LD_PRELOAD="${openbor_rotation}${LD_PRELOAD:+:$LD_PRELOAD}"
     ;;
   pcsx_rearmed)
     exe="${EMU_ROOT}/pcsx_rearmed/bin/pcsx"

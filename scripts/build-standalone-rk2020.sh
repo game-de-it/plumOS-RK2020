@@ -22,6 +22,7 @@ ARMHF_STRIP="${PLUMOS_RK2020_ARMHF_STRIP:-arm-linux-gnueabihf-strip}"
 FILTER=all
 OPENBOR_REPO="${PLUMOS_RK2020_OPENBOR_REPO:-https://github.com/DCurrent/openbor.git}"
 OPENBOR_REF="${PLUMOS_RK2020_OPENBOR_REF:-494708eb34e71d1afda237873907701c4ec3a569}"
+OPENBOR_SDL_ROTATE_SOURCE="$ROOT_DIR/package/portmaster-rk2020/src/plumos_portmaster_sdl_rotate.c"
 DRASTIC_REPO="${PLUMOS_RK2020_DRASTIC_REPO:-https://github.com/steward-fu/nds.git}"
 DRASTIC_REF="${PLUMOS_RK2020_DRASTIC_REF:-b88e6b75963106c0bd54dfe112f860c6bdbfe593}"
 DRASTIC_TAG="${PLUMOS_RK2020_DRASTIC_TAG:-final-china-devices}"
@@ -238,7 +239,9 @@ EOF
 
 build_openbor() {
   selected openbor || return 0
-  mkdir -p "$LOG_DIR" "$PLUMOS_DIR/standalone/openbor/bin" \
+  require_command cc
+  openbor_dst="$PLUMOS_DIR/standalone/openbor"
+  mkdir -p "$LOG_DIR" "$openbor_dst/bin" "$openbor_dst/lib" \
     "$PLUMOS_DIR/config/standalone" "$PLUMOS_DIR/licenses"
   : >"$LOG_DIR/openbor.log"
   src=$(clone_checkout openbor "$OPENBOR_REPO" "$OPENBOR_REF") || return 1
@@ -257,10 +260,37 @@ build_openbor() {
   binary="$src/engine/OpenBOR"
   [ -x "$binary" ] || return 1
   file "$binary" | grep -q 'ELF 64-bit.*ARM aarch64' || return 1
-  install -m 0755 "$binary" "$PLUMOS_DIR/standalone/openbor/bin/OpenBOR"
-  "$STRIP" "$PLUMOS_DIR/standalone/openbor/bin/OpenBOR" >/dev/null 2>&1 || true
+  install -m 0755 "$binary" "$openbor_dst/bin/OpenBOR"
+  "$STRIP" "$openbor_dst/bin/OpenBOR" >/dev/null 2>&1 || true
+  cc -O2 -fPIC -Wall -Wextra -Werror -shared -I/usr/include/SDL2 \
+    -DPLUMOS_SDL_ROTATION_ENV='"PLUMOS_OPENBOR_SDL_ROTATION"' \
+    -DPLUMOS_SDL_ROTATION_LABEL='"OpenBOR"' \
+    -Wl,-z,defs -Wl,-soname,libplumos-openbor-sdl-rotate.so \
+    -o "$openbor_dst/lib/libplumos-openbor-sdl-rotate.so" \
+    "$OPENBOR_SDL_ROTATE_SOURCE" -ldl
+  file "$openbor_dst/lib/libplumos-openbor-sdl-rotate.so" | \
+    grep -q 'ELF 64-bit.*ARM aarch64' || return 1
   install -m 0644 "$src/LICENSE" "$PLUMOS_DIR/licenses/openbor-LICENSE.txt"
-  copy_runtime_deps "$PLUMOS_DIR/standalone/openbor/bin/OpenBOR"
+  copy_runtime_deps "$openbor_dst/bin/OpenBOR"
+
+  openbor_binary_sha256=$(sha256_file "$openbor_dst/bin/OpenBOR")
+  openbor_adapter_sha256=$(sha256_file "$openbor_dst/lib/libplumos-openbor-sdl-rotate.so")
+  openbor_patch_sha256=$(sha256_file "$patch_file")
+  openbor_adapter_source_sha256=$(sha256_file "$OPENBOR_SDL_ROTATE_SOURCE")
+  cat >"$openbor_dst/build-manifest.json" <<EOF
+{
+  "device": "rk2020",
+  "version": "$VERSION",
+  "project_source_ref": "$PROJECT_SOURCE_REF",
+  "source_date_epoch": $SOURCE_EPOCH,
+  "upstream": "$OPENBOR_REPO",
+  "commit": "$OPENBOR_REF",
+  "binary_sha256": "$openbor_binary_sha256",
+  "rk2020_patch_sha256": "$openbor_patch_sha256",
+  "rotation_adapter_sha256": "$openbor_adapter_sha256",
+  "rotation_adapter_source_sha256": "$openbor_adapter_source_sha256"
+}
+EOF
 }
 
 build_pcsx_rearmed() {

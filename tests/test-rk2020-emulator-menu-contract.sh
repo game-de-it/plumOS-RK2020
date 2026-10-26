@@ -121,15 +121,38 @@ for binding in \
 done
 
 for binding in \
-    'CONTROL_ESC                 (JOY_LIST_FIRST + 15)' \
-    'CONTROL_DEFAULT1_UP         (JOY_LIST_FIRST + 11)' \
-    'CONTROL_DEFAULT1_RIGHT      (JOY_LIST_FIRST + 14)' \
-    'CONTROL_DEFAULT1_DOWN       (JOY_LIST_FIRST + 12)' \
-    'CONTROL_DEFAULT1_LEFT       (JOY_LIST_FIRST + 13)' \
-    'CONTROL_DEFAULT1_START      (JOY_LIST_FIRST + 20)' \
-    'CONTROL_DEFAULT1_ESC        (JOY_LIST_FIRST + 15)'; do
+    'CONTROL_ESC                 (JOY_LIST_FIRST + 11)' \
+    'CONTROL_DEFAULT1_UP         (JOY_LIST_FIRST + 7)' \
+    'CONTROL_DEFAULT1_RIGHT      (JOY_LIST_FIRST + 10)' \
+    'CONTROL_DEFAULT1_DOWN       (JOY_LIST_FIRST + 8)' \
+    'CONTROL_DEFAULT1_LEFT       (JOY_LIST_FIRST + 9)' \
+    'CONTROL_DEFAULT1_FIRE1      (JOY_LIST_FIRST + 2)' \
+    'CONTROL_DEFAULT1_FIRE2      (JOY_LIST_FIRST + 1)' \
+    'CONTROL_DEFAULT1_FIRE3      (JOY_LIST_FIRST + 3)' \
+    'CONTROL_DEFAULT1_FIRE4      (JOY_LIST_FIRST + 4)' \
+    'CONTROL_DEFAULT1_FIRE5      (JOY_LIST_FIRST + 5)' \
+    'CONTROL_DEFAULT1_FIRE6      (JOY_LIST_FIRST + 6)' \
+    'CONTROL_DEFAULT1_START      (JOY_LIST_FIRST + 16)' \
+    'CONTROL_DEFAULT1_ESC        (JOY_LIST_FIRST + 11)'; do
     grep -Fq "$binding" "$OPENBOR_PATCH" ||
         fail "OpenBOR RK2020 controller contract missing: $binding"
+done
+for contract in \
+    'Make the measured ABS_X/ABS_Y stick mirror the physical D-pad' \
+    '0x01 << (JOY_AXIS_Y * 2)' \
+    '0x02 << (JOY_AXIS_X * 2)' \
+    'PLUMOS_OPENBOR_SDL_ROTATION' \
+    'libplumos-openbor-sdl-rotate.so'; do
+    grep -Fq "$contract" "$OPENBOR_PATCH" "$SA_BUILD" "$SA_LAUNCHER" ||
+        fail "OpenBOR RK2020 display/input contract missing: $contract"
+done
+for contract in \
+    'export PLUMOS_OPENBOR_SDL_ROTATION=270' \
+    'export SDL_RENDER_DRIVER=opengles2' \
+    'XDG_DATA_HOME}/${openbor_data}' \
+    'openbor_rotation}${LD_PRELOAD'; do
+    grep -Fq "$contract" "$SA_LAUNCHER" ||
+        fail "OpenBOR launcher contract missing: $contract"
 done
 
 for contract in \
