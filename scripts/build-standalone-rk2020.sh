@@ -32,6 +32,7 @@ DRASTIC_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-toolchain.patch"
 DRASTIC_INPUT_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-input.patch"
 DRASTIC_TOUCH_MODE_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-touch-mode.patch"
 DRASTIC_TOUCH_SPEED_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-touch-speed.patch"
+DRASTIC_INPUT_DRAIN_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-input-drain.patch"
 DRASTIC_RUNNER_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-runner-readiness.patch"
 DRASTIC_ROTATION_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-runner-rotation.patch"
 DRASTIC_MENU_PRESENT_PATCH="$PATCH_DIR/drastic/steward-fu-nds-rk2020-menu-present.patch"
@@ -517,6 +518,8 @@ build_drastic() {
     >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_TOUCH_SPEED_PATCH" \
     >>"$DRASTIC_LOG" 2>&1
+  git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_INPUT_DRAIN_PATCH" \
+    >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_RUNNER_PATCH" \
     >>"$DRASTIC_LOG" 2>&1
   git -C "$DRASTIC_SOURCE_DIR" apply "$DRASTIC_ROTATION_PATCH" \
@@ -633,6 +636,7 @@ build_drastic() {
   input_patch_sha256=$(sha256_file "$DRASTIC_INPUT_PATCH")
   touch_mode_patch_sha256=$(sha256_file "$DRASTIC_TOUCH_MODE_PATCH")
   touch_speed_patch_sha256=$(sha256_file "$DRASTIC_TOUCH_SPEED_PATCH")
+  input_drain_patch_sha256=$(sha256_file "$DRASTIC_INPUT_DRAIN_PATCH")
   runner_patch_sha256=$(sha256_file "$DRASTIC_RUNNER_PATCH")
   rotation_patch_sha256=$(sha256_file "$DRASTIC_ROTATION_PATCH")
   menu_present_patch_sha256=$(sha256_file "$DRASTIC_MENU_PRESENT_PATCH")
@@ -659,6 +663,7 @@ build_drastic() {
   "input_patch_sha256": "$input_patch_sha256",
   "touch_mode_patch_sha256": "$touch_mode_patch_sha256",
   "touch_speed_patch_sha256": "$touch_speed_patch_sha256",
+  "input_drain_patch_sha256": "$input_drain_patch_sha256",
   "runner_readiness_patch_sha256": "$runner_patch_sha256",
   "runner_rotation_patch_sha256": "$rotation_patch_sha256",
   "runner_menu_present_patch_sha256": "$menu_present_patch_sha256",
