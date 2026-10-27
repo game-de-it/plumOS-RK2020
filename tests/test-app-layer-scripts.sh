@@ -767,6 +767,8 @@ grep -q 'sysrq-trigger' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'rk817-dev-off' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
+grep -q 'kernel-poweroff' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'i2cset -f -y 0 0x20 0xf4' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'plumos-reboot-mode' \

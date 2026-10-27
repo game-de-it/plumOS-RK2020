@@ -212,6 +212,24 @@ rk817_dev_off() {
     i2cset -f -y 0 0x20 0xf4 "$value"
 }
 
+kernel_power_off() {
+    # The stock RK2020 kernel owns the complete RK817 shutdown sequence.  In
+    # particular, its device shutdown callbacks disable the OTG switch and
+    # boost rail before the PMIC syscore callback removes system power.  A
+    # direct SYS_CFG3 DEV_OFF write bypasses those callbacks and can leave an
+    # attached USB Wi-Fi dongle powered when a charger is connected.
+    log 'power=shutdown-method method=kernel-poweroff command=busybox-poweroff-f'
+    if "$bb" poweroff -f; then
+        rc=0
+    else
+        rc=$?
+    fi
+    # A successful power-off never returns.  Preserve the direct RK817 method
+    # only as a last-resort fallback if the reboot syscall is rejected.
+    log "power=shutdown-method method=kernel-poweroff result=returned rc=$rc"
+    return 1
+}
+
 read_power_value() {
     path=$1
     [ -r "$path" ] || return 1
@@ -603,17 +621,20 @@ case "$action" in
                 elif [ "$shutdown_charger_present" -eq 1 ]; then
                     # RK2020's retained bootloader does not honor restart2
                     # charge mode as a terminal state: it returns to the OS.
-                    # Use the RK817 DEV_OFF path unless a future hardware-
-                    # validated profile explicitly enables charge-mode reboot.
-                    log 'power=charge-mode-disabled action=pmic-off'
+                    # Match stockOS and use the kernel's complete RK817 power-
+                    # off sequence unless a future hardware-validated profile
+                    # explicitly enables charge-mode reboot.
+                    log 'power=charge-mode-disabled action=kernel-poweroff'
                 fi
                 if [ "$terminal_test" = 1 ]; then
-                    log 'power=terminal-test action=rk817-dev-off'
+                    log 'power=terminal-test action=kernel-poweroff'
                     exit 0
                 fi
+                kernel_power_off || true
+                log 'power=shutdown-fallback method=rk817-dev-off'
                 rk817_dev_off || log 'power=shutdown-method method=rk817-dev-off rc=1'
                 $bb sleep 5
-                log 'power=shutdown-method method=busybox-poweroff-fallback'
+                log 'power=shutdown-method method=busybox-poweroff-final-fallback'
                 exec "$bb" poweroff -f
                 ;;
         esac

@@ -263,11 +263,11 @@ PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
 ! grep -Eq '^(devmem|reboot-mode) ' "$TEST_ROOT/calls"
 grep -q 'power=charger-detected source=battery-status value=Charging' \
     "$TEST_ROOT/logs/power.log"
-grep -q 'power=charge-mode-disabled action=pmic-off' \
+grep -q 'power=charge-mode-disabled action=kernel-poweroff' \
     "$TEST_ROOT/logs/power.log"
-grep -q 'power=terminal-test action=rk817-dev-off' \
+grep -q 'power=terminal-test action=kernel-poweroff' \
     "$TEST_ROOT/logs/power.log"
-grep -q 'power=terminal-test action=rk817-dev-off' \
+grep -q 'power=terminal-test action=kernel-poweroff' \
     "$TEST_ROOT/user-logs/power.log"
 grep -q '^usb-host release marker=absent$' "$TEST_ROOT/calls"
 grep -Fxq 'ff300000.usb' "$TEST_ROOT/dwc2/unbind"
@@ -322,7 +322,7 @@ PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
 [ ! -s "$TEST_ROOT/calls" ]
 grep -q 'power=charger-detected source=phy-bvalid status=Full' \
     "$TEST_ROOT/logs/power.log"
-grep -q 'power=charge-mode-disabled action=pmic-off' \
+grep -q 'power=charge-mode-disabled action=kernel-poweroff' \
     "$TEST_ROOT/logs/power.log"
 
 printf '0x00000000\n' >"$TEST_ROOT/phy-status"
@@ -347,7 +347,7 @@ PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
 [ ! -s "$TEST_ROOT/calls" ]
 grep -q 'power=charger-absent status=Full current=0' \
     "$TEST_ROOT/logs/power.log"
-grep -q 'power=terminal-test action=rk817-dev-off' \
+grep -q 'power=terminal-test action=kernel-poweroff' \
     "$TEST_ROOT/logs/power.log"
 
 cat >"$TEST_ROOT/menu" <<'EOF'
