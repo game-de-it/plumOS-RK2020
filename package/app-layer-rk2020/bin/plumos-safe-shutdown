@@ -34,6 +34,8 @@ otg_mode=${PLUMOS_OTG_MODE:-/sys/devices/platform/ff2c0000.syscon/ff2c0000.sysco
 phy_status_file=${PLUMOS_POWER_PHY_STATUS_FILE:-}
 phy_status_addr=${PLUMOS_POWER_PHY_STATUS_ADDR:-0xff2c0120}
 phy_bvalid_mask=${PLUMOS_POWER_PHY_BVALID_MASK:-0x200}
+vcc_host_gpio_addr=${PLUMOS_POWER_VCC_HOST_GPIO_ADDR:-0xff040000}
+vcc_host_gpio_mask=${PLUMOS_POWER_VCC_HOST_GPIO_MASK:-0x8000}
 usb_host_control=${PLUMOS_USB_HOST_CONTROL:-/usr/lib/plumos/init.d/15-usb-host-reenumerate}
 usb_host_dwc2_driver=${PLUMOS_POWER_DWC2_DRIVER:-/sys/bus/platform/drivers/dwc2}
 usb_host_platform_device=${PLUMOS_POWER_USB_PLATFORM_DEVICE:-/sys/bus/platform/devices/ff300000.usb}
@@ -228,6 +230,62 @@ kernel_power_off() {
     # only as a last-resort fallback if the reboot syscall is rejected.
     log "power=shutdown-method method=kernel-poweroff result=returned rc=$rc"
     return 1
+}
+
+devmem_read32() {
+    address=$1
+    if [ -n "$devmem_command" ]; then
+        "$devmem_command" "$address" 32
+    else
+        "$bb" devmem "$address" 32
+    fi
+}
+
+devmem_write32() {
+    address=$1
+    value=$2
+    if [ -n "$devmem_command" ]; then
+        "$devmem_command" "$address" 32 "$value"
+    else
+        "$bb" devmem "$address" 32 "$value"
+    fi
+}
+
+disable_vcc_host_for_shutdown() {
+    # The stock RK2020 DT keeps vcc_host enabled through GPIO0-15.  RK817's
+    # shutdown callback removes its OTG/boost side, but a charger can keep the
+    # always-on fixed-regulator GPIO high and back-power an attached Wi-Fi
+    # dongle after the SoC stops.  Drop only that enable bit after all storage
+    # cleanup is complete and immediately before the kernel power-off syscall.
+    before=$(devmem_read32 "$vcc_host_gpio_addr" 2>/dev/null) || {
+        log "power=vcc-host-disable-failed stage=read address=$vcc_host_gpio_addr"
+        return 1
+    }
+    case "$before" in 0x*|0X*|[0-9]*) ;; *)
+        log "power=vcc-host-disable-failed stage=parse value=$before"
+        return 1
+        ;;
+    esac
+    after=$((before & ~vcc_host_gpio_mask))
+    after_hex=$(printf '0x%08x' "$after")
+    devmem_write32 "$vcc_host_gpio_addr" "$after_hex" >/dev/null 2>&1 || {
+        log "power=vcc-host-disable-failed stage=write address=$vcc_host_gpio_addr value=$after_hex"
+        return 1
+    }
+    observed=$(devmem_read32 "$vcc_host_gpio_addr" 2>/dev/null) || {
+        log "power=vcc-host-disable-failed stage=verify-read address=$vcc_host_gpio_addr"
+        return 1
+    }
+    case "$observed" in 0x*|0X*|[0-9]*) ;; *)
+        log "power=vcc-host-disable-failed stage=verify-parse value=$observed"
+        return 1
+        ;;
+    esac
+    if [ $((observed & vcc_host_gpio_mask)) -ne 0 ]; then
+        log "power=vcc-host-disable-failed stage=verify value=$observed mask=$vcc_host_gpio_mask"
+        return 1
+    fi
+    log "power=vcc-host-disabled address=$vcc_host_gpio_addr mask=$vcc_host_gpio_mask before=$before after=$observed"
 }
 
 read_power_value() {
@@ -630,6 +688,7 @@ case "$action" in
                     log 'power=terminal-test action=kernel-poweroff'
                     exit 0
                 fi
+                disable_vcc_host_for_shutdown || true
                 kernel_power_off || true
                 log 'power=shutdown-fallback method=rk817-dev-off'
                 rk817_dev_off || log 'power=shutdown-method method=rk817-dev-off rc=1'
