@@ -92,8 +92,6 @@ restored successfully as PID 16843.
 
 ## Remaining physical gates
 
-- Launch a RetroArch game, short-press Power, confirm that the menu is in
-  front, cancel it, and confirm that the same game resumes visibly.
 - Repeat the focused foreground/cancel check with one standalone direct-DRM
   route and one PortMaster game.
 - Check DraStic separately because its ARMHF game and AArch64 display runner
@@ -102,3 +100,55 @@ restored successfully as PID 16843.
 These focused checks cover the changed display-handoff dependency boundary;
 the full emulator matrix does not need to be repeated unless one of them
 reveals a shared regression.
+
+## RetroArch in-game Sleep acceptance
+
+The first two physical attempts did not enter suspend.  The live overlay log
+reported `selection=cancel`, the power log had no new `sleep=enter`, game audio
+continued, and the backlight remained at `bl_power=4`.  The overlay had not
+loaded `config/system/input-map.env`, so the RK2020 physical A button
+(`BTN_EAST`) was interpreted as B/Cancel instead of the configured
+`east-confirm` action.  Closing the overlay could also leave the panel blank
+even though the game continued.
+
+Commit `748864f` runs the overlay frontend through
+`plumos-run-with-input-map`, distinguishes a present selection file in the
+log, and explicitly unblanks the RK2020 backlight after the parent daemon
+restores the game's DRM planes.  Its frontend component and complete live
+app-layer checksum sets passed after managed deployment.
+
+The subsequent physical run reported:
+
+- the Wi-Fi dongle LED turned off after selecting Sleep;
+- Power woke the same session;
+- the resumed RetroArch game accepted controls; and
+- the game then exited normally.
+
+The corresponding live evidence is:
+
+```text
+menu end rc=0 selection_file=present selection=sleep
+sleep=enter backend=mem
+sleep=resume backend=mem
+sleep=display-unblank brightness=14 bl_power=0 saved_bl_power=4
+hardware-keys: drm-master=restore owner=20274 rc=0
+hardware-keys: drm-planes=restore owner=20274 count=2 rc=0
+hardware-keys: display-unblank owner=20274 rc=0
+hardware-keys: display-owner=resume owner=20274
+```
+
+The frontend did not return after this particular run because the validation
+launcher had intentionally stopped FE and started RetroArch directly over SSH;
+there was no suspended frontend process to resume.  This is a test-harness
+artifact rather than evidence against the normal FE-owned launch route.  FE
+was restored afterward as PID 24221.  A normal FE launch/exit remains the
+focused confirmation for frontend return; repeating the suspend cycle is not
+required for that check.
+
+The pre-deployment state for the input-map/backlight correction is recoverable
+from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-power-overlay-input-748864f-before/before.tar
+SHA-256 d776358845b066a2205f8b5bcbb3583327fe768b5441907d43fecdc6273498f8
+```

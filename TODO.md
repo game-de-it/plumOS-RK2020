@@ -16,7 +16,11 @@
 - [ ] Confirm the frontend at native 320x480/60 Hz with correct orientation.
 - [ ] Confirm all RK2020 buttons and both analogue axes.
 - [ ] Confirm speaker, headphone switching, volume, and mute through RK817.
-- [ ] Confirm brightness range and suspend/resume behavior.
+- [x] Confirm brightness range and suspend/resume behavior. Frontend suspend,
+  powered wake, delayed Wi-Fi recovery, and RetroArch in-game suspend/resume
+  are physically accepted. The in-game route now applies the RK2020
+  east-confirm input map to its power overlay, enters kernel `mem`, restores
+  the DRM planes/backlight, and resumes the same controllable game.
 - [ ] Confirm cold boot, reboot, shutdown, and charging-state behavior.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [x] Run representative no-input and gameplay tests for every emulator route.
