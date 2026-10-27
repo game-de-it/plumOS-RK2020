@@ -21,15 +21,14 @@
   are physically accepted. The in-game route now applies the RK2020
   east-confirm input map to its power overlay, enters kernel `mem`, restores
   the DRM planes/backlight, and resumes the same controllable game.
-- [ ] Confirm cold boot, reboot, shutdown, and charging-state behavior.
-  Charger-connected frontend Shutdown now physically matches stockOS: the
-  display, charge LED, and external Wi-Fi LED all turn off without a reboot or
-  automatic charge-screen transition.  Cable-disconnected Shutdown exposed a
-  separate regression: the Wi-Fi LED remained lit.  Read-only stockOS analysis
-  found that stock keeps DWC2 and `8821cu` bound through kernel shutdown, where
-  `rtw_dev_shutdown` remains available.  Commit `6004700` now preserves that
-  path; cable-disconnected frontend Shutdown physically turns the display and
-  all LEDs off.  The cable-connected gate still needs a post-change retest.
+- [x] Confirm cold boot, reboot, shutdown, and charging-state behavior.
+  Read-only stockOS analysis found that stock keeps DWC2 and `8821cu` bound
+  through kernel shutdown, where `rtw_dev_shutdown` remains available.  Commit
+  `6004700` preserves that path.  Frontend Shutdown now physically turns the
+  display, charge LED, and external Wi-Fi LED off both with the charging cable
+  disconnected and with `ac=1`/battery `Charging`; it does not reboot or enter
+  the charge screen.  Cold boot and cable-connected/disconnected reboot paths
+  were also physically accepted.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [x] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70

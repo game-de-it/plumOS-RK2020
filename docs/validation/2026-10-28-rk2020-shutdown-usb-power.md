@@ -221,6 +221,24 @@ With the charging cable disconnected, the live device reported
 bound to `rtl8821cu`.  The operator then selected frontend Shutdown and
 confirmed that the display and all LEDs turned off.
 
-The cable-disconnected gate is accepted.  Cable-connected Shutdown remains a
-separate post-change regression gate because the prior connected pass used the
-superseded GPIO-low sequence.
+The cable-disconnected gate is accepted.
+
+For the separate cable-connected retest, the live pre-shutdown state was:
+
+```text
+ac=1
+usb=0
+battery=Charging
+current=401000
+dwc2=bound
+wifi=rtl8821cu
+script=4fe96d589ea134b48d7787025e941168bbe14e6a41591e127dfb4147c4db56f2
+```
+
+The operator selected frontend Shutdown while leaving the cable connected and
+confirmed that the display, Wi-Fi LED, and charge LED all turned off.  There
+was no reboot or charge-screen transition.
+
+Both cable-disconnected and cable-connected Shutdown gates are accepted.  The
+final behavior matches the observed stockOS terminal state without pre-emptive
+DWC2 unbind, RK817 boost writes, or `vcc_host` GPIO manipulation.
