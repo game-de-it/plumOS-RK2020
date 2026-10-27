@@ -137,6 +137,20 @@ static void reopen_source(struct input_source *source) {
   }
 }
 
+static int headphone_switch_state(int fd) {
+  unsigned char switches[(SW_MAX + 8) / 8];
+
+  if (fd < 0) {
+    return -ENODEV;
+  }
+  memset(switches, 0, sizeof(switches));
+  if (ioctl(fd, EVIOCGSW(sizeof(switches)), switches) < 0) {
+    return -errno;
+  }
+  return (switches[SW_HEADPHONE_INSERT / 8] >>
+          (SW_HEADPHONE_INSERT % 8)) & 1U;
+}
+
 static int run_helper(const char *helper_name, const char *action) {
   const char *root = getenv("PLUMOS_ROOT");
   char helper[512];
@@ -164,6 +178,17 @@ static int run_helper(const char *helper_name, const char *action) {
     }
   }
   return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : -EIO;
+}
+
+static int apply_headphone_route(int connected) {
+  const char *route = connected ? "headphone" : "speaker";
+  const char *action = connected ? "route-headphone" : "route-speaker";
+  int result = run_helper("plumos-rk817-resume", action);
+
+  fprintf(stderr,
+          "hardware-keys: event=headphone connected=%d route=%s rc=%d\n",
+          connected, route, result);
+  return result;
 }
 
 static void reap_children(void) {
@@ -1175,6 +1200,7 @@ int main(void) {
   struct input_source gamepad = {"GO-Advance Gamepad", -1};
   struct input_source volume_keys = {"gpio-keys", -1};
   struct input_source power_key = {"rk8xx_pwrkey", -1};
+  struct input_source headphones = {"rockchip,rk817-codec Headphones", -1};
   const char *runtime_root = getenv("PLUMOS_RUNTIME_ROOT");
   char run_dir[512];
   char lock_path[512];
@@ -1192,6 +1218,7 @@ int main(void) {
   int held_from_gamepad = 0;
   int volume_pending = 0;
   int display_pending = 0;
+  int headphone_connected = -1;
   unsigned int volume_modifier = volume_modifier_code();
 
   if (!runtime_root || !runtime_root[0]) {
@@ -1227,24 +1254,34 @@ int main(void) {
   (void)run_helper("plumos-display-control", "apply");
 
   while (running) {
-    struct input_source *sources[3] = {&gamepad, &volume_keys, &power_key};
-    struct pollfd poll_fds[3];
+    struct input_source *sources[4] = {&gamepad, &volume_keys, &power_key,
+                                       &headphones};
+    struct pollfd poll_fds[4];
     long long now = monotonic_ms();
     int index;
     int ready;
 
     if (now >= next_reopen) {
+      int headphones_were_closed = headphones.fd < 0;
+
       reopen_source(&gamepad);
       reopen_source(&volume_keys);
       reopen_source(&power_key);
+      reopen_source(&headphones);
+      if (headphones_were_closed && headphones.fd >= 0) {
+        int state = headphone_switch_state(headphones.fd);
+        if (state >= 0 && apply_headphone_route(state) == 0) {
+          headphone_connected = state;
+        }
+      }
       next_reopen = now + REOPEN_INTERVAL_MS;
     }
-    for (index = 0; index < 3; index++) {
+    for (index = 0; index < 4; index++) {
       poll_fds[index].fd = sources[index]->fd;
       poll_fds[index].events = POLLIN;
       poll_fds[index].revents = 0;
     }
-    ready = poll(poll_fds, 3, 100);
+    ready = poll(poll_fds, 4, 100);
     now = monotonic_ms();
     if (ready < 0 && errno != EINTR) {
       break;
@@ -1269,7 +1306,7 @@ int main(void) {
       now = monotonic_ms();
       power_menu_debounce_due = now + POWER_MENU_DEBOUNCE_MS;
     }
-    for (index = 0; ready > 0 && index < 3; index++) {
+    for (index = 0; ready > 0 && index < 4; index++) {
       struct input_source *source = sources[index];
 
       if (source->fd < 0 ||
@@ -1281,7 +1318,14 @@ int main(void) {
         ssize_t bytes = read(source->fd, &event, sizeof(event));
 
         if (bytes == (ssize_t)sizeof(event)) {
-          if (source == &power_key && event.type == EV_KEY &&
+          if (source == &headphones && event.type == EV_SW &&
+              event.code == SW_HEADPHONE_INSERT) {
+            int state = event.value != 0;
+            if (state != headphone_connected &&
+                apply_headphone_route(state) == 0) {
+              headphone_connected = state;
+            }
+          } else if (source == &power_key && event.type == EV_KEY &&
               event.code == KEY_POWER) {
             if (event.value == 1 && now >= power_menu_debounce_due) {
               if (software_sleep_active() &&
@@ -1427,6 +1471,9 @@ int main(void) {
   }
   if (power_key.fd >= 0) {
     close(power_key.fd);
+  }
+  if (headphones.fd >= 0) {
+    close(headphones.fd);
   }
   reap_children();
   close(lock_fd);

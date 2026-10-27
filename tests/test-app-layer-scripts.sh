@@ -704,6 +704,16 @@ grep -q 'gpio-keys' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'rk8xx_pwrkey' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'rockchip,rk817-codec Headphones' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'event.type == EV_SW' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'event.code == SW_HEADPHONE_INSERT' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'route-headphone' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'route-speaker' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q "find_input 'rk8xx_pwrkey'" \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-power-menu-overlay"
 grep -q 'plumos-power-menu-overlay' \
