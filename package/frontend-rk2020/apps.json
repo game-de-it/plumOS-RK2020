@@ -39,7 +39,7 @@
       "display_name": "Pyxel Setup",
       "kind": "tool",
       "launch_profile": "shell:$PLUMOS_ROOT/bin/plumos-pyxel-setup install",
-      "confirm": true,
+      "confirm": false,
       "show_results": true,
       "visible": true,
       "menu": "apps"

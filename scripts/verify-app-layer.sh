@@ -377,6 +377,7 @@ from pathlib import Path
 catalog = json.loads(Path(sys.argv[1]).read_text())
 root = Path(sys.argv[2])
 missing = []
+apps = {app.get("id"): app for app in catalog.get("apps", [])}
 for app in catalog.get("apps", []):
     if not app.get("visible"):
         continue
@@ -389,6 +390,10 @@ for app in catalog.get("apps", []):
         missing.append(f"{app.get('id')}:{command}")
 if missing:
     raise SystemExit("visible Apps launcher missing: " + ", ".join(missing))
+if apps.get("pyxel_setup", {}).get("confirm") is not False:
+    raise SystemExit("Pyxel Setup must launch on the first explicit A press")
+if apps.get("portmaster_update", {}).get("confirm") is not True:
+    raise SystemExit("PortMaster update must retain its confirmation guard")
 PY
 foreign_models='M[F]|V9[0]S|M[M]F|A3[0]|Miy[o]o'
 if find "$ROOT/config" "$ROOT/share" "$ROOT/licenses" -type f \
