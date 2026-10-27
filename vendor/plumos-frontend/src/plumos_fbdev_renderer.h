@@ -329,6 +329,12 @@ static int plumos_fbdev_drm_init(struct plumos_fbdev_renderer *r,
              strerror(errno));
     return 0;
   }
+  if (drmSetMaster(r->drm_fd) != 0) {
+    snprintf(error, error_size, "DRM set master: %s", strerror(errno));
+    close(r->drm_fd);
+    r->drm_fd = -1;
+    return 0;
+  }
   resources = drmModeGetResources(r->drm_fd);
   if (!resources) {
     snprintf(error, error_size, "DRM get resources: %s", strerror(errno));

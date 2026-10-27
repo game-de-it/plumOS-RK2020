@@ -147,6 +147,8 @@ export PLUMOS_MUSIC_ROTATION="${PLUMOS_MUSIC_ROTATION:-ccw}"
 # Do not inherit service-specific glibc paths. This app
 # owns its non-system dependencies and must otherwise use the RK2020 system libc.
 export LD_LIBRARY_PATH="$APP_ROOT/lib"
+HANDOFF_LIBRARY="$PLUMOS_ROOT/frontend/lib/libplumos-display-handoff.so"
+[ ! -r "$HANDOFF_LIBRARY" ] || export LD_PRELOAD="$HANDOFF_LIBRARY${LD_PRELOAD:+:$LD_PRELOAD}"
 cd "$APP_ROOT" || exit 1
 exec "$APP_ROOT/bin/plumos-music-player.bin" >>"$LOG_DIR/music-player.log" 2>&1
 EOF

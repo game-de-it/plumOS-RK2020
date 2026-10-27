@@ -401,6 +401,10 @@ if [ -z "${ALSA_CONFIG_PATH:-}" ] && [ -s "$alsa_config" ]; then
     export ALSA_CONFIG_PATH="${ALSA_CONFIG_PATH:-$alsa_config}"
 fi
 export LD_LIBRARY_PATH="$root/lib/libretro:$root/emulator/lib:$root/frontend/lib:$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+handoff_preload="$root/frontend/lib/libplumos-display-handoff.so"
+if [ -r "$handoff_preload" ]; then
+    export LD_PRELOAD="$handoff_preload${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
 $bb mkdir -p "$HOME" "$XDG_CACHE_HOME"
 printf 'retroarch=result-start system=%s core=%s rom=%s\n' \
     "$system_id" "${core##*/}" "${rom##*/}" >>"$root/logs/retroarch-launch.log"

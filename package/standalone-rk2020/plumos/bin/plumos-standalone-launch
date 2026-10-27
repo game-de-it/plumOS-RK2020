@@ -48,6 +48,10 @@ export SDL_AUDIODRIVER="${SDL_AUDIODRIVER:-alsa}"
 export ALSA_CONFIG_PATH="${PLUMOS_ALSA_CONFIG_PATH:-${PLUMOS_RUNTIME_ROOT}/audio/asound.conf}"
 export ALSA_PLUGIN_DIR="${PLUMOS_ALSA_PLUGIN_DIR:-${PLUMOS_ROOT}/lib/alsa-lib}"
 export AUDIODEV="${AUDIODEV:-plumos_output}"
+handoff_preload="${PLUMOS_ROOT}/frontend/lib/libplumos-display-handoff.so"
+if [ -r "$handoff_preload" ]; then
+  export LD_PRELOAD="$handoff_preload${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
 
 AUDIO_OUTPUT_HELPER="${PLUMOS_AUDIO_OUTPUT_HELPER:-${PLUMOS_ROOT}/bin/plumos-audio-output}"
 if [ -x "$AUDIO_OUTPUT_HELPER" ]; then
@@ -611,6 +615,9 @@ if [ "$id" = drastic ]; then
     "$id" "$exe" "$drastic_content" >>"$LOG_ROOT/launcher.log"
   (
     cd "$runtime" || exit 127
+    # The display broker is AArch64 and belongs to the AArch64 runner.  The
+    # proprietary DraStic core has its own ARMHF preload contract.
+    unset LD_PRELOAD
     export SDL_VIDEODRIVER=NDS
     export SDL_AUDIODRIVER=alsa
     export ALSA_PLUGIN_DIR="${PLUMOS_ROOT}/lib/alsa-lib-armhf"

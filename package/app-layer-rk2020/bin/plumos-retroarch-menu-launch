@@ -85,5 +85,9 @@ export HOME="$root/state/retroarch/home"
 export XDG_CONFIG_HOME="$root/config"
 export XDG_CACHE_HOME="$root/state/retroarch/cache"
 export LD_LIBRARY_PATH="$root/emulator/lib:$root/frontend/lib:$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+handoff_preload="$root/frontend/lib/libplumos-display-handoff.so"
+if [ -r "$handoff_preload" ]; then
+    export LD_PRELOAD="$handoff_preload${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
 exec "$root/bin/retroarch" --menu -v -c "$config" --appendconfig "$append" \
     >>"$root/logs/retroarch-menu.log" 2>&1

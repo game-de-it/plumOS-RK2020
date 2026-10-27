@@ -97,6 +97,10 @@ gcc "${common[@]}" "$SOURCE_DIR/plumos_frontend.c" \
     -o "$BIN_DIR/plumos-frontend-diagnostics"
 gcc "${common[@]}" $drm_cflags "$SOURCE_DIR/plumos_rk2020_hardware_keys.c" \
     -o "$BIN_DIR/plumos-hardware-keys" $drm_libs
+gcc "${common[@]}" -fPIC -shared -pthread \
+    -Wl,-z,defs -Wl,-soname,libplumos-display-handoff.so \
+    "$SOURCE_DIR/plumos_display_handoff.c" \
+    -o "$LIB_DIR/libplumos-display-handoff.so"
 gcc "${common[@]}" "$SOURCE_DIR/plumos_rk817_resume.c" \
     -o "$BIN_DIR/plumos-rk817-resume" \
     -Wl,-rpath,'$ORIGIN/../frontend/lib' -lasound

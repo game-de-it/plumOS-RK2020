@@ -195,6 +195,10 @@ if [ -r "$fit_library" ] && [ "${PLUMOS_PORTMASTER_FIT:-0}" != 0 ]; then
   export PLUMOS_PYXEL_FIT_HEIGHT=480
   export LD_PRELOAD="$fit_library${LD_PRELOAD:+:$LD_PRELOAD}"
 fi
+handoff_library="$PLUMOS_ROOT/frontend/lib/libplumos-display-handoff.so"
+if [ -r "$handoff_library" ]; then
+  export LD_PRELOAD="$handoff_library${LD_PRELOAD:+:$LD_PRELOAD}"
+fi
 mkdir -p "$HOME" "$XDG_CACHE_HOME" "$HM_PORTS_DIR"
 
 printf '\n[%s] launch version=%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \

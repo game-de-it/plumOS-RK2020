@@ -6,12 +6,15 @@
 #include <linux/input.h>
 #include <poll.h>
 #include <signal.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/syscall.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -307,6 +310,97 @@ static int duplicate_process_fd(pid_t pid, int target_fd) {
   }
   close(pidfd);
   return duplicated;
+}
+
+static int receive_brokered_drm_fd(pid_t pid) {
+  const char *runtime_root = getenv("PLUMOS_RUNTIME_ROOT");
+  char socket_path[sizeof(((struct sockaddr_un *)0)->sun_path)];
+  struct sockaddr_un address;
+  int client;
+  int attempt;
+
+  if (!runtime_root || !runtime_root[0]) {
+    runtime_root = "/run/plumos";
+  }
+  if (pid <= 1 ||
+      snprintf(socket_path, sizeof(socket_path),
+               "%s/display-handoff/%ld.sock", runtime_root, (long)pid) >=
+          (int)sizeof(socket_path)) {
+    return -EINVAL;
+  }
+  memset(&address, 0, sizeof(address));
+  address.sun_family = AF_UNIX;
+  memcpy(address.sun_path, socket_path, strlen(socket_path) + 1);
+  for (attempt = 0; attempt < 10; attempt++) {
+    client = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (client < 0) {
+      return -errno;
+    }
+    (void)fcntl(client, F_SETFD, FD_CLOEXEC);
+    if (connect(client, (struct sockaddr *)&address,
+                offsetof(struct sockaddr_un, sun_path) +
+                    strlen(socket_path) + 1) == 0) {
+      char request[] = "GET\n";
+      char byte = 0;
+      char control[CMSG_SPACE(sizeof(int))];
+      struct iovec iov;
+      struct msghdr message;
+      struct cmsghdr *header;
+      struct ucred credentials;
+      socklen_t credentials_size = sizeof(credentials);
+
+      if (getsockopt(client, SOL_SOCKET, SO_PEERCRED, &credentials,
+                     &credentials_size) != 0 || credentials.pid != pid) {
+        close(client);
+        return -EPERM;
+      }
+      if (write(client, request, sizeof(request) - 1) !=
+          (ssize_t)(sizeof(request) - 1)) {
+        int result = errno ? -errno : -EIO;
+        close(client);
+        return result;
+      }
+      memset(&message, 0, sizeof(message));
+      memset(control, 0, sizeof(control));
+      iov.iov_base = &byte;
+      iov.iov_len = 1;
+      message.msg_iov = &iov;
+      message.msg_iovlen = 1;
+      message.msg_control = control;
+      message.msg_controllen = sizeof(control);
+      if (recvmsg(client, &message, 0) <= 0) {
+        int result = errno ? -errno : -EIO;
+        close(client);
+        return result;
+      }
+      if (message.msg_flags & MSG_CTRUNC) {
+        close(client);
+        return -EMSGSIZE;
+      }
+      close(client);
+      for (header = CMSG_FIRSTHDR(&message); header;
+           header = CMSG_NXTHDR(&message, header)) {
+        int received;
+        if (header->cmsg_level != SOL_SOCKET ||
+            header->cmsg_type != SCM_RIGHTS ||
+            header->cmsg_len < CMSG_LEN(sizeof(received))) {
+          continue;
+        }
+        memcpy(&received, CMSG_DATA(header), sizeof(received));
+        (void)fcntl(received, F_SETFD, FD_CLOEXEC);
+        return received;
+      }
+      return -ENOMSG;
+    }
+    if (errno != ENOENT && errno != ECONNREFUSED) {
+      int result = -errno;
+      close(client);
+      return result;
+    }
+    close(client);
+    usleep(20000);
+  }
+  return -ETIMEDOUT;
 }
 
 static int process_is_stopped(pid_t pid) {
@@ -676,7 +770,18 @@ static int spawn_power_menu_overlay(void) {
                 (long)owner, (long)companion,
                 companion_stopped ? 0 : -EIO);
       }
-      owner_drm_fd = duplicate_process_fd(owner, target_fd);
+      owner_drm_fd = receive_brokered_drm_fd(owner);
+      if (owner_drm_fd >= 0) {
+        fprintf(stderr,
+                "hardware-keys: drm-master=broker owner=%ld fd=%d rc=0\n",
+                (long)owner, target_fd);
+      } else {
+        int broker_result = owner_drm_fd;
+        owner_drm_fd = duplicate_process_fd(owner, target_fd);
+        fprintf(stderr,
+                "hardware-keys: drm-master=broker owner=%ld fd=%d rc=%d fallback=%d\n",
+                (long)owner, target_fd, broker_result, owner_drm_fd);
+      }
       if (owner_drm_fd >= 0) {
         owner_stopped = stop_process_for_overlay(owner);
         if (owner_stopped) {

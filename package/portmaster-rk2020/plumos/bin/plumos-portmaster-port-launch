@@ -416,7 +416,12 @@ case "${script##*/}" in
 esac
 export PLUMOS_PORTMASTER_SESSION_ID="${PLUMOS_PORTMASTER_SESSION_ID:-rk2020-$(date +%s)-$$}"
 export PLUMOS_PORTMASTER_REQUIRED_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
-export PLUMOS_PORTMASTER_REQUIRED_LD_PRELOAD="${EXEC_GUARD_LIB}:${SDL_ROTATE_LIB}:${GL_ROTATE_LIB}"
+HANDOFF_LIB="${PLUMOS_ROOT}/frontend/lib/libplumos-display-handoff.so"
+[ -r "$HANDOFF_LIB" ] || {
+  printf 'PortMaster RK2020 display handoff library is missing: %s\n' "$HANDOFF_LIB" >&2
+  exit 127
+}
+export PLUMOS_PORTMASTER_REQUIRED_LD_PRELOAD="${EXEC_GUARD_LIB}:${SDL_ROTATE_LIB}:${GL_ROTATE_LIB}:${HANDOFF_LIB}"
 case "$(basename "$script" | tr '[:upper:]' '[:lower:]')" in
   'moonlight new.sh')
     # Moonlight Embedded 2.7.0 presents red and blue channels reversed through

@@ -684,6 +684,20 @@ grep -q 'plumos-hardware-keys-service' \
     "$ROOT_DIR/rootfs/rk2020/usr/lib/plumos/init.d/40-frontend"
 grep -q 'plumos_rk2020_hardware_keys.c' \
     "$ROOT_DIR/scripts/build-frontend-component.sh"
+grep -q 'plumos_display_handoff.c' \
+    "$ROOT_DIR/scripts/build-frontend-component.sh"
+for handoff_launcher in \
+    package/app-layer-rk2020/bin/plumos-retroarch-launch \
+    package/app-layer-rk2020/bin/plumos-retroarch-menu-launch \
+    package/picoarch-rk2020/plumos/bin/plumos-picoarch-launch \
+    package/standalone-rk2020/plumos/bin/plumos-standalone-launch \
+    package/portmaster-rk2020/plumos/bin/plumos-portmaster-launch \
+    package/portmaster-rk2020/plumos/bin/plumos-portmaster-port-launch \
+    package/pyxel-rk2020/plumos/bin/plumos-pyxel-rk2020-launch \
+    scripts/build-nextcommander-rk2020.sh \
+    scripts/build-music-player-rk2020.sh; do
+    grep -q 'libplumos-display-handoff.so' "$ROOT_DIR/$handoff_launcher"
+done
 grep -q 'GO-Advance Gamepad' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'gpio-keys' \

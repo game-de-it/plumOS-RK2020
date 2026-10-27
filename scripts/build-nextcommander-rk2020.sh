@@ -137,6 +137,8 @@ export SDL_GAMECONTROLLERCONFIG="${SDL_GAMECONTROLLERCONFIG:-}"
 export SDL_NOMOUSE=1
 export PLUMOS_DRM_DEVICE="${PLUMOS_DRM_DEVICE:-/dev/dri/card0}"
 export LD_LIBRARY_PATH="$APP_ROOT/lib:$PLUMOS_ROOT/emulator/lib"
+HANDOFF_LIBRARY="$PLUMOS_ROOT/frontend/lib/libplumos-display-handoff.so"
+[ ! -r "$HANDOFF_LIBRARY" ] || export LD_PRELOAD="$HANDOFF_LIBRARY${LD_PRELOAD:+:$LD_PRELOAD}"
 cd "$APP_ROOT" || exit 1
 exec "$APP_ROOT/bin/NextCommander" \
     --config "$APP_ROOT/config/rk2020.cfg" \

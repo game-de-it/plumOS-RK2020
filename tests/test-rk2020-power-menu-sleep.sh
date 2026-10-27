@@ -420,6 +420,12 @@ grep -q 'write_power_overlay_selection(ui, "handled")' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'SYS_pidfd_getfd' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'receive_brokered_drm_fd(owner)' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'SCM_RIGHTS' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_display_handoff.c"
+grep -q 'libplumos-display-handoff.so' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-retroarch-launch"
 grep -q 'drmDropMaster(owner_drm_fd)' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'drmSetMaster(owner_drm_fd)' \
