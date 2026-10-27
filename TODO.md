@@ -13,8 +13,13 @@
 ## Physical bring-up gates
 
 - [ ] Boot from a separate test SD and prove the active root is plumOS.
-- [ ] Confirm the frontend at native 320x480/60 Hz with correct orientation.
-- [ ] Confirm all RK2020 buttons and both analogue axes.
+- [x] Confirm the frontend at native 320x480/60 Hz with correct orientation.
+  The operator reviewed the formal display evidence and confirmed this gate on
+  2026-10-28. Frontend layout, orientation, and the corrected application and
+  emulator presentation remain recorded as separate physical observations.
+- [x] Confirm all RK2020 buttons and both analogue axes. The operator confirmed
+  the input set through gameplay on 2026-10-28, after the route-specific input
+  work and physical tests documented under `docs/validation/`.
 - [x] Confirm speaker, headphone switching, volume, and mute through RK817.
   Speaker output, the perceptual 0..20 volume curve, mute at zero, and L2 +
   Up/Down control are physically accepted.  Commits `7df2b4b` and `9f3a4c8`
@@ -33,7 +38,10 @@
   disconnected and with `ac=1`/battery `Charging`; it does not reboot or enter
   the charge screen.  Cold boot and cable-connected/disconnected reboot paths
   were also physically accepted.
-- [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
+- [x] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
+  The operator confirmed the complete Wi-Fi gate on 2026-10-28. This includes
+  normal connected operation and the previously exercised resume/recovery and
+  cable-state paths; it is independent of the separate shutdown LED gate.
 - [x] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70
   clean passes, one Game & Watch harness-exit failure later superseded by a
