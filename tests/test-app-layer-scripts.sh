@@ -253,9 +253,10 @@ import json
 import sys
 
 apps = {entry["id"]: entry for entry in json.load(open(sys.argv[1]))["apps"]}
-for app_id in ("pyxel_setup", "portmaster_update"):
-    if apps[app_id].get("confirm") is not True:
-        raise SystemExit(f"{app_id}: mutating frontend app must require confirmation")
+if apps["pyxel_setup"].get("confirm") is not False:
+    raise SystemExit("pyxel_setup: explicit app selection must start setup immediately")
+if apps["portmaster_update"].get("confirm") is not True:
+    raise SystemExit("portmaster_update: network update must require confirmation")
 PY
 grep -q 'confirm_or_run_menu_shell_action' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
@@ -687,8 +688,10 @@ grep -q 'GO-Advance Gamepad' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'gpio-keys' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
-grep -q 'rk805 pwrkey' \
+grep -q 'rk8xx_pwrkey' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q "find_input 'rk8xx_pwrkey'" \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-power-menu-overlay"
 grep -q 'plumos-power-menu-overlay' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'POWER_MENU_DEBOUNCE_MS' \
