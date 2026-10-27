@@ -35,6 +35,9 @@ phy_status_file=${PLUMOS_POWER_PHY_STATUS_FILE:-}
 phy_status_addr=${PLUMOS_POWER_PHY_STATUS_ADDR:-0xff2c0120}
 phy_bvalid_mask=${PLUMOS_POWER_PHY_BVALID_MASK:-0x200}
 usb_host_control=${PLUMOS_USB_HOST_CONTROL:-/usr/lib/plumos/init.d/15-usb-host-reenumerate}
+usb_host_dwc2_driver=${PLUMOS_POWER_DWC2_DRIVER:-/sys/bus/platform/drivers/dwc2}
+usb_host_platform_device=${PLUMOS_POWER_USB_PLATFORM_DEVICE:-/sys/bus/platform/devices/ff300000.usb}
+usb_host_device_id=${PLUMOS_POWER_USB_DEVICE_ID:-ff300000.usb}
 wifi_recovery=${PLUMOS_WIFI_RECOVERY:-$root/bin/plumos-wifi-recovery}
 wifi_config=${PLUMOS_WPA_CONFIG:-$root/config/wpa_supplicant.conf}
 sleep_usb_recovery_marker=${PLUMOS_SLEEP_USB_RECOVERY_MARKER:-$runtime_root/sleep-usb-recovery}
@@ -153,6 +156,31 @@ umount_if_mounted() {
     return 1
 }
 
+quiesce_usb_host_for_shutdown() {
+    # Clearing DWC2 FORCEHOST alone is insufficient on RK2020 because the
+    # board ID pin keeps the controller in host mode. Unbind the controller
+    # before RK817 DEV_OFF so its VBUS rail and an attached Wi-Fi dongle do not
+    # remain powered after the SoC has stopped.
+    if [ -x "$usb_host_control" ]; then
+        "$usb_host_control" release >>"$log_file" 2>&1 ||
+            log 'power=usb-host-release-failed action=shutdown'
+    fi
+    [ -L "$usb_host_platform_device/driver" ] || {
+        log 'power=usb-host-unbind-skipped reason=controller-not-bound'
+        return 0
+    }
+    [ -w "$usb_host_dwc2_driver/unbind" ] || {
+        log "power=usb-host-unbind-failed reason=unavailable driver=$usb_host_dwc2_driver"
+        return 1
+    }
+    if printf '%s\n' "$usb_host_device_id" >"$usb_host_dwc2_driver/unbind"; then
+        log "power=usb-host-unbound device=$usb_host_device_id"
+        return 0
+    fi
+    log "power=usb-host-unbind-failed reason=write device=$usb_host_device_id"
+    return 1
+}
+
 prepare_power_transition() {
     log "power=prepare-start action=$action"
     if [ -x "$root/bin/plumos-hardware-keys-service" ]; then
@@ -165,6 +193,9 @@ prepare_power_transition() {
             "$root/bin/plumos-frontend-stop" stop >>"$log_file" 2>&1 || true
     else
         stop_pid_file "$runtime_root/frontend.pid" frontend
+    fi
+    if [ "$action" = shutdown ]; then
+        quiesce_usb_host_for_shutdown || true
     fi
     umount_if_mounted /roms || true
     umount_if_mounted /mnt/plumos-user || true

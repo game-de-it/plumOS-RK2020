@@ -18,7 +18,10 @@ trap cleanup EXIT
 mkdir -p "$TEST_ROOT/plumos/bin" \
     "$TEST_ROOT/plumos/config/system" \
     "$TEST_ROOT/plumos/factory-defaults/alsa" "$TEST_ROOT/run" \
-    "$TEST_ROOT/logs" "$TEST_ROOT/user-logs"
+    "$TEST_ROOT/logs" "$TEST_ROOT/user-logs" "$TEST_ROOT/dwc2" \
+    "$TEST_ROOT/platform"
+touch "$TEST_ROOT/dwc2/unbind"
+ln -s "$TEST_ROOT/dwc2" "$TEST_ROOT/platform/driver"
 export PLUMOS_POWER_USER_LOG_FILE="$TEST_ROOT/user-logs/power.log"
 printf 'network={}\n' >"$TEST_ROOT/plumos/wpa_supplicant.conf"
 printf 'defaults.ctl.card 0\n' \
@@ -249,12 +252,15 @@ PLUMOS_BATTERY_STATUS="$TEST_ROOT/battery-status" \
 PLUMOS_BATTERY_CURRENT="$TEST_ROOT/battery-current" \
 PLUMOS_USB_ONLINE="$TEST_ROOT/usb-online" \
 PLUMOS_AC_ONLINE="$TEST_ROOT/ac-online" \
+PLUMOS_POWER_DWC2_DRIVER="$TEST_ROOT/dwc2" \
+PLUMOS_POWER_USB_PLATFORM_DEVICE="$TEST_ROOT/platform" \
+PLUMOS_USB_HOST_CONTROL="$TEST_ROOT/usb-host" \
 PLUMOS_DEVMEM="$TEST_ROOT/devmem" \
 PLUMOS_REBOOT_MODE_HELPER="$TEST_ROOT/reboot-mode" \
 PLUMOS_POWER_TEST_TERMINAL=1 \
 PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown" --shutdown
-[ ! -s "$TEST_ROOT/calls" ]
+! grep -Eq '^(devmem|reboot-mode) ' "$TEST_ROOT/calls"
 grep -q 'power=charger-detected source=battery-status value=Charging' \
     "$TEST_ROOT/logs/power.log"
 grep -q 'power=charge-mode-disabled action=pmic-off' \
@@ -263,6 +269,10 @@ grep -q 'power=terminal-test action=rk817-dev-off' \
     "$TEST_ROOT/logs/power.log"
 grep -q 'power=terminal-test action=rk817-dev-off' \
     "$TEST_ROOT/user-logs/power.log"
+grep -q '^usb-host release marker=absent$' "$TEST_ROOT/calls"
+grep -Fxq 'ff300000.usb' "$TEST_ROOT/dwc2/unbind"
+grep -q 'power=usb-host-unbound device=ff300000.usb' \
+    "$TEST_ROOT/logs/power.log"
 
 # restart2 charge mode remains available only as an explicit, future
 # hardware-profile opt-in; it is not the RK2020 default.
