@@ -12501,6 +12501,7 @@ static int run_menu_shell_action(struct ui_state *ui, const struct menu_entry *e
   const char *shell_cmd;
   size_t pos = 0;
   size_t path_pos = 0;
+  int renderer_released = 0;
   int rc;
 
   if (!ui || !entry || strncmp(entry->action, "shell:", 6) != 0) {
@@ -12630,9 +12631,17 @@ static int run_menu_shell_action(struct ui_state *ui, const struct menu_entry *e
              entry->background ? "starting" : "running", entry->display_name);
   }
   render_ui(ui);
-  shutdown_ui_renderer(ui);
+  /* Result-only maintenance tools do not acquire DRM or fbdev.  Keep the
+   * already rendered running screen mapped while their foreground command
+   * blocks the event loop; releasing fbdev here blanks RK2020 until the child
+   * exits.  Interactive applications still need exclusive display access. */
+  if (!entry->show_results) {
+    shutdown_ui_renderer(ui);
+    renderer_released = 1;
+  }
   rc = run_foreground_shell_command(cmd);
-  if ((ui->renderer_mali || ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx) &&
+  if (renderer_released &&
+      (ui->renderer_mali || ui->renderer_fbdev || ui->renderer_rk2020_compat_gfx) &&
       !init_ui_renderer(ui)) {
     ui->renderer_mali = 0;
     ui->renderer_fbdev = 0;
