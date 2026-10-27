@@ -88,9 +88,12 @@
   into the RK2020 landscape view without stretching. The Apotris-specific
   content offset is isolated from other ports; the operator physically accepts
   Apotris and the other installed port games. A project requirements file is
-  staged for Pyxel Setup and resolves as `requirements_source=project`; its
-  confirmed install remains pending. PortMaster update remains a separate
-  mutating gate.
+  staged for Pyxel Setup and resolves as `requirements_source=project`. The
+  physical FE action installed and import-verified the requested Pyxel,
+  Pygame, NumPy, and Pillow versions. The first run blanked the panel while FE
+  waited for pip; the corrected maintenance-action renderer lifecycle is live
+  and still needs an exact physical progress-screen rerun. PortMaster update
+  remains a separate mutating gate.
 - [x] Unmount both live aliases of `PLUMOS_USER`, repair the forced-power-off
   FAT dirty bit, verify the unmounted filesystem clean, and restore FE/input.
 
