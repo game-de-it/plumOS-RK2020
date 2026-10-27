@@ -85,10 +85,12 @@
 - [ ] Complete physical frontend-application acceptance. File Manager,
   Scraping, RetroArch, Music Player, and the PortMaster GUI now pass. The
   shared PortMaster game runner presents a 640x480 logical canvas and fits it
-  into the RK2020 landscape view without stretching; direct scanout confirms
-  the full 4:3 canvas for the installed Apotris port, while final physical
-  acceptance remains pending. Pyxel installation and PortMaster update remain
-  separate mutating gates.
+  into the RK2020 landscape view without stretching. The Apotris-specific
+  content offset is isolated from other ports; the operator physically accepts
+  Apotris and the other installed port games. A project requirements file is
+  staged for Pyxel Setup and resolves as `requirements_source=project`; its
+  confirmed install remains pending. PortMaster update remains a separate
+  mutating gate.
 - [x] Unmount both live aliases of `PLUMOS_USER`, repair the forced-power-off
   FAT dirty bit, verify the unmounted filesystem clean, and restore FE/input.
 

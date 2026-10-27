@@ -100,8 +100,29 @@ The converted direct-scanout capture is:
 
 It shows the complete 4:3 game canvas centered in the RK2020 landscape output,
 with 26-pixel pillarbox margins on each side rather than stretching or clipping
-the adapter surface. Final physical display and control acceptance is still
-required. A diagnostic run also observed Apotris terminate during its title
-sequence after about 17 seconds; that runtime failure predates the final fit
-change and remains a separate per-game stability issue rather than display-fit
-acceptance.
+the adapter surface. A diagnostic run also observed Apotris terminate during
+its unattended title sequence after about 17 seconds.
+
+## Physical follow-up
+
+The first physical menu check showed that Apotris content remained left-biased
+inside its complete 640x480 canvas. Source inspection found that the PortMaster
+build uses a 360-pixel internal width while the inherited menu coordinates are
+centered around x=120 from the older 240-pixel layout. This is application
+composition, not loss of the outer canvas.
+
+Commit `abd70d7` advances the adapter to version 58. It adds a bounded SDL
+content-offset facility and enables a 160-pixel horizontal offset only for
+`Apotris.sh`; every other port has the offset unset. The managed update passed
+the component and full app-layer checksum gates. Its prior v57 state is
+recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-portmaster-abd70d7-before/before.tar
+SHA-256 04a460c8b1d6dca72920935a88152886d63e4611d2f3953ce5b756d7fdbbbe17
+```
+
+The operator then physically accepted both Apotris and the other installed
+port-game displays. The shared fit and the isolated Apotris correction are
+therefore physical display passes. This does not infer compatibility for an
+uninstalled upstream port or a non-SDL/non-OpenGL renderer.

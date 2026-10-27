@@ -72,7 +72,7 @@ reports adapter version 55.
 | File Manager | Physical functional pass | The corrected 480x320 layout keeps both panels and the footer on screen. The operator accepted display, navigation, and a real file copy; NextCommander then exited and FE restarted cleanly. |
 | Music Player | Physical functional pass | DRM, controller input, RK817 ALSA output at 48 kHz stereo, media discovery, representative playback, and clean return to FE are accepted by the operator. Commit `e6a9c9f` prevents the Music Player from treating L2 alone as exit, preserving the global L2 plus D-pad volume controls. |
 | RetroArch | Pass | The contentless menu opened DRM, RK817 ALSA, RK2020 input, and libmali, then returned to FE. Earlier physical testing accepted its menu and exit controls. |
-| Pyxel Setup | Status pass | Packaged Pyxel 2.9.3, Pygame 2.6.1, NumPy 2.4.6, and Pillow 12.3.0 import successfully. The destructive install action requires a second A press; installation was not run. An empty staging directory left by the interrupted earlier test was verified empty and removed. |
+| Pyxel Setup | Ready for physical install | Packaged Pyxel 2.9.3, Pygame 2.6.1, NumPy 2.4.6, and Pillow 12.3.0 import successfully. `/roms/pyxel/requirements.txt` now contains the reviewed baseline request and status resolves it as `requirements_source=project`. The confirmed install action remains pending. |
 | PortMaster | Physical GUI pass | The operator accepted the PortMaster application. Adapter 55 prepared its complete reviewed library projection, cleanup removed all mounts/processes, and FE restarted. Installed-port display fitting is tracked separately in `2026-10-27-rk2020-portmaster-game-fit.md`. |
 | Update PortMaster | Guard pass | The action requires a second A press within five seconds. The network update was intentionally not executed. |
 
@@ -90,8 +90,8 @@ reported hang has not recurred in the corrected single-application sequence.
 
 The following gates remain:
 
-- physically accept the shared PortMaster game-display fit after the direct
-  scanout check;
+- execute and physically accept the prepared Pyxel Setup project-requirements
+  install;
 - the forced-power-off FAT dirty bit was subsequently repaired and verified by
   the live-unmount procedure recorded in
   `2026-10-26-rk2020-live-fat-fsck.md`;
@@ -103,6 +103,7 @@ The following gates remain:
 The clipping diagnosis and deployment are recorded in
 `2026-10-27-rk2020-nextcommander-display.md`. The operator accepted File
 Manager display, controls, and file copying, and separately reported scraping
-as working. The operator subsequently accepted Music Player operation and the
-PortMaster GUI. These application gates are closed. Port-game display fitting,
-Pyxel installation, and PortMaster update remain independent.
+as working. The operator subsequently accepted Music Player operation, the
+PortMaster GUI, Apotris, and the other installed port-game displays. These
+application gates are closed. Pyxel installation and PortMaster update remain
+independent.
