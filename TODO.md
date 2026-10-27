@@ -22,6 +22,13 @@
   east-confirm input map to its power overlay, enters kernel `mem`, restores
   the DRM planes/backlight, and resumes the same controllable game.
 - [ ] Confirm cold boot, reboot, shutdown, and charging-state behavior.
+  Charger-connected frontend Shutdown now physically matches stockOS: the
+  display, charge LED, and external Wi-Fi LED all turn off without a reboot or
+  automatic charge-screen transition.  The RK2020 shutdown path lowers the
+  DT's always-on `vcc_host` GPIO0-15 after storage cleanup and before the
+  kernel power-off syscall; focused tests, frontend checksums, and all 11,290
+  live root checksums pass.  Cable-disconnected Shutdown remains a separate
+  post-change regression gate before this combined item can close.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [x] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70
