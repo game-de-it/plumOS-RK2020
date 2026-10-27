@@ -3,6 +3,7 @@
 Date: 2026-10-27  
 Initial implementation commit: `af210a8`<br>
 RK2020 route correction commit: `3dc5064`<br>
+RK2020 Mega Drive correction commit: `3135b7b`<br>
 Device: RK2020 at `192.168.10.110`
 
 ## Purpose
@@ -34,11 +35,11 @@ mednafen_supergrafx
 vbam
 ```
 
-PicoDrive is hardware-dependent. Its Mega Drive, Master System and Sega CD
-paths are native RGB565, while its Game Gear and RK2020 32X paths require byte
-swapping. The 32X exception supersedes the Bubble result: the RK2020 operator
-physically accepted BC Racers only with the byte swap enabled. These five
-routes are recorded separately in
+PicoDrive is hardware-dependent. Its Master System and Sega CD paths are native
+RGB565, while its Mega Drive, Game Gear and 32X paths require byte swapping on
+RK2020. The Mega Drive and 32X exceptions supersede the Bubble results: the
+RK2020 operator physically accepted Bare Knuckle and BC Racers only with the
+byte swap enabled. These five routes are recorded separately in
 `share/picoarch/rgb565-route-overrides.tsv`.
 
 FCEUmm and Nestopia use XRGB8888. The remaining RGB565 cores use native-endian
@@ -56,7 +57,7 @@ invalid format/order, a changed correction set, or an incomplete PicoDrive
 route table fails the source gate.
 
 ```text
-rk2020_picoarch_rgb565_matrix=result-ok routes=22 rgb565=20 core_byteswap=7 route_overrides=5 route_byteswap=2 xrgb8888=2
+rk2020_picoarch_rgb565_matrix=result-ok routes=22 rgb565=20 core_byteswap=7 route_overrides=5 route_byteswap=3 xrgb8888=2
 ```
 
 The launcher refuses an unclassified core rather than silently selecting an
@@ -140,22 +141,56 @@ and stopped without leaving its runtime PID file:
 
 | Route | Applied order | Device result |
 | --- | --- | --- |
-| Mega Drive / Bare Knuckle | native | launch, scanout, audio, stop pass |
+| Mega Drive / Bare Knuckle | byte swap | launch, scanout, audio, stop pass; physical colour and controls accepted during the bounded override test |
 | Master System / Frontier Force | native | launch, scanout, audio, stop pass |
-| Game Gear / Columns | byte swap | launch, scanout, audio, stop pass |
+| Game Gear / Columns | byte swap | launch, scanout, audio, stop pass; physical colour and controls accepted |
 | 32X / BC Racers | byte swap | launch, scanout, audio, stop pass; physical colour and motion accepted during the bounded override test |
 | Sega CD / Fatal Fury Special demo | native | launch, scanout, audio, stop pass |
 
 The captured logical framebuffer set is under
 `output/live/2026-10-27-rk2020-picoarch-route-fix/device-matrix/`. The frontend
-was restored after the matrix as PID 14940. A short physical check of one route
-whose behaviour changed from the previously deployed launcher (Game Gear) and
-one retained-native route (Mega Drive or Master System) remains the final
-panel-level regression gate.
+was restored after the matrix as PID 14940. The follow-up physical check found
+that Mega Drive was not a retained-native route on RK2020: native output was
+green-shifted, while the bounded byte-swap override restored the expected
+colours without affecting controls. Game Gear passed its panel-level byte-swap
+check. These observations close the targeted physical route regression gate.
 
 The recoverable pre-correction archive is:
 
 ```text
 /mnt/plumos-user/Backups/rk2020-picoarch-color-3dc5064-before/before.tar
 SHA-256 7c4d1efb79929de6078dbcf77f1158c5acc5374eea914c062e9a10da453c3ec8
+```
+
+## Final Mega Drive correction
+
+The Mega Drive route correction was rebuilt as app-layer source ref `3135b7b`.
+The five-route BusyBox launcher test and exhaustive matrix test passed before
+deployment. A six-file managed delta changed only the route table and its
+component/root metadata chain; no runtime binary or user-owned state was
+replaced. All 13 PicoArch component entries and all 11,290 app-layer entries
+passed on-device verification.
+
+```text
+1d1e9ed20967363f9082542787f6420d78c122b3a5c0509fef6c35f24c2ad9af  share/picoarch/rgb565-route-overrides.tsv
+1e929ccc7376e2a3552634e7ac93ba7289486782cfb025bb891bd05c85778a49  components/picoarch/checksums.sha256
+3a45e2fbe9769ea73e075a19475878c7418a540ab40a41394ec6f47a01eebea8  components/picoarch/manifest.json
+3a45e2fbe9769ea73e075a19475878c7418a540ab40a41394ec6f47a01eebea8  licenses/component-manifests/picoarch.json
+ed35c1b37561dc3be6e2bd18fb9e29e0a2c31910be80d10924b459c9e09b4092  manifest.json
+437d3ca4d63ff085582f3f99bac3ae1771d03ff1925e565db43f123d18b0fd56  checksums.sha256
+```
+
+After deployment, Bare Knuckle was relaunched without an environment override.
+The real process exported `PLUMOS_PICOARCH_RGB565_BYTESWAP=1`, logged
+`classification_scope=system-override` with evidence
+`rk2020-physical-bare-knuckle`, held ALSA playback in `RUNNING`, and produced a
+normal-colour logical framebuffer. The evidence is under
+`output/live/2026-10-28-rk2020-picoarch-megadrive-fix/device-check/`. The game
+was stopped and the frontend restored as PID 16388.
+
+The recoverable pre-correction archive is:
+
+```text
+/mnt/plumos-user/Backups/rk2020-picoarch-megadrive-3135b7b-before/before.tar
+SHA-256 aa290f94ac1707f122eb04e43761bd4e503af6a391ece74f8713145296901b5a
 ```

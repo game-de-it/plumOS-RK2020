@@ -76,14 +76,15 @@
   existing-state migration are deployed; Super Mario 64 pacing is physically
   accepted. PicoArch now has an exhaustive 22-core RGB565/XRGB8888 byte-order
   table plus five system-scoped PicoDrive routes. Seven core defaults plus the
-  Game Gear and RK2020 32X PicoDrive routes receive the known byte swap
+  Mega Drive, Game Gear and RK2020 32X PicoDrive routes receive the known byte swap
   automatically; catalog drift fails the source gate. A BusyBox awk reserved
   variable had caused all five system overrides to be silently ignored; the
   launcher now rejects lookup failures, and an execution test covers all five
   decisions. The post-deploy device matrix passes launch, scanout, audio and
-  stop for all five routes. BC Racers colour and motion are physically
-  accepted; a final panel-level regression check remains for Game Gear and one
-  retained-native route. The frontend now exposes only the PicoArch
+  stop for all five routes. BC Racers colour and motion, Columns colour and
+  controls, and Bare Knuckle colour and controls are physically accepted.
+  Bare Knuckle was also relaunched after deployment without a forced override
+  and selected the expected route automatically. The frontend now exposes only the PicoArch
   profiles declared for each system in `systems.json`; it no longer clones
   every RetroArch profile into an unvalidated PicoArch candidate. Device-side
   GB/GBA catalog checks and the full app-layer checksum pass. Genesis Plus GX
