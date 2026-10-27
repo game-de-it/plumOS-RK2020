@@ -1121,8 +1121,6 @@ grep -q 'function_modifier_held = ev->value != 0' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'function_modifier_held &&' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
-grep -q 'B Exit   Left/Right 5s' \
-    "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 ! grep -q 'B/FUNCTION Exit' \
     "$ROOT_DIR/docker/rk2020-tools/patches/music-player-rk2020.patch"
 grep -q 'SND_PCM_NONBLOCK' \

@@ -609,8 +609,8 @@ case "$action" in
                 elif [ "$shutdown_charger_present" -eq 1 ]; then
                     # RK2020's retained bootloader does not honor restart2
                     # charge mode as a terminal state: it returns to the OS.
-                    # Match stockOS and use the kernel's complete RK817 power-
-                    # off sequence unless a future hardware-validated profile
+                    # Match the reference kernel path and use its complete
+                    # RK817 power-off sequence unless a future validated profile
                     # explicitly enables charge-mode reboot.
                     log 'power=charge-mode-disabled action=kernel-poweroff'
                 fi
