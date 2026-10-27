@@ -83,25 +83,29 @@ RGB565_ROUTE_OVERRIDE_TABLE="$PLUMOS_ROOT/share/picoarch/rgb565-route-overrides.
 [ -r "$RGB565_ROUTE_OVERRIDE_TABLE" ] || fail "RGB565 route override table missing"
 core_key="${CORE_ID##*/}"
 core_key="${core_key%_libretro.so}"
-rgb565_classification="$(awk -F '\t' -v core="$core_key" '
+if ! rgb565_classification="$(awk -F '\t' -v core="$core_key" '
   /^#/ { next }
   $1 == core { count++; format=$2; order=$3; evidence=$5 }
   END {
     if (count == 1) printf "%s:%s:%s\n", format, order, evidence
     else exit 1
   }
-' "$RGB565_BYTE_ORDER_TABLE" 2>/dev/null || true)"
+' "$RGB565_BYTE_ORDER_TABLE" 2>/dev/null)"; then
+  fail "invalid RGB565 core classification table: $core_key"
+fi
 [ -n "$rgb565_classification" ] || fail "unclassified PicoArch core: $core_key"
-rgb565_route_classification="$(awk -F '\t' -v system="$SYSTEM_ID" -v core="$core_key" '
+if ! rgb565_route_classification="$(awk -F '\t' -v system_id="$SYSTEM_ID" -v core="$core_key" '
   /^#/ { next }
-  $1 == system && $2 == core {
+  $1 == system_id && $2 == core {
     count++; format=$3; order=$4; evidence=$6
   }
   END {
     if (count == 1) printf "%s:%s:%s\n", format, order, evidence
     else if (count > 1) exit 1
   }
-' "$RGB565_ROUTE_OVERRIDE_TABLE" 2>/dev/null || true)"
+' "$RGB565_ROUTE_OVERRIDE_TABLE" 2>/dev/null)"; then
+  fail "invalid RGB565 route classification table: $SYSTEM_ID/$core_key"
+fi
 rgb565_classification_scope=core-default
 if [ -n "$rgb565_route_classification" ]; then
   rgb565_classification="$rgb565_route_classification"
