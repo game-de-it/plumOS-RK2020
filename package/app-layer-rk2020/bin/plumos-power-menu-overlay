@@ -6,6 +6,7 @@ RUNTIME_ROOT="${PLUMOS_RUNTIME_ROOT:-/run/plumos}"
 LOG_DIR="${PLUMOS_POWER_MENU_LOG_DIR:-$PLUMOS_ROOT/logs}"
 LOG_FILE="${PLUMOS_POWER_MENU_OVERLAY_LOG:-$LOG_DIR/power-menu-overlay.log}"
 MENU="${PLUMOS_POWER_MENU_OVERLAY_UI:-$PLUMOS_ROOT/bin/plumos-frontend-rk2020}"
+INPUT_RUNNER="${PLUMOS_POWER_MENU_INPUT_RUNNER:-$PLUMOS_ROOT/bin/plumos-run-with-input-map}"
 SAFE_SHUTDOWN="${PLUMOS_POWER_MENU_SAFE_SHUTDOWN:-$PLUMOS_ROOT/bin/plumos-safe-shutdown}"
 LOCK_DIR="${PLUMOS_POWER_MENU_LOCK_DIR:-$RUNTIME_ROOT/power-menu-overlay.lock}"
 SELECTION_FILE="${PLUMOS_POWER_MENU_SELECTION_FILE:-$RUNTIME_ROOT/power-menu-overlay.$$.selection}"
@@ -122,6 +123,7 @@ trap 'exit 143' TERM
 trap cleanup EXIT
 
 [ -x "$MENU" ] || { log "error menu-missing path=$MENU"; exit 127; }
+[ -x "$INPUT_RUNNER" ] || { log "error input-runner-missing path=$INPUT_RUNNER"; exit 127; }
 [ -x "$SAFE_SHUTDOWN" ] || { log "error safe-shutdown-missing path=$SAFE_SHUTDOWN"; exit 127; }
 
 controller_event="$(find_input 'GO-Advance Gamepad' /dev/input/event2)"
@@ -140,11 +142,16 @@ PLUMOS_INPUT_EVENT="$controller_event" \
 PLUMOS_POWER_INPUT_EVENT="$power_event" \
 PLUMOS_POWER_MENU_SELECTION="$SELECTION_FILE" \
 LD_LIBRARY_PATH="$PLUMOS_ROOT/frontend/lib:$PLUMOS_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
-  "$MENU" --power-overlay --renderer fbdev --fb /dev/fb0 \
+  "$INPUT_RUNNER" "$MENU" --power-overlay --renderer fbdev --fb /dev/fb0 \
     --fbdev-rotation ccw --event "$controller_event" --power-event "$power_event"
 menu_rc=$?
+if [ -s "$SELECTION_FILE" ]; then
+  selection_file=present
+else
+  selection_file=missing
+fi
 selection="$(read_selection)"
-log "menu end rc=$menu_rc selection=${selection:-cancel}"
+log "menu end rc=$menu_rc selection_file=$selection_file selection=${selection:-cancel}"
 
 case "$selection" in
   handled)

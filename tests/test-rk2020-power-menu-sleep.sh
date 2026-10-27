@@ -16,12 +16,15 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "$TEST_ROOT/plumos/bin" \
+    "$TEST_ROOT/plumos/config/system" \
     "$TEST_ROOT/plumos/factory-defaults/alsa" "$TEST_ROOT/run" \
     "$TEST_ROOT/logs" "$TEST_ROOT/user-logs"
 export PLUMOS_POWER_USER_LOG_FILE="$TEST_ROOT/user-logs/power.log"
 printf 'network={}\n' >"$TEST_ROOT/plumos/wpa_supplicant.conf"
 printf 'defaults.ctl.card 0\n' \
     >"$TEST_ROOT/plumos/factory-defaults/alsa/alsa.conf"
+printf 'PLUMOS_INPUT_AB_LAYOUT=east-confirm\n' \
+    >"$TEST_ROOT/plumos/config/system/input-map.env"
 
 cat >"$TEST_ROOT/busybox" <<'EOF'
 #!/bin/sh
@@ -341,6 +344,7 @@ cat >"$TEST_ROOT/menu" <<'EOF'
 #!/bin/sh
 state=$(ps -o state= -p "$PLUMOS_TEST_OWNER_PID" | sed 's/^[[:space:]]*//;s/^\(.\).*/\1/')
 case "$state" in T|t) ;; *) exit 91 ;; esac
+[ "${PLUMOS_INPUT_AB_LAYOUT:-}" = east-confirm ] || exit 93
 printf 'action=%s\n' "$PLUMOS_TEST_SELECTION" >"$PLUMOS_POWER_MENU_SELECTION"
 EOF
 cat >"$TEST_ROOT/safe" <<'EOF'
@@ -360,6 +364,7 @@ PLUMOS_RUNTIME_ROOT="$TEST_ROOT/run" \
 PLUMOS_POWER_MENU_LOG_DIR="$TEST_ROOT/logs" \
 PLUMOS_POWER_MENU_LOCK_DIR="$TEST_ROOT/run/overlay.lock" \
 PLUMOS_POWER_MENU_OVERLAY_UI="$TEST_ROOT/menu" \
+PLUMOS_POWER_MENU_INPUT_RUNNER="$ROOT_DIR/package/app-layer-rk2020/bin/plumos-run-with-input-map" \
 PLUMOS_POWER_MENU_SAFE_SHUTDOWN="$TEST_ROOT/safe" \
 PLUMOS_POWER_MENU_OVERLAY_PIDS="$OWNER_PID" \
 PLUMOS_TEST_OWNER_PID="$OWNER_PID" \
@@ -377,6 +382,7 @@ PLUMOS_RUNTIME_ROOT="$TEST_ROOT/run" \
 PLUMOS_POWER_MENU_LOG_DIR="$TEST_ROOT/logs" \
 PLUMOS_POWER_MENU_LOCK_DIR="$TEST_ROOT/run/overlay.lock" \
 PLUMOS_POWER_MENU_OVERLAY_UI="$TEST_ROOT/menu" \
+PLUMOS_POWER_MENU_INPUT_RUNNER="$ROOT_DIR/package/app-layer-rk2020/bin/plumos-run-with-input-map" \
 PLUMOS_POWER_MENU_SAFE_SHUTDOWN="$TEST_ROOT/safe" \
 PLUMOS_POWER_MENU_OVERLAY_PIDS="$OWNER_PID" \
 PLUMOS_TEST_OWNER_PID="$OWNER_PID" \
@@ -442,6 +448,10 @@ grep -q 'display-companion=pause' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'display-companion=resume' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'display-unblank owner=' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'plumos-run-with-input-map' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-power-menu-overlay"
 grep -q 'PLUMOS_POWER_MENU_PREPAUSED_PID' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-power-menu-overlay"
 grep -q '^  handled)' \

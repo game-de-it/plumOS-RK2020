@@ -732,6 +732,25 @@ static int read_usb_online(void) {
   return value < 0 ? -1 : value != 0;
 }
 
+static int unblank_backlight(void) {
+  const char *path = getenv("PLUMOS_RK2020_BACKLIGHT_POWER");
+  int fd;
+  ssize_t written;
+
+  if (!path || !path[0]) {
+    path = "/sys/class/backlight/backlight/bl_power";
+  }
+  fd = open(path, O_WRONLY | O_CLOEXEC);
+  if (fd < 0) {
+    return -errno;
+  }
+  written = write(fd, "0\n", 2);
+  if (close(fd) < 0 && written == 2) {
+    return -errno;
+  }
+  return written == 2 ? 0 : -(written < 0 ? errno : EIO);
+}
+
 static int spawn_power_menu_overlay(void) {
   const char *root = getenv("PLUMOS_ROOT");
   char helper[512];
@@ -853,6 +872,9 @@ static int spawn_power_menu_overlay(void) {
       close(owner_drm_fd);
     }
     if (owner_stopped) {
+      int unblank_result = unblank_backlight();
+      fprintf(stderr, "hardware-keys: display-unblank owner=%ld rc=%d\n",
+              (long)owner, unblank_result);
       (void)kill(owner, SIGCONT);
       fprintf(stderr, "hardware-keys: display-owner=resume owner=%ld\n",
               (long)owner);
