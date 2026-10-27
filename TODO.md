@@ -82,7 +82,7 @@
   On 2026-10-27 the operator accepted the emulator-related verification as
   complete at project scope. This closes the emulator gate while retaining the
   granular evidence limits and external-content dependencies above.
-- [ ] Complete physical frontend-application acceptance. File Manager,
+- [x] Complete physical frontend-application acceptance. File Manager,
   Scraping, RetroArch, Music Player, and the PortMaster GUI now pass. The
   shared PortMaster game runner presents a 640x480 logical canvas and fits it
   into the RK2020 landscape view without stretching. The Apotris-specific
@@ -91,9 +91,9 @@
   staged for Pyxel Setup and resolves as `requirements_source=project`. The
   physical FE action installed and import-verified the requested Pyxel,
   Pygame, NumPy, and Pillow versions. The first run blanked the panel while FE
-  waited for pip; the corrected maintenance-action renderer lifecycle is live
-  and still needs an exact physical progress-screen rerun. PortMaster update
-  remains a separate mutating gate.
+  waited for pip; the corrected maintenance-action renderer lifecycle then
+  passed an exact physical progress-screen rerun. PortMaster Update completed
+  physically and reported the stable channel current at `2026.06.23-0015`.
 - [x] Unmount both live aliases of `PLUMOS_USER`, repair the forced-power-off
   FAT dirty bit, verify the unmounted filesystem clean, and restore FE/input.
 
