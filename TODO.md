@@ -24,11 +24,11 @@
 - [ ] Confirm cold boot, reboot, shutdown, and charging-state behavior.
   Charger-connected frontend Shutdown now physically matches stockOS: the
   display, charge LED, and external Wi-Fi LED all turn off without a reboot or
-  automatic charge-screen transition.  The RK2020 shutdown path lowers the
-  DT's always-on `vcc_host` GPIO0-15 after storage cleanup and before the
-  kernel power-off syscall; focused tests, frontend checksums, and all 11,290
-  live root checksums pass.  Cable-disconnected Shutdown remains a separate
-  post-change regression gate before this combined item can close.
+  automatic charge-screen transition.  Cable-disconnected Shutdown exposed a
+  separate regression: the Wi-Fi LED remained lit.  Read-only stockOS analysis
+  found that stock keeps DWC2 and `8821cu` bound through kernel shutdown, where
+  `rtw_dev_shutdown` remains available.  The host-side candidate now preserves
+  that path and needs physical Shutdown tests both with and without the cable.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [x] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70

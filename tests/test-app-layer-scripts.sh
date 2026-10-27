@@ -769,9 +769,11 @@ grep -q 'rk817-dev-off' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'kernel-poweroff' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
-grep -q 'disable_vcc_host_for_shutdown' \
+grep -q 'power=usb-host-preserved reason=kernel-device-shutdown' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
-grep -q 'PLUMOS_POWER_VCC_HOST_GPIO_MASK' \
+! grep -q 'disable_vcc_host_for_shutdown\|quiesce_usb_host_for_shutdown' \
+    "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
+! grep -q 'PLUMOS_POWER_VCC_HOST_GPIO_MASK\|PLUMOS_POWER_DWC2_DRIVER' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"
 grep -q 'i2cset -f -y 0 0x20 0xf4' \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown"

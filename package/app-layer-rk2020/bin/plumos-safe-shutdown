@@ -34,12 +34,7 @@ otg_mode=${PLUMOS_OTG_MODE:-/sys/devices/platform/ff2c0000.syscon/ff2c0000.sysco
 phy_status_file=${PLUMOS_POWER_PHY_STATUS_FILE:-}
 phy_status_addr=${PLUMOS_POWER_PHY_STATUS_ADDR:-0xff2c0120}
 phy_bvalid_mask=${PLUMOS_POWER_PHY_BVALID_MASK:-0x200}
-vcc_host_gpio_addr=${PLUMOS_POWER_VCC_HOST_GPIO_ADDR:-0xff040000}
-vcc_host_gpio_mask=${PLUMOS_POWER_VCC_HOST_GPIO_MASK:-0x8000}
 usb_host_control=${PLUMOS_USB_HOST_CONTROL:-/usr/lib/plumos/init.d/15-usb-host-reenumerate}
-usb_host_dwc2_driver=${PLUMOS_POWER_DWC2_DRIVER:-/sys/bus/platform/drivers/dwc2}
-usb_host_platform_device=${PLUMOS_POWER_USB_PLATFORM_DEVICE:-/sys/bus/platform/devices/ff300000.usb}
-usb_host_device_id=${PLUMOS_POWER_USB_DEVICE_ID:-ff300000.usb}
 wifi_recovery=${PLUMOS_WIFI_RECOVERY:-$root/bin/plumos-wifi-recovery}
 wifi_config=${PLUMOS_WPA_CONFIG:-$root/config/wpa_supplicant.conf}
 sleep_usb_recovery_marker=${PLUMOS_SLEEP_USB_RECOVERY_MARKER:-$runtime_root/sleep-usb-recovery}
@@ -158,31 +153,6 @@ umount_if_mounted() {
     return 1
 }
 
-quiesce_usb_host_for_shutdown() {
-    # Clearing DWC2 FORCEHOST alone is insufficient on RK2020 because the
-    # board ID pin keeps the controller in host mode. Unbind the controller
-    # before RK817 DEV_OFF so its VBUS rail and an attached Wi-Fi dongle do not
-    # remain powered after the SoC has stopped.
-    if [ -x "$usb_host_control" ]; then
-        "$usb_host_control" release >>"$log_file" 2>&1 ||
-            log 'power=usb-host-release-failed action=shutdown'
-    fi
-    [ -L "$usb_host_platform_device/driver" ] || {
-        log 'power=usb-host-unbind-skipped reason=controller-not-bound'
-        return 0
-    }
-    [ -w "$usb_host_dwc2_driver/unbind" ] || {
-        log "power=usb-host-unbind-failed reason=unavailable driver=$usb_host_dwc2_driver"
-        return 1
-    }
-    if printf '%s\n' "$usb_host_device_id" >"$usb_host_dwc2_driver/unbind"; then
-        log "power=usb-host-unbound device=$usb_host_device_id"
-        return 0
-    fi
-    log "power=usb-host-unbind-failed reason=write device=$usb_host_device_id"
-    return 1
-}
-
 prepare_power_transition() {
     log "power=prepare-start action=$action"
     if [ -x "$root/bin/plumos-hardware-keys-service" ]; then
@@ -195,9 +165,6 @@ prepare_power_transition() {
             "$root/bin/plumos-frontend-stop" stop >>"$log_file" 2>&1 || true
     else
         stop_pid_file "$runtime_root/frontend.pid" frontend
-    fi
-    if [ "$action" = shutdown ]; then
-        quiesce_usb_host_for_shutdown || true
     fi
     umount_if_mounted /roms || true
     umount_if_mounted /mnt/plumos-user || true
@@ -249,43 +216,6 @@ devmem_write32() {
     else
         "$bb" devmem "$address" 32 "$value"
     fi
-}
-
-disable_vcc_host_for_shutdown() {
-    # The stock RK2020 DT keeps vcc_host enabled through GPIO0-15.  RK817's
-    # shutdown callback removes its OTG/boost side, but a charger can keep the
-    # always-on fixed-regulator GPIO high and back-power an attached Wi-Fi
-    # dongle after the SoC stops.  Drop only that enable bit after all storage
-    # cleanup is complete and immediately before the kernel power-off syscall.
-    before=$(devmem_read32 "$vcc_host_gpio_addr" 2>/dev/null) || {
-        log "power=vcc-host-disable-failed stage=read address=$vcc_host_gpio_addr"
-        return 1
-    }
-    case "$before" in 0x*|0X*|[0-9]*) ;; *)
-        log "power=vcc-host-disable-failed stage=parse value=$before"
-        return 1
-        ;;
-    esac
-    after=$((before & ~vcc_host_gpio_mask))
-    after_hex=$(printf '0x%08x' "$after")
-    devmem_write32 "$vcc_host_gpio_addr" "$after_hex" >/dev/null 2>&1 || {
-        log "power=vcc-host-disable-failed stage=write address=$vcc_host_gpio_addr value=$after_hex"
-        return 1
-    }
-    observed=$(devmem_read32 "$vcc_host_gpio_addr" 2>/dev/null) || {
-        log "power=vcc-host-disable-failed stage=verify-read address=$vcc_host_gpio_addr"
-        return 1
-    }
-    case "$observed" in 0x*|0X*|[0-9]*) ;; *)
-        log "power=vcc-host-disable-failed stage=verify-parse value=$observed"
-        return 1
-        ;;
-    esac
-    if [ $((observed & vcc_host_gpio_mask)) -ne 0 ]; then
-        log "power=vcc-host-disable-failed stage=verify value=$observed mask=$vcc_host_gpio_mask"
-        return 1
-    fi
-    log "power=vcc-host-disabled address=$vcc_host_gpio_addr mask=$vcc_host_gpio_mask before=$before after=$observed"
 }
 
 read_power_value() {
@@ -684,11 +614,15 @@ case "$action" in
                     # explicitly enables charge-mode reboot.
                     log 'power=charge-mode-disabled action=kernel-poweroff'
                 fi
+                # Match the vendor shutdown path: keep DWC2 and Wi-Fi bound
+                # until the kernel's device_shutdown() pass.  The stock
+                # 8821cu module provides rtw_dev_shutdown; pre-emptive host
+                # unbind or VBUS GPIO changes remove that orderly path.
+                log 'power=usb-host-preserved reason=kernel-device-shutdown'
                 if [ "$terminal_test" = 1 ]; then
                     log 'power=terminal-test action=kernel-poweroff'
                     exit 0
                 fi
-                disable_vcc_host_for_shutdown || true
                 kernel_power_off || true
                 log 'power=shutdown-fallback method=rk817-dev-off'
                 rk817_dev_off || log 'power=shutdown-method method=rk817-dev-off rc=1'

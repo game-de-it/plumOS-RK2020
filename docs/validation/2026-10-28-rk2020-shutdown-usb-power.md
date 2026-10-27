@@ -15,7 +15,7 @@ after shutdown.  A short Power press from the faulty plumOS off-state entered
 the bootloader charge screen and then darkened again, further distinguishing
 the powered dongle rail from an OS reboot.
 
-## Investigation
+## Initial investigation
 
 The deployed frontend path was confirmed in the persistent power log:
 
@@ -40,9 +40,8 @@ GPIO0_DR=0x0004a000
 ```
 
 The stock DT declares `/vcc_host` as a fixed 5 V `regulator-always-on` supply
-controlled by GPIO0-15.  The kernel power-off path stops the RK817 side but did
-not lower this fixed-regulator GPIO, allowing the Wi-Fi dongle to remain lit
-after the SoC stopped.
+controlled by GPIO0-15.  This led to the initial hypothesis that the GPIO had
+to be lowered before kernel power-off.
 
 ## Controlled physical proof
 
@@ -60,7 +59,7 @@ three outputs off: Wi-Fi LED, charge LED, and display.  This one-time test made
 no persistent configuration change; boot restored GPIO0-15 High and normal
 Wi-Fi operation.
 
-## Implementation
+## Initial implementation
 
 Commit `83fa361` adds the verified sequence to
 `plumos-safe-shutdown`:
@@ -114,7 +113,7 @@ The prior six-file state is recoverable from:
 
 ## Physical result
 
-The final production-path test used the frontend Shutdown action with
+The production-path test used the frontend Shutdown action with
 `ac/online=1`, battery status `Full`, Wi-Fi active, and the charging cable left
 connected.  After shutdown the operator confirmed:
 
@@ -123,6 +122,70 @@ connected.  After shutdown the operator confirmed:
 - display: off;
 - no reboot or automatic charge-screen transition.
 
-The charger-connected shutdown gate now matches the observed stockOS terminal
-state.  Cable-disconnected shutdown remains a separate post-change regression
-gate because the same final GPIO transition is shared by both conditions.
+The charger-connected shutdown gate matched the observed stockOS terminal
+state.  The cable-disconnected gate did not: screen and network stopped, but
+the Wi-Fi LED remained continuously lit.
+
+## Cable-disconnected counter-evidence
+
+Three controlled cable-disconnected tests disproved the GPIO-only diagnosis:
+
+1. DWC2 unbound, GPIO0-15 Low, RK817 boost disabled, then normal kernel
+   power-off: Wi-Fi LED remained lit.
+2. DWC2 unbound, GPIO0-15 Low, then direct RK817 DEV_OFF: Wi-Fi LED remained
+   lit.
+3. While Linux was still running, DWC2 was unbound, GPIO0-15 was Low, and
+   boost was disabled for ten seconds: Wi-Fi LED remained lit. Restoring all
+   three returned Wi-Fi normally.
+
+The observed register transitions succeeded, so repeating those same rail
+operations is not a useful next experiment.
+
+## Read-only stockOS comparison
+
+Stock EmuELEC 4.8 was inspected while running from the original stock SD; no
+files or services were changed. With the cable disconnected, its normal
+Shutdown was physically confirmed to turn the Wi-Fi LED off.
+
+The stock power-key handler only runs `systemctl poweroff`. No RK2020-specific
+systemd stop unit, udev rule, or final shutdown hook manipulates `vcc_host`,
+RK817 boost, or the DWC2 binding. Immediately before stock shutdown:
+
+```text
+ff300000.usb -> dwc2 (bound)
+1-1:1.0      -> btusb
+1-1:1.1      -> btusb
+1-1:1.2      -> rtl8821cu
+vcc_host     state=enabled
+boost        state=enabled
+gpio-15      vcc_host out hi
+```
+
+The running stock kernel exports all three relevant shutdown symbols:
+
+```text
+usb_hcd_platform_shutdown
+dwc2_driver_shutdown
+rtw_dev_shutdown [8821cu]
+```
+
+This reveals the material difference: plumOS unbound DWC2 before invoking the
+kernel power-off syscall, while stock leaves the USB host and Wi-Fi interfaces
+bound for the kernel `device_shutdown()` pass. Lowering `vcc_host` before that
+pass can likewise prevent the Realtek device from completing its orderly
+power-down.
+
+## Revised candidate
+
+The host-side shutdown candidate now matches stock's device lifetime:
+
+1. stop display/frontend owners and unmount writable content as before;
+2. do not release or unbind DWC2;
+3. do not lower GPIO0-15 before kernel shutdown;
+4. call the normal kernel power-off path with the Realtek interface still
+   bound, allowing `rtw_dev_shutdown` and the remaining device callbacks to
+   run.
+
+This is supported by stock runtime evidence and focused host tests, but it is
+not yet physically accepted. After deployment it must pass two separate
+frontend Shutdown gates: cable disconnected and cable connected.

@@ -276,26 +276,13 @@ grep -q 'power=terminal-test action=kernel-poweroff' \
     "$TEST_ROOT/logs/power.log"
 grep -q 'power=terminal-test action=kernel-poweroff' \
     "$TEST_ROOT/user-logs/power.log"
-grep -q '^usb-host release marker=absent$' "$TEST_ROOT/calls"
-grep -Fxq 'ff300000.usb' "$TEST_ROOT/dwc2/unbind"
-grep -q 'power=usb-host-unbound device=ff300000.usb' \
+! grep -q '^usb-host release ' "$TEST_ROOT/calls"
+! test -s "$TEST_ROOT/dwc2/unbind"
+grep -q 'power=usb-host-preserved reason=kernel-device-shutdown' \
     "$TEST_ROOT/logs/power.log"
 
-# A real shutdown lowers the DT's always-on vcc_host GPIO after cleanup and
-# before asking the kernel to power off.  The readback must prove GPIO0-15 is
-# low; otherwise the USB Wi-Fi dongle can remain powered by an attached cable.
-cat >"$TEST_ROOT/devmem-poweroff" <<'EOF'
-#!/bin/sh
-printf 'devmem-poweroff %s\n' "$*" >>"$PLUMOS_TEST_CALLS"
-if [ "$#" -eq 2 ]; then
-    if grep -q '^devmem-poweroff .* 32 0x00042000$' "$PLUMOS_TEST_CALLS"; then
-        printf '0x00042000\n'
-    else
-        printf '0x0004a000\n'
-    fi
-fi
-EOF
-chmod 0755 "$TEST_ROOT/devmem-poweroff"
+# A real shutdown also preserves the bound USB host and does not lower
+# vcc_host before the kernel can run the USB interface shutdown callbacks.
 : >"$TEST_ROOT/calls"
 : >"$TEST_ROOT/poweroff-calls"
 PLUMOS_ROOT="$TEST_ROOT/plumos" \
@@ -310,16 +297,21 @@ PLUMOS_AC_ONLINE="$TEST_ROOT/ac-online" \
 PLUMOS_POWER_DWC2_DRIVER="$TEST_ROOT/dwc2" \
 PLUMOS_POWER_USB_PLATFORM_DEVICE="$TEST_ROOT/platform" \
 PLUMOS_USB_HOST_CONTROL="$TEST_ROOT/usb-host" \
-PLUMOS_DEVMEM="$TEST_ROOT/devmem-poweroff" \
+PLUMOS_DEVMEM="$TEST_ROOT/devmem" \
 PLUMOS_TEST_POWEROFF_CALLS="$TEST_ROOT/poweroff-calls" \
 PLUMOS_TEST_NO_SLEEP=1 \
 PLUMOS_TEST_CALLS="$TEST_ROOT/calls" \
     "$ROOT_DIR/package/app-layer-rk2020/bin/plumos-safe-shutdown" --shutdown
-grep -q '^devmem-poweroff 0xff040000 32$' "$TEST_ROOT/calls"
-grep -q '^devmem-poweroff 0xff040000 32 0x00042000$' "$TEST_ROOT/calls"
-grep -q 'power=vcc-host-disabled address=0xff040000 mask=0x8000 before=0x0004a000 after=0x00042000' \
+! grep -q '^usb-host release ' "$TEST_ROOT/calls"
+! test -s "$TEST_ROOT/dwc2/unbind"
+! grep -q '^devmem 0xff040000 ' "$TEST_ROOT/calls"
+grep -q 'power=usb-host-preserved reason=kernel-device-shutdown' \
     "$TEST_ROOT/logs/power.log"
 [ "$(grep -c '^busybox poweroff -f$' "$TEST_ROOT/poweroff-calls")" -eq 2 ]
+# The real final fallback is exec, so the test stub cannot run the original
+# shell's EXIT trap.  Hardware power-off never returns; clear only the test
+# lock before exercising the remaining terminal-only branches.
+rmdir "$TEST_ROOT/run/power.lock"
 
 # restart2 charge mode remains available only as an explicit, future
 # hardware-profile opt-in; it is not the RK2020 default.
