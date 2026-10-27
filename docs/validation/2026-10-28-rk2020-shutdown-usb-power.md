@@ -186,6 +186,41 @@ The host-side shutdown candidate now matches stock's device lifetime:
    bound, allowing `rtw_dev_shutdown` and the remaining device callbacks to
    run.
 
-This is supported by stock runtime evidence and focused host tests, but it is
-not yet physically accepted. After deployment it must pass two separate
-frontend Shutdown gates: cable disconnected and cable connected.
+Commit `6004700` implements this revised path.  A six-file managed delta was
+deployed without replacing unrelated live component versions:
+
+```text
+bin/plumos-safe-shutdown
+components/frontend/checksums.sha256
+components/frontend/manifest.json
+licenses/component-manifests/frontend.json
+manifest.json
+checksums.sha256
+```
+
+The deployed script SHA-256 is
+`4fe96d589ea134b48d7787025e941168bbe14e6a41591e127dfb4147c4db56f2`.
+Pre-shutdown verification passed:
+
+```text
+source_ref=6004700
+frontend_ok=202 failed=0
+root_ok=11290 failed=0
+```
+
+The previous six-file state is recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-usb-shutdown-6004700-before/before.tar
+```
+
+## Revised physical result
+
+With the charging cable disconnected, the live device reported
+`ac=0`, `usb=0`, battery `Discharging`, DWC2 bound, and the Wi-Fi interface
+bound to `rtl8821cu`.  The operator then selected frontend Shutdown and
+confirmed that the display and all LEDs turned off.
+
+The cable-disconnected gate is accepted.  Cable-connected Shutdown remains a
+separate post-change regression gate because the prior connected pass used the
+superseded GPIO-low sequence.

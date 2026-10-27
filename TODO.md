@@ -27,8 +27,9 @@
   automatic charge-screen transition.  Cable-disconnected Shutdown exposed a
   separate regression: the Wi-Fi LED remained lit.  Read-only stockOS analysis
   found that stock keeps DWC2 and `8821cu` bound through kernel shutdown, where
-  `rtw_dev_shutdown` remains available.  The host-side candidate now preserves
-  that path and needs physical Shutdown tests both with and without the cable.
+  `rtw_dev_shutdown` remains available.  Commit `6004700` now preserves that
+  path; cable-disconnected frontend Shutdown physically turns the display and
+  all LEDs off.  The cable-connected gate still needs a post-change retest.
 - [ ] Confirm RTL8821CU Wi-Fi, SSH, reconnect, removal, and charging fallback.
 - [x] Run representative no-input and gameplay tests for every emulator route.
   Automated no-input evidence now covers all 73 content-backed systems: 70
