@@ -137,18 +137,24 @@ static void reopen_source(struct input_source *source) {
   }
 }
 
-static int headphone_switch_state(int fd) {
-  unsigned char switches[(SW_MAX + 8) / 8];
+static int headphone_gpio_state(void) {
+  const char *path = getenv("PLUMOS_RK817_HEADPHONE_GPIO");
+  FILE *file;
+  int value;
 
-  if (fd < 0) {
-    return -ENODEV;
+  if (!path || !path[0]) {
+    path = "/sys/class/gpio/gpio86/value";
   }
-  memset(switches, 0, sizeof(switches));
-  if (ioctl(fd, EVIOCGSW(sizeof(switches)), switches) < 0) {
+  file = fopen(path, "r");
+  if (!file) {
     return -errno;
   }
-  return (switches[SW_HEADPHONE_INSERT / 8] >>
-          (SW_HEADPHONE_INSERT % 8)) & 1U;
+  value = -1;
+  if (fscanf(file, "%d", &value) != 1) {
+    value = -1;
+  }
+  fclose(file);
+  return value < 0 ? -EIO : value != 0;
 }
 
 static int run_helper(const char *helper_name, const char *action) {
@@ -1269,7 +1275,7 @@ int main(void) {
       reopen_source(&power_key);
       reopen_source(&headphones);
       if (headphones_were_closed && headphones.fd >= 0) {
-        int state = headphone_switch_state(headphones.fd);
+        int state = headphone_gpio_state();
         if (state >= 0 && apply_headphone_route(state) == 0) {
           headphone_connected = state;
         }
@@ -1320,7 +1326,10 @@ int main(void) {
         if (bytes == (ssize_t)sizeof(event)) {
           if (source == &headphones && event.type == EV_SW &&
               event.code == SW_HEADPHONE_INSERT) {
-            int state = event.value != 0;
+            int state = headphone_gpio_state();
+            if (state < 0) {
+              state = event.value != 0;
+            }
             if (state != headphone_connected &&
                 apply_headphone_route(state) == 0) {
               headphone_connected = state;

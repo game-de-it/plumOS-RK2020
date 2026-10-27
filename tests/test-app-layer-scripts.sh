@@ -710,6 +710,8 @@ grep -q 'event.type == EV_SW' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'event.code == SW_HEADPHONE_INSERT' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
+grep -q 'PLUMOS_RK817_HEADPHONE_GPIO' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'route-headphone' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'route-speaker' \
