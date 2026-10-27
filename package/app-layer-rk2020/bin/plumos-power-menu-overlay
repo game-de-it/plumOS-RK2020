@@ -125,7 +125,7 @@ trap cleanup EXIT
 [ -x "$SAFE_SHUTDOWN" ] || { log "error safe-shutdown-missing path=$SAFE_SHUTDOWN"; exit 127; }
 
 controller_event="$(find_input 'GO-Advance Gamepad' /dev/input/event2)"
-power_event="$(find_input 'rk805 pwrkey' /dev/input/event0)"
+power_event="$(find_input 'rk8xx_pwrkey' /dev/input/event0)"
 rm -f "$SELECTION_FILE" 2>/dev/null || true
 pause_display_owners
 log "menu begin controller=$controller_event power=$power_event"

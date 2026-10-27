@@ -15175,7 +15175,8 @@ static int discover_input_event(char *out, size_t out_size) {
 }
 
 static int discover_power_input_event(char *out, size_t out_size) {
-  if (discover_named_input_event(out, out_size, "rk805 pwrkey", NULL) ||
+  if (discover_named_input_event(out, out_size, "rk8xx_pwrkey", NULL) ||
+      discover_named_input_event(out, out_size, "rk805 pwrkey", NULL) ||
       discover_named_input_event(out, out_size, "rk817 pwrkey", NULL) ||
       discover_named_input_event(out, out_size, "axp2202-pek", NULL) ||
       discover_named_input_event(out, out_size, "soc:gpio_keys", NULL) ||

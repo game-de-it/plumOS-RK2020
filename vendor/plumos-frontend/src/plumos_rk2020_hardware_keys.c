@@ -826,7 +826,7 @@ static void persist_pending(int *volume_pending, int *display_pending) {
 int main(void) {
   struct input_source gamepad = {"GO-Advance Gamepad", -1};
   struct input_source volume_keys = {"gpio-keys", -1};
-  struct input_source power_key = {"rk805 pwrkey", -1};
+  struct input_source power_key = {"rk8xx_pwrkey", -1};
   const char *runtime_root = getenv("PLUMOS_RUNTIME_ROOT");
   char run_dir[512];
   char lock_path[512];
