@@ -62,6 +62,16 @@ struct drm_plane_snapshot {
   uint32_t src_h;
 };
 
+struct drm_output_snapshot {
+  uint32_t connector_id;
+  uint32_t crtc_id;
+  uint32_t fb_id;
+  uint32_t x;
+  uint32_t y;
+  drmModeModeInfo mode;
+  int valid;
+};
+
 static volatile sig_atomic_t running = 1;
 static volatile sig_atomic_t power_menu_requested = 0;
 
@@ -559,6 +569,203 @@ static pid_t drastic_core_for_runner(pid_t owner) {
   return core;
 }
 
+static int drm_plane_type(int drm_fd, uint32_t plane_id, uint64_t *type) {
+  drmModeObjectProperties *properties;
+  uint32_t index;
+  int found = 0;
+
+  if (!type) {
+    return 0;
+  }
+  *type = 0;
+  properties = drmModeObjectGetProperties(drm_fd, plane_id,
+                                          DRM_MODE_OBJECT_PLANE);
+  if (!properties) {
+    return 0;
+  }
+  for (index = 0; index < properties->count_props; index++) {
+    drmModePropertyRes *property =
+        drmModeGetProperty(drm_fd, properties->props[index]);
+    if (!property) {
+      continue;
+    }
+    if (strcmp(property->name, "type") == 0) {
+      *type = properties->prop_values[index];
+      found = 1;
+      drmModeFreeProperty(property);
+      break;
+    }
+    drmModeFreeProperty(property);
+  }
+  drmModeFreeObjectProperties(properties);
+  return found;
+}
+
+static int snapshot_drm_output(int drm_fd,
+                               struct drm_output_snapshot *snapshot) {
+  drmModeRes *resources;
+  drmModeConnector *connector = NULL;
+  drmModeEncoder *encoder = NULL;
+  drmModeCrtc *crtc = NULL;
+  drmModePlaneRes *planes = NULL;
+  uint32_t fallback_fb = 0;
+  int index;
+
+  if (drm_fd < 0 || !snapshot) {
+    return 0;
+  }
+  memset(snapshot, 0, sizeof(*snapshot));
+  resources = drmModeGetResources(drm_fd);
+  if (!resources) {
+    return 0;
+  }
+  for (index = 0; index < resources->count_connectors; index++) {
+    drmModeConnector *candidate =
+        drmModeGetConnector(drm_fd, resources->connectors[index]);
+    if (!candidate) {
+      continue;
+    }
+    if (candidate->connection == DRM_MODE_CONNECTED &&
+        candidate->count_modes > 0 &&
+        (candidate->connector_type == DRM_MODE_CONNECTOR_DSI || !connector)) {
+      if (connector) {
+        drmModeFreeConnector(connector);
+      }
+      connector = candidate;
+      if (candidate->connector_type == DRM_MODE_CONNECTOR_DSI) {
+        break;
+      }
+    } else {
+      drmModeFreeConnector(candidate);
+    }
+  }
+  if (!connector) {
+    goto out;
+  }
+  if (connector->encoder_id) {
+    encoder = drmModeGetEncoder(drm_fd, connector->encoder_id);
+  }
+  if (!encoder || !encoder->crtc_id) {
+    int encoder_index;
+    if (encoder) {
+      drmModeFreeEncoder(encoder);
+      encoder = NULL;
+    }
+    for (encoder_index = 0; encoder_index < connector->count_encoders;
+         encoder_index++) {
+      drmModeEncoder *candidate =
+          drmModeGetEncoder(drm_fd, connector->encoders[encoder_index]);
+      if (candidate && candidate->crtc_id) {
+        encoder = candidate;
+        break;
+      }
+      if (candidate) {
+        drmModeFreeEncoder(candidate);
+      }
+    }
+  }
+  if (!encoder || !encoder->crtc_id) {
+    goto out;
+  }
+  crtc = drmModeGetCrtc(drm_fd, encoder->crtc_id);
+  if (!crtc || !crtc->mode_valid) {
+    goto out;
+  }
+  snapshot->connector_id = connector->connector_id;
+  snapshot->crtc_id = crtc->crtc_id;
+  snapshot->fb_id = crtc->buffer_id;
+  snapshot->x = crtc->x;
+  snapshot->y = crtc->y;
+  snapshot->mode = crtc->mode;
+
+  (void)drmSetClientCap(drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+  planes = drmModeGetPlaneResources(drm_fd);
+  if (planes) {
+    uint32_t plane_index;
+    for (plane_index = 0; plane_index < planes->count_planes; plane_index++) {
+      drmModePlane *plane = drmModeGetPlane(drm_fd, planes->planes[plane_index]);
+      uint64_t type = 0;
+      if (!plane) {
+        continue;
+      }
+      if (plane->crtc_id == snapshot->crtc_id && plane->fb_id) {
+        if (!fallback_fb) {
+          fallback_fb = plane->fb_id;
+        }
+        if (drm_plane_type(drm_fd, plane->plane_id, &type) &&
+            type == DRM_PLANE_TYPE_PRIMARY) {
+          snapshot->fb_id = plane->fb_id;
+          drmModeFreePlane(plane);
+          break;
+        }
+      }
+      drmModeFreePlane(plane);
+    }
+  }
+  if (!snapshot->fb_id) {
+    snapshot->fb_id = fallback_fb;
+  }
+  snapshot->valid = snapshot->fb_id != 0;
+
+out:
+  if (planes) {
+    drmModeFreePlaneResources(planes);
+  }
+  if (crtc) {
+    drmModeFreeCrtc(crtc);
+  }
+  if (encoder) {
+    drmModeFreeEncoder(encoder);
+  }
+  if (connector) {
+    drmModeFreeConnector(connector);
+  }
+  drmModeFreeResources(resources);
+  return snapshot->valid;
+}
+
+static int restore_drm_output(int drm_fd,
+                              const struct drm_output_snapshot *snapshot) {
+  drmModeObjectProperties *properties;
+  drmModeModeInfo mode;
+  uint32_t connector_id;
+  uint32_t index;
+  int ok;
+
+  if (drm_fd < 0 || !snapshot || !snapshot->valid) {
+    return 0;
+  }
+  connector_id = snapshot->connector_id;
+  mode = snapshot->mode;
+  ok = drmModeSetCrtc(drm_fd, snapshot->crtc_id, snapshot->fb_id,
+                      snapshot->x, snapshot->y, &connector_id, 1,
+                      &mode) == 0;
+  properties = drmModeObjectGetProperties(drm_fd, snapshot->connector_id,
+                                          DRM_MODE_OBJECT_CONNECTOR);
+  if (!properties) {
+    return ok;
+  }
+  for (index = 0; index < properties->count_props; index++) {
+    drmModePropertyRes *property =
+        drmModeGetProperty(drm_fd, properties->props[index]);
+    if (!property) {
+      continue;
+    }
+    if (strcmp(property->name, "DPMS") == 0) {
+      if (drmModeObjectSetProperty(drm_fd, snapshot->connector_id,
+                                   DRM_MODE_OBJECT_CONNECTOR,
+                                   property->prop_id, DRM_MODE_DPMS_ON) != 0) {
+        ok = 0;
+      }
+      drmModeFreeProperty(property);
+      break;
+    }
+    drmModeFreeProperty(property);
+  }
+  drmModeFreeObjectProperties(properties);
+  return ok;
+}
+
 static size_t suspend_drm_planes(
     int drm_fd, struct drm_plane_snapshot *snapshots, size_t capacity) {
   drmModePlaneRes *resources;
@@ -776,9 +983,12 @@ static int spawn_power_menu_overlay(void) {
     int owner_stopped = 0;
     int companion_stopped = 0;
     struct drm_plane_snapshot plane_snapshots[DRM_PLANE_SNAPSHOT_LIMIT];
+    struct drm_output_snapshot output_snapshot;
     size_t plane_count = 0;
     pid_t overlay;
     int status = 1 << 8;
+
+    memset(&output_snapshot, 0, sizeof(output_snapshot));
 
     if (owner > 1 && target_fd >= 0) {
       companion = drastic_core_for_runner(owner);
@@ -804,6 +1014,11 @@ static int spawn_power_menu_overlay(void) {
       if (owner_drm_fd >= 0) {
         owner_stopped = stop_process_for_overlay(owner);
         if (owner_stopped) {
+          int output_saved = snapshot_drm_output(owner_drm_fd,
+                                                 &output_snapshot);
+          fprintf(stderr,
+                  "hardware-keys: drm-output=snapshot owner=%ld rc=%d\n",
+                  (long)owner, output_saved ? 0 : -EIO);
           plane_count = suspend_drm_planes(
               owner_drm_fd, plane_snapshots, DRM_PLANE_SNAPSHOT_LIMIT);
           fprintf(stderr,
@@ -854,6 +1069,12 @@ static int spawn_power_menu_overlay(void) {
       fprintf(stderr,
               "hardware-keys: drm-master=restore owner=%ld rc=%d\n",
               (long)owner, restore_result == 0 ? 0 : -errno);
+      if (restore_result == 0 && output_snapshot.valid) {
+        int output_ok = restore_drm_output(owner_drm_fd, &output_snapshot);
+        fprintf(stderr,
+                "hardware-keys: drm-output=restore owner=%ld rc=%d\n",
+                (long)owner, output_ok ? 0 : -errno);
+      }
       if (restore_result == 0 && plane_count > 0) {
         int planes_ok =
             restore_drm_planes(owner_drm_fd, plane_snapshots, plane_count);
