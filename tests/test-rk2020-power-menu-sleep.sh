@@ -416,7 +416,9 @@ grep -q '/sys/class/power_supply/usb/online' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"
 grep -q 'consume_power_wake_suppression' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
-grep -q 'write_power_overlay_selection(ui, "handled")' \
+grep -q 'write_power_overlay_selection(ui, entry->id)' \
+    "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
+! grep -q 'write_power_overlay_selection(ui, "handled")' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_controller_ui.c"
 grep -q 'SYS_pidfd_getfd' \
     "$ROOT_DIR/vendor/plumos-frontend/src/plumos_rk2020_hardware_keys.c"

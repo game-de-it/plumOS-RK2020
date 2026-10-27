@@ -14081,9 +14081,15 @@ static void handle_action(struct ui_state *ui, enum ui_action action) {
         return;
       }
       if (ui->power_overlay) {
-        if (write_power_overlay_selection(ui, "handled")) {
-          (void)run_power_action(ui, entry->id,
-                                 strcmp(entry->id, "shutdown") == 0);
+        /*
+         * The overlay renderer temporarily owns DRM while the game is
+         * SIGSTOPed.  Return the selected action to the outer overlay helper
+         * so it can close this renderer before suspend/reboot/shutdown.  In
+         * particular, entering suspend here leaves the panel black while the
+         * overlay still owns the display and bypasses the helper's paused-game
+         * lifecycle.
+         */
+        if (write_power_overlay_selection(ui, entry->id)) {
           ui->exit_requested = 1;
         }
         return;
