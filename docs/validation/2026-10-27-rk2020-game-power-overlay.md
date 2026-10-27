@@ -25,9 +25,11 @@ For the power overlay, the hardware daemon now:
 
 1. obtains the DRM descriptor through the broker, with the pidfd path retained
    as a fallback;
-2. stops the display owner and saves/disables its active planes;
+2. stops the display owner and saves the connector/CRTC/mode/framebuffer plus
+   its active planes, then disables those planes;
 3. drops DRM master and runs the overlay frontend;
-4. reacquires DRM master, restores the saved planes, and resumes the owner.
+4. reacquires DRM master, restores the connector/CRTC mode and DPMS state,
+   restores the saved planes, and resumes the owner.
 
 The framebuffer frontend also requests DRM master explicitly during renderer
 initialization.
@@ -90,16 +92,92 @@ SHA-256 1f9fcf1ae9c944cd64ec9422263104a0f18c675f7aaad200faa09df1388920fa
 The direct test game was terminated after verification and the frontend was
 restored successfully as PID 16843.
 
-## Remaining physical gates
+## PPSSPP Cancel regression and output restore
 
-- Repeat the focused foreground/cancel check with one standalone direct-DRM
-  route and one PortMaster game.
-- Check DraStic separately because its ARMHF game and AArch64 display runner
-  are split processes.
+On 2026-10-27, opening the power menu over PPSSPP and cancelling with B left
+both the panel and audible output absent.  PPSSPP PID 24763 was still runnable,
+the ALSA playback stream remained `RUNNING`, and its hardware pointer advanced.
+A direct capture also contained the game frame.  The externally visible fault
+was instead:
 
-These focused checks cover the changed display-handoff dependency boundary;
-the full emulator matrix does not need to be repeated unless one of them
-reveals a shared regression.
+```text
+/sys/class/drm/card0-DSI-1/enabled=disabled
+/sys/class/drm/card0-DSI-1/dpms=Off
+/sys/class/backlight/backlight/bl_power=0
+```
+
+The earlier plane-only handback therefore restored framebuffer contents but
+not the connector/CRTC state disabled during overlay shutdown.  Commit
+`3ca6a2f` snapshots the active output before handoff, calls `drmModeSetCrtc`
+after reacquiring DRM master, and forces the connector DPMS property to On
+before restoring the planes.
+
+The managed seven-file frontend delta passed its component checksum and the
+complete live app-layer checksum.  The root manifest reports source ref
+`3ca6a2f`.  Its prior state is recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-drm-output-3ca6a2f-before/before.tar
+SHA-256 586da0a4a5371051b0fdfcd26dbb775a6a717267c6bee183b5c3a70c38ff2711
+```
+
+After a clean PPSSPP relaunch, automatic Cancel through the production
+hardware-daemon path produced:
+
+```text
+hardware-keys: drm-output=snapshot owner=28191 rc=0
+hardware-keys: drm-master=drop owner=28191 fd=9 rc=0
+hardware-keys: drm-master=restore owner=28191 rc=0
+hardware-keys: drm-output=restore owner=28191 rc=0
+hardware-keys: drm-planes=restore owner=28191 count=1 rc=0
+hardware-keys: display-owner=resume owner=28191
+```
+
+The connector remained `enabled` with DPMS `On`, the same PPSSPP process
+survived, and ALSA stayed `RUNNING`.  The operator then repeated the real
+Power-menu/B sequence and confirmed that PPSSPP returned with both display and
+audio normal.
+
+## Cross-emulator Cancel matrix
+
+Commit `21db8c5` adds a focused regression matrix which invokes the production
+hardware daemon and replaces only the physical B selection with an automatic
+Cancel.  It avoids repeating every core while covering each distinct display
+runtime family requested by the operator.  The final device run passed:
+
+| runtime family | route | output snapshot/restore | connector | same process | scanout | audio |
+|---|---|---:|---:|---:|---:|---:|
+| RetroArch | `retroarch:fceumm` | PASS | PASS | PASS | PASS | PASS |
+| PicoArch/fbdev | `picoarch:quicknes` | N/A | PASS | PASS | PASS | PASS |
+| Mupen64Plus standalone | `standalone:mupen64plus` | PASS | PASS | PASS | PASS | PASS |
+| DraStic split runner | `standalone:drastic` | PASS | PASS | PASS | PASS | PASS |
+| OpenBOR standalone | `standalone:openbor` | PASS | PASS | PASS | PASS | PASS |
+
+PicoArch does not expose a direct DRM owner on this route, so connector/CRTC
+handoff is not applicable; its game process, connector, scanout, and audio
+still survived Cancel.  The legacy capture path exposes an active
+panel-sized plane but GPU framebuffer readback can be black, so the scanout
+column proves active KMS state rather than pixel colors.  PPSSPP supplies the
+separate physical visible/audible acceptance.
+
+Evidence is retained in the ignored validation output at:
+
+```text
+output/validation/rk2020-power-cancel-2026-10-27-final/
+```
+
+The test ended with no emulator process left behind, the production hardware
+daemon running as PID 12004, FE restored as PID 12126, and DSI
+`enabled`/DPMS `On`.
+
+## Remaining focused gate
+
+- A PortMaster game uses the same shared handoff preload but remains a separate
+  application-route check.  It is not needed to close the requested
+  cross-emulator Cancel regression.
+
+The five emulator checks cover the changed display-handoff dependency
+boundary; the full 73-system matrix does not need to be repeated.
 
 ## RetroArch in-game Sleep acceptance
 
