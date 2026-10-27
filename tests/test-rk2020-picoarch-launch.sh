@@ -57,7 +57,7 @@ run_route() {
         "$root/logs/picoarch/$system_id-picodrive.log"
 }
 
-run_route megadrive native 0 bubble-bare-knuckle-180f
+run_route megadrive byteswap 1 rk2020-physical-bare-knuckle
 run_route mastersystem native 0 bubble-wonder-boy-iii-180f
 run_route gamegear byteswap 1 bubble-pengo-180f
 run_route sega32x byteswap 1 rk2020-physical-bc-racers

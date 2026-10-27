@@ -64,6 +64,7 @@ sort -o "$tmp/override-routes" "$tmp/override-routes"
 cmp "$tmp/picodrive-routes" "$tmp/override-routes"
 test "$(awk -F '\t' '$1 == "gamegear" && $4 == "byteswap" { n++ } END { print n + 0 }' "$overrides")" -eq 1
 test "$(awk -F '\t' '$1 == "sega32x" && $4 == "byteswap" { n++ } END { print n + 0 }' "$overrides")" -eq 1
-test "$(awk -F '\t' '!/^#/ && $4 == "byteswap" { n++ } END { print n + 0 }' "$overrides")" -eq 2
+test "$(awk -F '\t' '$1 == "megadrive" && $4 == "byteswap" { n++ } END { print n + 0 }' "$overrides")" -eq 1
+test "$(awk -F '\t' '!/^#/ && $4 == "byteswap" { n++ } END { print n + 0 }' "$overrides")" -eq 3
 
-printf '%s\n' 'rk2020_picoarch_rgb565_matrix=result-ok routes=22 rgb565=20 core_byteswap=7 route_overrides=5 route_byteswap=2 xrgb8888=2'
+printf '%s\n' 'rk2020_picoarch_rgb565_matrix=result-ok routes=22 rgb565=20 core_byteswap=7 route_overrides=5 route_byteswap=3 xrgb8888=2'

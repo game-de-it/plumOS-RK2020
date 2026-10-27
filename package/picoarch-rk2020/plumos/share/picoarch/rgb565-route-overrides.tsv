@@ -1,5 +1,5 @@
 # system_id	core_id	pixel_format	byte_order	route_scope	evidence
-megadrive	picodrive	rgb565	native	frontend	bubble-bare-knuckle-180f
+megadrive	picodrive	rgb565	byteswap	frontend	rk2020-physical-bare-knuckle
 mastersystem	picodrive	rgb565	native	frontend	bubble-wonder-boy-iii-180f
 gamegear	picodrive	rgb565	byteswap	frontend	bubble-pengo-180f
 sega32x	picodrive	rgb565	byteswap	frontend	rk2020-physical-bc-racers
