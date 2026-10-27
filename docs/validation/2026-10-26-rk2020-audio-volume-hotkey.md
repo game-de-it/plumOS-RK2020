@@ -125,9 +125,67 @@ passed, and the live manifest reports source ref `8c28ac6`. An already-running
 emulator keeps the old shared object mapped; the new curve takes effect after
 exiting and relaunching a game.
 
-- New 0-to-1 transition after game relaunch: **PENDING operator test**.
-- Progressive response across the low and middle levels: **PENDING operator
-  test**.
+- New 0-to-1 transition after game relaunch: **PASS**.
+- Progressive response across the low and middle levels: **PASS**.
 
-The pending curve checks do not require a reboot or a new SD image. They only
-require exiting the currently running game once and launching it again.
+The operator reported that the revised low-volume curve felt appropriately
+progressive after relaunch.
+
+## Headphone hotplug follow-up
+
+Inserting headphones during an active NES game initially left the RK817 route
+at `SPK`, so sound continued through the built-in speaker.  Live inspection
+showed that the hardware state itself was correct:
+
+```text
+gpio86=1
+rockchip,rk817-codec Headphones -> /dev/input/event1
+```
+
+Manually applying `plumos-rk817-resume route-headphone` moved the same active
+game stream to the headphones and silenced the speaker.  This isolated the
+failure to missing hotplug monitoring rather than the codec, PCM stream, or
+headphone output path.
+
+Commit `7df2b4b` adds the RK817 headphone evdev source to the existing
+hardware-key daemon.  The first live revision exposed that the kernel switch
+ioctl reported an inserted initial state as zero on this unit.  Commit
+`9f3a4c8` therefore uses the board-verified GPIO 86 level as the route source
+of truth while retaining `SW_HEADPHONE_INSERT` as the immediate change
+notification:
+
+- GPIO 86 High: `route-headphone` / `HP`;
+- GPIO 86 Low: `route-speaker` / `SPK`.
+
+The final managed delta changed only `bin/plumos-hardware-keys` and the
+frontend metadata dependency closure.  Its deployed binary SHA-256 is:
+
+```text
+3bf1f383e57da0f9dec5ccc1203b17729816c640c67c219f7ddff8da000213d2
+```
+
+Post-deployment verification passed:
+
+```text
+source_ref=9f3a4c8
+frontend_ok=202 failed=0
+root_ok=11290 failed=0
+```
+
+The previous managed state is recoverable from:
+
+```text
+/mnt/plumos-user/Backups/rk2020-headphone-gpio-9f3a4c8-before/before.tar
+```
+
+The daemon log recorded both directions repeatedly with successful RK817
+route application:
+
+```text
+hardware-keys: event=headphone connected=1 route=headphone rc=0
+hardware-keys: event=headphone connected=0 route=speaker rc=0
+```
+
+The operator tested several games and confirmed that insertion moves audio to
+the headphones with the speaker silent, and removal returns audio to the
+speaker.  Headphone hotplug is physically accepted.

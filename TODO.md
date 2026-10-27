@@ -15,7 +15,11 @@
 - [ ] Boot from a separate test SD and prove the active root is plumOS.
 - [ ] Confirm the frontend at native 320x480/60 Hz with correct orientation.
 - [ ] Confirm all RK2020 buttons and both analogue axes.
-- [ ] Confirm speaker, headphone switching, volume, and mute through RK817.
+- [x] Confirm speaker, headphone switching, volume, and mute through RK817.
+  Speaker output, the perceptual 0..20 volume curve, mute at zero, and L2 +
+  Up/Down control are physically accepted.  Commits `7df2b4b` and `9f3a4c8`
+  add RK817 jack-event monitoring: GPIO 86 selects `HP` when inserted and
+  `SPK` when removed.  Automatic switching passed across multiple games.
 - [x] Confirm brightness range and suspend/resume behavior. Frontend suspend,
   powered wake, delayed Wi-Fi recovery, and RetroArch in-game suspend/resume
   are physically accepted. The in-game route now applies the RK2020
