@@ -230,3 +230,52 @@ from:
 /mnt/plumos-user/Backups/rk2020-power-overlay-input-748864f-before/before.tar
 SHA-256 d776358845b066a2205f8b5bcbb3583327fe768b5441907d43fecdc6273498f8
 ```
+
+## New-SD suspend plane-geometry correction
+
+On 2026-10-28, the first clean-SD Game Boy suspend test resumed the running
+RetroArch game with its image shifted to the right. Opening the RetroArch menu
+and returning to the game corrected the position, proving that the core and
+framebuffer remained healthy and that the next RetroArch modeset repaired a
+bad handback geometry.
+
+The shared overlay handoff had saved the plane origin but reconstructed both
+the CRTC destination and source size from the framebuffer dimensions. That is
+not valid for RK2020's rotated and aspect-fitted DRM planes. Commit `7a27673`
+now reads and restores all eight atomic plane properties: `CRTC_X`, `CRTC_Y`,
+`CRTC_W`, `CRTC_H`, `SRC_X`, `SRC_Y`, `SRC_W`, and `SRC_H`. The legacy
+framebuffer-sized fallback remains available only when a DRM owner does not
+expose the complete atomic property set.
+
+The six-file managed frontend delta contained only the hardware-key daemon and
+its component/root metadata chain. Before activation, the staged bundle and
+managed-delta checks passed. After activation, the complete frontend component
+reported 202/202 valid files and the complete app layer reported 11289/11289.
+All 14 source gates also passed. ROMs, saves, and user settings were not
+replaced. The prior six-file state is recoverable from:
+
+```text
+/mnt/plumos-user/backups/rk2020-drm-plane-7a27673-before/before.tar
+SHA-256 15f87cc3fed54050fb9d7a226d621d05a012d87cef3be1b5265ab6ae79f186d5
+```
+
+The corrected Game Boy sleep/resume captured exact geometry for both active
+planes before handoff:
+
+```text
+plane=58 crtc=0,0,320x480 src=0,0,20971520x31457280 geometry=atomic
+plane=61 crtc=0,62,320x356 src=0,0,20971520x23330816 geometry=atomic
+drm-planes=restore owner=13792 count=2 rc=0
+display-owner=resume owner=13792
+```
+
+The connector remained enabled with DPMS On. The operator confirmed that the
+Game Boy image returned in the correct position without using the RetroArch
+menu. This is the physical acceptance result for the reported regression.
+
+The fix is in the shared hardware-daemon handoff and therefore covers every
+direct-DRM owner using it: RetroArch, PPSSPP, Mupen64Plus, PCSX-ReARMed,
+DraStic's display runner, OpenBOR, PICO-8, PortMaster games, Pyxel,
+NextCommander, and Music Player. This dependency coverage does not turn the
+single Game Boy observation into a separate physical retest of every listed
+runtime.

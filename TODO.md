@@ -29,7 +29,13 @@
   powered wake, delayed Wi-Fi recovery, and RetroArch in-game suspend/resume
   are physically accepted. The in-game route now applies the RK2020
   east-confirm input map to its power overlay, enters kernel `mem`, restores
-  the DRM planes/backlight, and resumes the same controllable game.
+  the DRM planes/backlight, and resumes the same controllable game. On the
+  clean SD, Game Boy initially resumed with a right-shifted image because the
+  shared handoff reconstructed rotated plane geometry from framebuffer size.
+  Commit `7a27673` restores the eight exact atomic CRTC/source properties; a
+  repeated Game Boy sleep/wake returned at the correct position without an RA
+  menu refresh. The shared fix covers all direct-DRM handoff clients, while
+  physical acceptance remains explicitly the reported Game Boy route.
 - [x] Confirm cold boot, reboot, shutdown, and charging-state behavior.
   Read-only stockOS analysis found that stock keeps DWC2 and `8821cu` bound
   through kernel shutdown, where `rtw_dev_shutdown` remains available.  Commit
