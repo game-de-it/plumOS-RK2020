@@ -52,8 +52,8 @@ struct drm_plane_snapshot {
   uint32_t plane_id;
   uint32_t crtc_id;
   uint32_t fb_id;
-  uint32_t crtc_x;
-  uint32_t crtc_y;
+  int32_t crtc_x;
+  int32_t crtc_y;
   uint32_t crtc_w;
   uint32_t crtc_h;
   uint32_t src_x;
@@ -632,6 +632,72 @@ static int drm_plane_type(int drm_fd, uint32_t plane_id, uint64_t *type) {
   return found;
 }
 
+static int snapshot_drm_plane_geometry(
+    int drm_fd, struct drm_plane_snapshot *snapshot) {
+  enum {
+    PLANE_CRTC_X = 1u << 0,
+    PLANE_CRTC_Y = 1u << 1,
+    PLANE_CRTC_W = 1u << 2,
+    PLANE_CRTC_H = 1u << 3,
+    PLANE_SRC_X = 1u << 4,
+    PLANE_SRC_Y = 1u << 5,
+    PLANE_SRC_W = 1u << 6,
+    PLANE_SRC_H = 1u << 7,
+    PLANE_GEOMETRY_COMPLETE = (1u << 8) - 1u,
+  };
+  drmModeObjectProperties *properties;
+  unsigned int found = 0;
+  uint32_t index;
+
+  if (drm_fd < 0 || !snapshot || !snapshot->plane_id) {
+    return 0;
+  }
+  properties = drmModeObjectGetProperties(drm_fd, snapshot->plane_id,
+                                          DRM_MODE_OBJECT_PLANE);
+  if (!properties) {
+    return 0;
+  }
+  for (index = 0; index < properties->count_props; index++) {
+    drmModePropertyRes *property =
+        drmModeGetProperty(drm_fd, properties->props[index]);
+    uint64_t value = properties->prop_values[index];
+
+    if (!property) {
+      continue;
+    }
+    if (strcmp(property->name, "CRTC_X") == 0) {
+      snapshot->crtc_x = (int32_t)value;
+      found |= PLANE_CRTC_X;
+    } else if (strcmp(property->name, "CRTC_Y") == 0) {
+      snapshot->crtc_y = (int32_t)value;
+      found |= PLANE_CRTC_Y;
+    } else if (strcmp(property->name, "CRTC_W") == 0) {
+      snapshot->crtc_w = (uint32_t)value;
+      found |= PLANE_CRTC_W;
+    } else if (strcmp(property->name, "CRTC_H") == 0) {
+      snapshot->crtc_h = (uint32_t)value;
+      found |= PLANE_CRTC_H;
+    } else if (strcmp(property->name, "SRC_X") == 0) {
+      snapshot->src_x = (uint32_t)value;
+      found |= PLANE_SRC_X;
+    } else if (strcmp(property->name, "SRC_Y") == 0) {
+      snapshot->src_y = (uint32_t)value;
+      found |= PLANE_SRC_Y;
+    } else if (strcmp(property->name, "SRC_W") == 0) {
+      snapshot->src_w = (uint32_t)value;
+      found |= PLANE_SRC_W;
+    } else if (strcmp(property->name, "SRC_H") == 0) {
+      snapshot->src_h = (uint32_t)value;
+      found |= PLANE_SRC_H;
+    }
+    drmModeFreeProperty(property);
+  }
+  drmModeFreeObjectProperties(properties);
+  return found == PLANE_GEOMETRY_COMPLETE && snapshot->crtc_w != 0 &&
+         snapshot->crtc_h != 0 && snapshot->src_w != 0 &&
+         snapshot->src_h != 0;
+}
+
 static int snapshot_drm_output(int drm_fd,
                                struct drm_output_snapshot *snapshot) {
   drmModeRes *resources;
@@ -807,6 +873,7 @@ static size_t suspend_drm_planes(
     return 0;
   }
   (void)drmSetClientCap(drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+  (void)drmSetClientCap(drm_fd, DRM_CLIENT_CAP_ATOMIC, 1);
   resources = drmModeGetPlaneResources(drm_fd);
   if (!resources) {
     return 0;
@@ -841,6 +908,16 @@ static size_t suspend_drm_planes(
     snapshot->src_y = plane->y;
     snapshot->src_w = framebuffer->width << 16;
     snapshot->src_h = framebuffer->height << 16;
+    {
+      int exact_geometry = snapshot_drm_plane_geometry(drm_fd, snapshot);
+      fprintf(stderr,
+              "hardware-keys: drm-plane=snapshot plane=%u fb=%u "
+              "crtc=%d,%d,%ux%u src=%u,%u,%ux%u geometry=%s\n",
+              snapshot->plane_id, snapshot->fb_id, snapshot->crtc_x,
+              snapshot->crtc_y, snapshot->crtc_w, snapshot->crtc_h,
+              snapshot->src_x, snapshot->src_y, snapshot->src_w,
+              snapshot->src_h, exact_geometry ? "atomic" : "legacy");
+    }
     if (drmModeSetPlane(drm_fd, snapshot->plane_id, 0, 0, 0, 0, 0, 0,
                         0, 0, 0, 0, 0) == 0) {
       count++;
