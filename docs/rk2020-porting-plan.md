@@ -1,5 +1,7 @@
 # RK2020 porting plan
 
+[日本語](rk2020-porting-plan.ja.md)
+
 Date: 2026-10-25
 
 ## Source baseline

@@ -20,7 +20,7 @@
 ## 開発者向け
 
 - [開発者向け索引](developer/README.ja.md)
-- [RK2020移植計画](rk2020-porting-plan.md)
+- [RK2020移植計画](rk2020-porting-plan.ja.md)
 - [実機検証記録](validation/)
 - [現在の作業一覧](../TODO.md)
 

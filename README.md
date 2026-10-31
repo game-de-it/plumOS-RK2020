@@ -28,8 +28,9 @@ frontend, emulators, applications, settings, power handling, and update flow.
 
 ## Documentation
 
-User and developer material is separated and provided in both English and
-Japanese.
+User and developer material is separated. The public indexes, user manual, and
+porting plan are provided in both English and Japanese; dated validation logs
+retain their original working language.
 
 - [Documentation index](docs/README.md)
 - [User manual](docs/user/README.md)

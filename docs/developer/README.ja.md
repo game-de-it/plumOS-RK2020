@@ -2,7 +2,7 @@
 
 [English](README.md) | [ドキュメント索引](../README.ja.md)
 
-- [移植計画](../rk2020-porting-plan.md)
+- [移植計画](../rk2020-porting-plan.ja.md)
 - [stock OS読み取り専用調査](../validation/2026-10-25-rk2020-read-only-inventory.md)
 - [host build記録](../validation/2026-10-25-rk2020-host-build.md)
 - [boot挙動の修正記録](../validation/2026-10-25-rk2020-boot-behavior-correction.md)

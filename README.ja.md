@@ -28,7 +28,8 @@ update機構をplumOSで管理します。
 
 ## ドキュメント
 
-利用者向けと開発者向けを分離し、それぞれ英語版と日本語版を用意しています。
+利用者向けと開発者向けを分離しています。公開索引、ユーザー向け取扱説明書、移植計画は
+英語版と日本語版を用意し、日付付き実機検証logは作業時の原文を保持します。
 
 - [ドキュメント索引](docs/README.ja.md)
 - [ユーザー向け取扱説明書](docs/user/README.ja.md)
@@ -57,7 +58,7 @@ ROM、ゲーム機固有の有償・著作権保護BIOS、および製品版PICO
 同じRK3326を使うPixel2の実装履歴を出発点にしていますが、Pixel2の検証結果を
 RK2020の合格として扱いません。boot、display、input、audio、network、power、
 各emulator routeをRK2020実機で個別に検証します。詳細は
-[移植計画](docs/rk2020-porting-plan.md)と[TODO](TODO.md)を参照してください。
+[移植計画](docs/rk2020-porting-plan.ja.md)と[TODO](TODO.md)を参照してください。
 
 Docker buildの入口は次のcommandです。
 
