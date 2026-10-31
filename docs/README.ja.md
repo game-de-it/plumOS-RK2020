@@ -8,12 +8,14 @@
 - [インストールと初回起動](user/install.ja.md)
 - [本体操作、電源、エミュレータhotkey](user/operation.ja.md)
 - [システムとエミュレータ](user/emulators.ja.md)
+- [対応システム・ROMフォルダ・core一覧](user/supported-systems.ja.md)
 - [SDカードと再書き込み](user/storage-and-reimaging.ja.md)
 - [セーブデータ](user/save-data.ja.md)
 - [ネットワークとSFTP](user/network.ja.md)
 - [スクレイピング](user/scraping.ja.md)
 - [アップデート](user/updates.ja.md)
 - [トラブルシューティング](user/troubleshooting.ja.md)
+- [ドキュメント項目の比較監査](documentation-parity.ja.md)
 
 ## 開発者向け
 

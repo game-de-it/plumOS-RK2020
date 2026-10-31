@@ -12,6 +12,7 @@ Start with these pages:
 Reference pages:
 
 - [SD storage and reimaging](storage-and-reimaging.md)
+- [Supported systems, ROM directories, and cores](supported-systems.md)
 - [Save data](save-data.md)
 - [Scraping](scraping.md)
 - [Updates](updates.md)

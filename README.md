@@ -34,6 +34,7 @@ Japanese.
 - [Documentation index](docs/README.md)
 - [User manual](docs/user/README.md)
 - [RK2020 controls and emulator hotkeys](docs/user/operation.md)
+- [Supported systems, ROM directories, and cores](docs/user/supported-systems.md)
 - [SD storage and reimaging](docs/user/storage-and-reimaging.md)
 - [日本語版](README.ja.md)
 

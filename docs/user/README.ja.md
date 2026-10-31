@@ -12,6 +12,7 @@
 必要に応じて参照する項目:
 
 - [SDカードと再書き込み](storage-and-reimaging.ja.md)
+- [対応システム・ROMフォルダ・core一覧](supported-systems.ja.md)
 - [セーブデータ](save-data.ja.md)
 - [スクレイピング](scraping.ja.md)
 - [アップデート](updates.ja.md)

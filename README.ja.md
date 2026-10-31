@@ -33,6 +33,7 @@ update機構をplumOSで管理します。
 - [ドキュメント索引](docs/README.ja.md)
 - [ユーザー向け取扱説明書](docs/user/README.ja.md)
 - [RK2020の操作とエミュレータhotkey](docs/user/operation.ja.md)
+- [対応システム・ROMフォルダ・core一覧](docs/user/supported-systems.ja.md)
 - [SDカードと再書き込み](docs/user/storage-and-reimaging.ja.md)
 - [English project overview](README.md)
 
