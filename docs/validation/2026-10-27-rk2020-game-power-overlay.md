@@ -279,3 +279,41 @@ DraStic's display runner, OpenBOR, PICO-8, PortMaster games, Pyxel,
 NextCommander, and Music Player. This dependency coverage does not turn the
 single Game Boy observation into a separate physical retest of every listed
 runtime.
+
+## Final-image reflash confirmation
+
+On 2026-10-31, the operator flashed the complete image whose boot, System A/B,
+and app-layer manifests report `source_ref=80bdc31`. After first-boot setup and
+Wi-Fi configuration, Game Boy `Aretha (Japan)` was launched normally from the
+frontend. The operator entered Sleep, resumed with the physical power button,
+and confirmed that the game remained visible, correctly positioned, and
+controllable without opening the RetroArch menu.
+
+The running RetroArch PID 6248 was both the captured DRM owner and the process
+still present after resume. The production hardware daemon recorded the exact
+geometry and a clean handback:
+
+```text
+hardware-keys: drm-plane=snapshot plane=58 fb=71 crtc=0,0,320x480 src=0,0,20971520x31457280 geometry=atomic
+hardware-keys: drm-plane=snapshot plane=61 fb=70 crtc=0,62,320x356 src=0,0,20971520x23330816 geometry=atomic
+hardware-keys: drm-planes=restore owner=6248 count=2 rc=0
+hardware-keys: display-unblank owner=6248 rc=0
+hardware-keys: display-owner=resume owner=6248
+```
+
+The kernel sleep path and display restoration also completed normally:
+
+```text
+sleep=enter backend=mem
+sleep=resume backend=mem
+sleep=display-unblank brightness=28 bl_power=0 saved_bl_power=4
+sleep=result-returned backend=mem kernel_sleep=1
+```
+
+Post-resume state was DSI `enabled`, DPMS `On`, backlight power `0`, and
+brightness `28`. The RTL8821CU interface had carrier, restored
+`192.168.10.110/24` plus its default route, and completed the scheduled
+recovery on the first attempt. SSH from the host succeeded, and two gateway
+pings returned with zero packet loss. This closes the focused fresh-image Game
+Boy geometry and Wi-Fi-resume confirmation; other direct-DRM clients remain
+separate physical routes.

@@ -35,7 +35,11 @@
   Commit `7a27673` restores the eight exact atomic CRTC/source properties; a
   repeated Game Boy sleep/wake returned at the correct position without an RA
   menu refresh. The shared fix covers all direct-DRM handoff clients, while
-  physical acceptance remains explicitly the reported Game Boy route.
+  physical acceptance remains explicitly the reported Game Boy route. The
+  final image from `80bdc31` was then reflashed and physically repeated on
+  2026-10-31: the same frontend-launched Game Boy remained correctly placed
+  and controllable after sleep/resume, and RTL8821CU Wi-Fi recovered with
+  carrier, address, default route, SSH, and gateway connectivity.
 - [x] Confirm cold boot, reboot, shutdown, and charging-state behavior.
   Read-only stockOS analysis found that stock keeps DWC2 and `8821cu` bound
   through kernel shutdown, where `rtw_dev_shutdown` remains available.  Commit
