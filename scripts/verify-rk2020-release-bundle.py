@@ -43,7 +43,14 @@ def seven_zip() -> str:
 
 def verify_dir(root: Path, allow_dirty: bool = False) -> None:
     checksums = load_checksums(root / "SHA256SUMS")
-    required = {"RELEASE_NOTES.md", "RELEASE_MANIFEST.json"}
+    required = {
+        "LICENSE",
+        "NOTICE.md",
+        "THIRD_PARTY_NOTICES.md",
+        "THIRD_PARTY_NOTICES.ja.md",
+        "RELEASE_NOTES.md",
+        "RELEASE_MANIFEST.json",
+    }
     if not required <= checksums.keys():
         raise SystemExit("release metadata is missing from SHA256SUMS")
     for name, expected in checksums.items():
@@ -62,6 +69,23 @@ def verify_dir(root: Path, allow_dirty: bool = False) -> None:
     source_ref = manifest.get("source_ref")
     if not isinstance(source_ref, str) or not re.fullmatch(r"[0-9a-f]{40}", source_ref):
         raise SystemExit("release source_ref is not a full Git commit")
+    license_assets = manifest.get("license_assets")
+    expected_license_assets = {
+        "LICENSE",
+        "NOTICE.md",
+        "THIRD_PARTY_NOTICES.md",
+        "THIRD_PARTY_NOTICES.ja.md",
+    }
+    if not isinstance(license_assets, dict) or set(license_assets) != expected_license_assets:
+        raise SystemExit("release license asset manifest mismatch")
+    for name, metadata in license_assets.items():
+        path = root / name
+        if (
+            not isinstance(metadata, dict)
+            or metadata.get("size") != path.stat().st_size
+            or metadata.get("sha256") != sha256(path)
+        ):
+            raise SystemExit(f"release license asset mismatch: {name}")
     image = manifest["image"]
     expected_image = f"plumOS-RK2020-v{version}-sd-image.7z"
     if image.get("compressed_file") != expected_image:

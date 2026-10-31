@@ -29,6 +29,10 @@ grep -q 'release_bundle=result-ok' "$work/build.log"
 grep -q 'image_7z=plumOS-RK2020-v0.0.0-test-sd-image.7z' "$work/build.log"
 archive="$ROOT_DIR/dist/test-release-parent/bundle/plumOS-RK2020-v0.0.0-test-sd-image.7z"
 test -f "$archive"
+for asset in LICENSE NOTICE.md THIRD_PARTY_NOTICES.md THIRD_PARTY_NOTICES.ja.md; do
+    test -s "$ROOT_DIR/dist/test-release-parent/bundle/$asset"
+    grep -q "  $asset$" "$ROOT_DIR/dist/test-release-parent/bundle/SHA256SUMS"
+done
 if command -v 7zz >/dev/null 2>&1; then
     7zz t "$archive" >/dev/null
 else

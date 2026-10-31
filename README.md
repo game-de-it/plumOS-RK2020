@@ -37,6 +37,7 @@ retain their original working language.
 - [RK2020 controls and emulator hotkeys](docs/user/operation.md)
 - [Supported systems, ROM directories, and cores](docs/user/supported-systems.md)
 - [SD storage and reimaging](docs/user/storage-and-reimaging.md)
+- [Release process](docs/developer/release-process.md)
 - [日本語版](README.ja.md)
 
 The RK2020 has fewer physical buttons than several other plumOS devices. Read
@@ -74,3 +75,6 @@ The Docker build entry point is:
 plumOS-authored material is [MIT licensed](LICENSE). Stock/vendor boot material
 and third-party components retain their original terms. See [NOTICE.md](NOTICE.md)
 and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+The first formal RK2020 release is version **0.1.0**. Its SD-image and source
+archive filenames are defined in the [release process](docs/developer/release-process.md).

@@ -145,6 +145,10 @@ read back on real GKD RK2020 hardware.
 
 - `{archive_name}`: compressed SD-card image for GKD RK2020.
 - `plumOS-RK2020-v{version}-source.tar.gz`: exact release source, recipes, and patches.
+- `LICENSE`: MIT License for plumOS-authored material.
+- `NOTICE.md`: stock/vendor boundary and distribution notice.
+- `THIRD_PARTY_NOTICES.md` / `THIRD_PARTY_NOTICES.ja.md`: component-specific
+  license and attribution guide in English and Japanese.
 - `RELEASE_MANIFEST.json`: source/image provenance and immutable hashes.
 - `SHA256SUMS`: checksums for every release asset.
 
@@ -170,7 +174,7 @@ if network services are enabled.
 - RetroArch and the RK2020 libretro catalog, PicoArch, PCSX-ReARMed, DraStic,
   PPSSPP, OpenBOR, Pyxel, and user-supplied PICO-8 support;
 - PortMaster, File Manager, Music Player, scraping, and network services;
-- first-boot storage expansion, signed Runtime updates, and A/B System updates;
+- first-boot storage expansion and SD-image-based system replacement;
 - RK2020 display/input/audio/power integration and USB Wi-Fi support.
 
 ### RK2020-Specific Limits
@@ -202,8 +206,10 @@ working space are required.
 ### License
 
 plumOS-authored material is MIT-licensed. Stock/vendor files and bundled
-third-party components retain their own terms. See `LICENSE`, `NOTICE.md`, and
-`THIRD_PARTY_NOTICES.md` in the release source and app-layer license bundle.
+third-party components retain their own terms. The release includes `LICENSE`,
+`NOTICE.md`, `THIRD_PARTY_NOTICES.md`, and `THIRD_PARTY_NOTICES.ja.md` as
+directly readable assets. Detailed license texts and package metadata are also
+retained in the SD image's app-layer and System license bundles.
 
 ---
 
@@ -221,6 +227,10 @@ readback確認済みです。
 
 - `{archive_name}`: GKD RK2020用の圧縮SDカードimage
 - `plumOS-RK2020-v{version}-source.tar.gz`: 対応するsource、recipe、patch
+- `LICENSE`: plumOS作成部分に適用するMIT License
+- `NOTICE.md`: stock/vendor境界と配布上の注意
+- `THIRD_PARTY_NOTICES.md` / `THIRD_PARTY_NOTICES.ja.md`: componentごとの
+  license・帰属情報の日英一覧
 - `RELEASE_MANIFEST.json`: source/imageのprovenanceと固定hash
 - `SHA256SUMS`: 全release assetのchecksum
 
@@ -247,7 +257,7 @@ install後に変更してください。
 - RetroArchとRK2020 libretro catalog、PicoArch、PCSX-ReARMed、DraStic、
   PPSSPP、OpenBOR、Pyxel、利用者が用意するPICO-8への対応
 - PortMaster、File Manager、Music Player、scraping、network service
-- 初回storage拡張、署名Runtime update、A/B System update
+- 初回storage拡張とSD image再書き込みによるsystem更新
 - RK2020向けdisplay、input、audio、power、USB Wi-Fi統合
 
 ### RK2020固有の制限
@@ -277,9 +287,11 @@ Docker、pin済みupstream source取得用のinternet接続、7-Zip、十分な�
 
 ### ライセンス
 
-plumOS作成部分はMIT licenseです。stock/vendor fileと同梱third-party componentには
-それぞれの条件が適用されます。release sourceとapp-layer license bundleの`LICENSE`、
-`NOTICE.md`、`THIRD_PARTY_NOTICES.md`を確認してください。
+plumOS作成部分はMIT Licenseです。stock/vendor fileと同梱third-party componentには
+それぞれの条件が適用されます。release assetとして`LICENSE`、`NOTICE.md`、
+`THIRD_PARTY_NOTICES.md`、`THIRD_PARTY_NOTICES.ja.md`を直接参照できます。個別の
+license本文とpackage metadataもSD image内のapp-layerおよびSystem license bundleに
+保持しています。
 """,
         encoding="utf-8",
     )
@@ -333,11 +345,19 @@ def main() -> int:
     notes = release_dir / "RELEASE_NOTES.md"
     manifest = release_dir / "RELEASE_MANIFEST.json"
     checksums = release_dir / "SHA256SUMS"
+    license_assets = [
+        release_dir / "LICENSE",
+        release_dir / "NOTICE.md",
+        release_dir / "THIRD_PARTY_NOTICES.md",
+        release_dir / "THIRD_PARTY_NOTICES.ja.md",
+    ]
 
     compress_image(image, compressed)
     if decompressed_sha256(compressed, image.name) != image_meta["image_sha256"]:
         raise SystemExit("compressed image round-trip SHA-256 mismatch")
     make_source_archive(source_archive, version)
+    for destination in license_assets:
+        shutil.copyfile(ROOT / destination.name, destination)
     write_notes(
         notes,
         version,
@@ -372,13 +392,20 @@ def main() -> int:
             "size": source_archive.stat().st_size,
             "sha256": sha256(source_archive),
         },
+        "license_assets": {
+            path.name: {
+                "size": path.stat().st_size,
+                "sha256": sha256(path),
+            }
+            for path in license_assets
+        },
         "boot_substrate": "stock-rk2020-4.4.189",
         "runtime_dtb_policy": "exact-stock",
         "user_filesystem": "created-on-first-boot",
     }
     manifest.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
-    checksum_inputs = [compressed, source_archive, notes, manifest]
+    checksum_inputs = [compressed, source_archive, *license_assets, notes, manifest]
     checksums.write_text(
         "".join(f"{sha256(path)}  {path.name}\n" for path in checksum_inputs),
         encoding="utf-8",

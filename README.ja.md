@@ -36,6 +36,7 @@ update機構をplumOSで管理します。
 - [RK2020の操作とエミュレータhotkey](docs/user/operation.ja.md)
 - [対応システム・ROMフォルダ・core一覧](docs/user/supported-systems.ja.md)
 - [SDカードと再書き込み](docs/user/storage-and-reimaging.ja.md)
+- [リリース手順](docs/developer/release-process.ja.md)
 - [English project overview](README.md)
 
 RK2020は他のplumOS機種より物理ボタンが少なく、standalone emulatorごとにmenuや
@@ -71,3 +72,6 @@ Docker buildの入口は次のcommandです。
 plumOS作成部分には[MIT License](LICENSE)を適用します。stock/vendor boot materialと
 第三者componentは元の条件を維持します。詳細は[NOTICE.md](NOTICE.md)と
 [THIRD_PARTY_NOTICES日本語版](THIRD_PARTY_NOTICES.ja.md)を参照してください。
+
+RK2020の最初の正式releaseはversion **0.1.0**です。SD imageとsource archiveの
+file名は[リリース手順](docs/developer/release-process.ja.md)で定義しています。

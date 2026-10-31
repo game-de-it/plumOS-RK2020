@@ -3,6 +3,7 @@
 [日本語](README.ja.md) | [Documentation index](../README.md)
 
 - [Porting plan](../rk2020-porting-plan.md)
+- [Release process](release-process.md)
 - [Read-only stock OS inventory](../validation/2026-10-25-rk2020-read-only-inventory.md)
 - [Host build record](../validation/2026-10-25-rk2020-host-build.md)
 - [Boot behavior correction](../validation/2026-10-25-rk2020-boot-behavior-correction.md)
