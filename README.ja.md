@@ -1,30 +1,71 @@
 # plumOS RK2020
 
-[English](README.md) | [移植計画](docs/rk2020-porting-plan.md) |
-[SDカードと再書き込み](docs/user/storage-and-reimaging.ja.md) | [TODO](TODO.md)
+<p align="center">
+  <img src="docs/assets/screenshots/plumos-rk2020-device.jpg" alt="RK2020実機で動作するplumOS" width="720">
+</p>
 
-RK3326搭載のRK2020へplumOSシリーズを移植するためのリポジトリです。
-同じSoCで運用実績のあるplumOS Pixel2実装を出発点にしていますが、RK2020での
-検証結果は独立して管理します。Pixel2の過去資料は
-`docs/reference/pixel2/`へ隔離しており、RK2020の実機合格を意味しません。
+<table>
+  <tr>
+    <td width="33%" align="center">
+      <img src="docs/assets/screenshots/plumos-rk2020-graphic.png" alt="RK2020上のplumOSグラフィックシステム一覧" width="100%"><br>
+      <sub>グラフィックモード</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/assets/screenshots/plumos-rk2020-gallery.png" alt="RK2020上のplumOSギャラリーROM一覧" width="100%"><br>
+      <sub>ギャラリーモード</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/assets/screenshots/plumos-rk2020-text.png" alt="RK2020上のplumOSテキストシステム一覧" width="100%"><br>
+      <sub>テキストモード</sub>
+    </td>
+  </tr>
+</table>
 
-## 現在の段階
+plumOS RK2020は、RK3326搭載RK2020専用のSDカード起動Linuxディストリビューション
+です。stock由来のRockchip boot、kernel、device tree、module、firmwareを
+ハードウェア互換層として維持し、frontend、emulator、Apps、設定、電源管理、
+update機構をplumOSで管理します。
 
-現在は初期bring-upです。stock EmuELEC 4.8を読み取り専用で調査し、次の境界を
-採用します。
+## ドキュメント
 
-- Rockchip boot prefix、stock `KERNEL`、stock DTB、4.4.189用module/firmwareは
-  ハードウェア互換層として保持する。
-- stock `SYSTEM`は解析入力に限定し、生成イメージへコピーしない。
-- stock initramfsが`SYSTEM`をmountした後のPID 1、service、frontend、emulator、
-  update機構はplumOSが所有する。
-- stock SDは変更せず、起動試験は必ず別のSDカードで行う。
+利用者向けと開発者向けを分離し、それぞれ英語版と日本語版を用意しています。
 
-ホスト上のbuildやchecksum成功だけでは、実機のboot、320×480表示、入力、RK817
-audio、充電・電源、USB Wi-Fi、全emulator routeの合格にはなりません。
+- [ドキュメント索引](docs/README.ja.md)
+- [ユーザー向け取扱説明書](docs/user/README.ja.md)
+- [RK2020の操作とエミュレータhotkey](docs/user/operation.ja.md)
+- [SDカードと再書き込み](docs/user/storage-and-reimaging.ja.md)
+- [English project overview](README.md)
+
+RK2020は他のplumOS機種より物理ボタンが少なく、standalone emulatorごとにmenuや
+終了操作が異なります。ゲームを始める前に操作ガイドを確認してください。
+
+## ディストリビューション構成
+
+- RK2020専用SDカードイメージ。本体内蔵ストレージへのinstallは不要
+- stock Linux 4.4.189 kernelと対応するRK2020 hardware runtime
+- グラフィック、ギャラリー、テキスト表示に対応するplumOS frontend
+- RetroArch、PicoArch、standalone emulator、Apps、Pyxel、PortMaster
+- ROM、BIOS、save、screenshot、update用FAT user volume
+- Wi-Fi、SFTPファイル転送、scraping、sleep、安全なshutdown
+
+ROM、ゲーム機固有の有償・著作権保護BIOS、および製品版PICO-8 runtimeは同梱
+しません。利用権を持つデータだけを用意してください。
+
+## 開発
+
+同じRK3326を使うPixel2の実装履歴を出発点にしていますが、Pixel2の検証結果を
+RK2020の合格として扱いません。boot、display、input、audio、network、power、
+各emulator routeをRK2020実機で個別に検証します。詳細は
+[移植計画](docs/rk2020-porting-plan.md)と[TODO](TODO.md)を参照してください。
+
+Docker buildの入口は次のcommandです。
+
+```sh
+./scripts/docker-build.sh --help
+```
 
 ## ライセンス
 
-plumOS作成部分は[MIT License](LICENSE)です。stock/vendor boot materialと
-third-party componentはそれぞれ元の条件を保持します。vendor binaryはgitへ
-commitせず、ローカルの`artifacts/vendor/`で管理します。
+plumOS作成部分には[MIT License](LICENSE)を適用します。stock/vendor boot materialと
+第三者componentは元の条件を維持します。詳細は[NOTICE.md](NOTICE.md)と
+[THIRD_PARTY_NOTICES日本語版](THIRD_PARTY_NOTICES.ja.md)を参照してください。

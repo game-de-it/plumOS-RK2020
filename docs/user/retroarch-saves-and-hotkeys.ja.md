@@ -1,5 +1,7 @@
 # RK2020 RetroArchの操作とhotkey
 
+[English](retroarch-saves-and-hotkeys.md) | [本体操作](operation.ja.md)
+
 ## システムhotkey
 
 | 物理ボタン | 動作 |
