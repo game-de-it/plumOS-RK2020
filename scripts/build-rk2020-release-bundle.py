@@ -323,7 +323,7 @@ def main() -> int:
         raise SystemExit("image SHA-256 does not match image.manifest")
 
     if not args.skip_image_verifier:
-        boot_prefix = ROOT / "artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin"
+        boot_prefix = ROOT / "artifacts/vendor/rk2020-stock/rockchip-boot-prefix.bin"
         run(str(ROOT / "scripts/verify-sd-image.sh"), str(image), str(boot_prefix))
     run(
         str(ROOT / "scripts/audit-rk2020-release-content.py"),

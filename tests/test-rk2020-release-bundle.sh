@@ -72,6 +72,9 @@ fi
 grep -q 'release checksum mismatch: RELEASE_NOTES.md' "$work/reject.log"
 
 prepare="$ROOT_DIR/scripts/prepare-rk2020-release.sh"
+builder="$ROOT_DIR/scripts/build-rk2020-release-bundle.py"
+grep -q 'artifacts/vendor/rk2020-stock/rockchip-boot-prefix.bin' "$builder"
+! grep -q 'artifacts/vendor/rk2020-stock-source/rockchip-boot-prefix.bin' "$builder"
 test "$(grep -c 'docker-build.sh.*sd-image' "$prepare")" -eq 2
 test "$(grep -c 'run-rk2020-strict-release-gate.sh' "$prepare")" -eq 2
 grep -q 'Validate the exact second image' "$prepare"
