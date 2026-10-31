@@ -7,7 +7,7 @@
 <table>
   <tr>
     <td width="33%" align="center">
-      <img src="docs/assets/screenshots/plumos-rk2020-graphic.png" alt="RK2020上のplumOSグラフィックシステム一覧" width="100%"><br>
+      <img src="docs/assets/screenshots/plumos-rk2020-graphic-rgb.png" alt="RK2020上のplumOSグラフィックシステム一覧" width="100%"><br>
       <sub>グラフィックモード</sub>
     </td>
     <td width="33%" align="center">
@@ -15,7 +15,7 @@
       <sub>ギャラリーモード</sub>
     </td>
     <td width="33%" align="center">
-      <img src="docs/assets/screenshots/plumos-rk2020-text.png" alt="RK2020上のplumOSテキストシステム一覧" width="100%"><br>
+      <img src="docs/assets/screenshots/plumos-rk2020-text-rgb.png" alt="RK2020上のplumOSテキストシステム一覧" width="100%"><br>
       <sub>テキストモード</sub>
     </td>
   </tr>

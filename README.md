@@ -7,7 +7,7 @@
 <table>
   <tr>
     <td width="33%" align="center">
-      <img src="docs/assets/screenshots/plumos-rk2020-graphic.png" alt="plumOS graphic system view on RK2020" width="100%"><br>
+      <img src="docs/assets/screenshots/plumos-rk2020-graphic-rgb.png" alt="plumOS graphic system view on RK2020" width="100%"><br>
       <sub>Graphic mode</sub>
     </td>
     <td width="33%" align="center">
@@ -15,7 +15,7 @@
       <sub>Gallery mode</sub>
     </td>
     <td width="33%" align="center">
-      <img src="docs/assets/screenshots/plumos-rk2020-text.png" alt="plumOS text system view on RK2020" width="100%"><br>
+      <img src="docs/assets/screenshots/plumos-rk2020-text-rgb.png" alt="plumOS text system view on RK2020" width="100%"><br>
       <sub>Text mode</sub>
     </td>
   </tr>
