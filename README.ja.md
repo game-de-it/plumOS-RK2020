@@ -1,6 +1,7 @@
 # plumOS RK2020
 
-[English](README.md) | [移植計画](docs/rk2020-porting-plan.md) | [TODO](TODO.md)
+[English](README.md) | [移植計画](docs/rk2020-porting-plan.md) |
+[SDカードと再書き込み](docs/user/storage-and-reimaging.ja.md) | [TODO](TODO.md)
 
 RK3326搭載のRK2020へplumOSシリーズを移植するためのリポジトリです。
 同じSoCで運用実績のあるplumOS Pixel2実装を出発点にしていますが、RK2020での

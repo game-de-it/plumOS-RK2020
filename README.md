@@ -1,6 +1,7 @@
 # plumOS RK2020
 
-[日本語](README.ja.md) | [Porting plan](docs/rk2020-porting-plan.md) | [TODO](TODO.md)
+[日本語](README.ja.md) | [Porting plan](docs/rk2020-porting-plan.md) |
+[SD storage and reimaging](docs/user/storage-and-reimaging.md) | [TODO](TODO.md)
 
 This repository ports the plumOS family to the RK3326-based RK2020. It starts
 from the mature plumOS Pixel2 implementation because both devices use RK3326,
